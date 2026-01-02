@@ -1,0 +1,195 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "route": "日光街道",
+        "type": "宿場",
+        "name": "日本橋",
+        "no": 0
+      },
+      "geometry": null
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "route": "日光街道",
+        "type": "宿場",
+        "name": "千住宿",
+        "no": 1
+      },
+      "geometry": null
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "route": "日光街道",
+        "type": "宿場",
+        "name": "草加宿",
+        "no": 2
+      },
+      "geometry": null
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "route": "日光街道",
+        "type": "宿場",
+        "name": "越ヶ谷宿",
+        "no": 3
+      },
+      "geometry": null
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "route": "日光街道",
+        "type": "宿場",
+        "name": "粕壁宿",
+        "no": 4
+      },
+      "geometry": null
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "route": "日光街道",
+        "type": "宿場",
+        "name": "杉戸宿",
+        "no": 5
+      },
+      "geometry": null
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "route": "日光街道",
+        "type": "宿場",
+        "name": "幸手宿",
+        "no": 6
+      },
+      "geometry": null
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "route": "日光街道",
+        "type": "宿場",
+        "name": "栗橋宿",
+        "no": 7
+      },
+      "geometry": null
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "route": "日光街道",
+        "type": "宿場",
+        "name": "古河宿",
+        "no": 8
+      },
+      "geometry": null
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "route": "日光街道",
+        "type": "宿場",
+        "name": "間々田宿",
+        "no": 9
+      },
+      "geometry": null
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "route": "日光街道",
+        "type": "宿場",
+        "name": "小山宿",
+        "no": 10
+      },
+      "geometry": null
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "route": "日光街道",
+        "type": "宿場",
+        "name": "石橋宿",
+        "no": 11
+      },
+      "geometry": null
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "route": "日光街道",
+        "type": "宿場",
+        "name": "雀宮宿",
+        "no": 12
+      },
+      "geometry": null
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "route": "日光街道",
+        "type": "宿場",
+        "name": "宇都宮宿",
+        "no": 13
+      },
+      "geometry": null
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "route": "日光街道",
+        "type": "宿場",
+        "name": "徳次郎宿",
+        "no": 14
+      },
+      "geometry": null
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "route": "日光街道",
+        "type": "宿場",
+        "name": "大沢宿",
+        "no": 15
+      },
+      "geometry": null
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "route": "日光街道",
+        "type": "宿場",
+        "name": "今市宿",
+        "no": 16
+      },
+      "geometry": null
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "route": "日光街道",
+        "type": "宿場",
+        "name": "日光",
+        "no": 17
+      },
+      "geometry": null
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "route": "日光街道",
+        "type": "一里塚",
+        "name": "★判断不可★",
+        "note": "一里塚の座標(Point)を追加してください"
+      },
+      "geometry": null
+    }
+  ]
+}
