@@ -49,7 +49,8 @@
   background:#fff;
   font-weight: 800;
   cursor:pointer;
-}
+min-height:48px;min-width:48px;}
+
 .kaido-panel__actions{ display:flex; gap:8px; margin-top:10px; }
 .kaido-panel__hint{ margin-top:8px; color:#444; font-size:12px; line-height:1.35; }
 .poi-label-icon{ background:none; border:none; }
@@ -617,6 +618,7 @@ body.sheet-collapsed .panel > .row{
   // ルート・宿場の索引（次の宿場判定用）
   const routeCache = {};   // route -> { latlngs: L.LatLng[], cum: number[] }
   const stationIndex = {}; // route -> [{route,type,name,no,lat,lng}]
+  const dataErrors = {}; // route -> true if load failed
 
   const ROUTES = {
     "東海道": "data/tokaido_strict.geojson",
@@ -725,24 +727,37 @@ body.sheet-collapsed .panel > .row{
   function getNextStation(routeName, hereLL){
     const list = stationIndex[routeName] || [];
     if (!list.length) return null;
+    const reachedNo = parseInt(localStorage.getItem(`lastReachedNo:${routeName}`) || "0", 10) || 0;
 
     const snHere = snapToRoute(routeName, hereLL);
     const sHere = snHere ? snHere.s : null;
 
     // no（順序）がある場合は「近傍宿場のno」から前方を選ぶ（軽い）
     const hasNo = list.some(x=>x.no != null);
-    if (hasNo && sHere != null){
-      // 近傍宿場（直線）を取り、そのno+1 を候補に（蛇行に強い）
-      let nearest = null;
-      for (const st of list){
-        const d = hereLL.distanceTo(L.latLng(st.lat, st.lng));
-        if (!nearest || d < nearest.d) nearest = { st, d };
+    const listByNo = hasNo ? list.filter(s=>s.no!=null && s.no > reachedNo) : list;
+
+    if (hasNo){
+      // 到達済みnoより先だけを対象（逆走時のバタつき防止）
+      if (listByNo.length){
+        if (sHere != null){
+          let bestNo = null;
+          for (const st of listByNo){
+            const s = routeSForPoint(routeName, L.latLng(st.lat, st.lng));
+            if (s == null) continue;
+            const d = s - sHere;
+            if (d < 5) continue;
+            if (!bestNo || d < bestNo.d) bestNo = { ...st, d };
+          }
+          if (bestNo) return bestNo;
+        }
+        // Sが取れない場合は、最小noを次にする
+        let minNo = null;
+        for (const st of listByNo){
+          if (minNo == null || st.no < minNo.no) minNo = st;
+        }
+        if (minNo) return minNo;
       }
-      const baseNo = (nearest && nearest.st.no != null) ? nearest.st.no : null;
-      if (baseNo != null){
-        const cand = list.find(s=>s.no === baseNo + 1);
-        if (cand) return cand;
-      }
+      // reachedNoが末尾を超えた等は、後続のS判定へフォールバック
     }
 
     // 精度版：S（ルート距離）で前方最小を選ぶ
@@ -786,6 +801,12 @@ body.sheet-collapsed .panel > .row{
     }
     if (stampState.inSince && (now - stampState.inSince) >= 15000){
       localStorage.setItem(key, "1");
+      // 到達noの永続化（次回以降の前方判定に利用）
+      if (station.no != null){
+        const lk = `lastReachedNo:${routeName}`;
+        const prev = parseInt(localStorage.getItem(lk) || "0", 10) || 0;
+        if (station.no > prev) localStorage.setItem(lk, String(station.no));
+      }
       try { showToast(`${station.name} に到達！`); } catch(e){}
       stampState.inSince = null;
     }
@@ -805,7 +826,7 @@ function ensureRoute(name){
         window.__kaidoAutoFitDone = true;
         try { map.fitBounds(kaidoLayers[name].getBounds(), { padding:[30,30] }); } catch(e){}
       }
-    }).catch(e=>console.warn(e));
+    }).catch(e=>{ dataErrors[name]=true; console.warn(e); });
     return kaidoLayers[name];
   }
 
@@ -1717,10 +1738,23 @@ let currentPos = null;
       return;
     }
 
+    const routes = Array.from(enabledRoutes);
+
+    // データ欠落ガード（未ロード/不正データでクラッシュしない）
+    const anyError = routes.some(r=>dataErrors[r]);
+    const anyMissing = routes.some(r=>(!(stationIndex[r]&&stationIndex[r].length) || !routeCache[r]));
+    if (anyError){
+      out.textContent = "データ読み込み失敗…（更新/再読み込みしてください）";
+      return;
+    }
+    if (anyMissing){
+      out.textContent = "データ読み込み中...";
+      return;
+    }
+
     const hereLL = L.latLng(lat, lng);
 
     // 1街道ならそれを優先、複数なら「道なり距離が最短」の候補を選ぶ
-    const routes = Array.from(enabledRoutes);
     let best = null;
 
     for (const routeName of routes){
