@@ -1,0 +1,339 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>街道検索ハブ｜宿場・街道を一気に調べる</title>
+  <meta name="description" content="宿場名を入れるだけで、見どころ・歴史・距離・地図・画像まで一気に検索できる街道検索ハブです。" />
+  <link rel="stylesheet" href="search_hub.css">
+</head>
+
+<body>
+<header class="header">
+  <div class="container header-inner">
+    <div class="brand">
+      <div class="brand-title">街道検索ハブ</div>
+      <div class="brand-sub">宿場・街道を一気に調べる</div>
+    </div>
+    <a class="btn btn-ghost" href="index.html">トップへ</a>
+  </div>
+</header>
+
+<main class="container">
+  <section class="card">
+    <h1 class="h1">宿場名を入れて検索</h1>
+    <p class="lead">例：追分宿 / 軽井沢宿 / 馬籠宿 / 熊野古道 など</p>
+
+    <div class="grid">
+      <div class="field">
+        <label class="label" for="place">宿場・キーワード</label>
+        <input id="place" class="input" type="search" placeholder="例：追分宿" enterkeyhint="search" autocomplete="off">
+      </div>
+
+      <div class="field">
+        <label class="label" for="route">街道・補助語</label>
+        <select id="route" class="select">
+          <option value="">（指定なし）</option>
+          <option value="中山道">中山道</option>
+          <option value="熊野古道">熊野古道</option>
+          <option value="北国街道">北国街道</option>
+          <option value="塩の道">塩の道</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label class="label" for="engine">検索エンジン</label>
+        <select id="engine" class="select">
+          <option value="google" selected>Google</option>
+          <option value="yahoo">Yahoo</option>
+          <option value="bing">Bing</option>
+          <option value="duckduckgo">DuckDuckGo</option>
+          <option value="yandex">Yandex</option>
+          <option value="youtube">YouTube</option>
+          <option value="amazon">Amazon</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label class="label">動作</label>
+        <div class="row">
+          <label class="check">
+            <input id="newtab" type="checkbox" checked>
+            <span>新しいタブで開く</span>
+          </label>
+          <label class="check">
+            <input id="multitab" type="checkbox">
+            <span>同時検索（複数タブ）</span>
+          </label>
+        </div>
+        <div class="hint">※同時検索ON時は「まとめ検索」が便利です</div>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button class="btn btn-primary" id="btnMain">検索</button>
+      <button class="btn" id="btnQuick">まとめ検索</button>
+      <button class="btn btn-ghost" id="btnClear">クリア</button>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2 class="h2">よく使う検索テンプレ</h2>
+    <p class="lead small">「宿場名＋街道」を自動で付けて検索します。</p>
+
+    <div class="chips" id="chips">
+      <button class="chip" data-q="{PLACE} 見どころ">見どころ</button>
+      <button class="chip" data-q="{PLACE} 歴史">歴史</button>
+      <button class="chip" data-q="{PLACE} 由来">由来</button>
+      <button class="chip" data-q="{PLACE} 分去れ 道標">道標・分かれ道</button>
+      <button class="chip" data-q="{PLACE} 距離">距離</button>
+      <button class="chip" data-q="{PLACE} 旧街道 町並み">旧街道・町並み</button>
+      <button class="chip" data-q="{PLACE} アクセス">アクセス</button>
+      <button class="chip" data-q="{PLACE} 写真">写真</button>
+      <button class="chip" data-q="{PLACE} 地図">地図</button>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2 class="h2">ワンタップ外部リンク</h2>
+    <p class="lead small">検索より早い“直リンク”です。</p>
+
+    <div class="linkcards">
+      <button class="linkcard" data-kind="map">
+        <div class="lc-title">Google マップ</div>
+        <div class="lc-text">場所を地図で確認</div>
+      </button>
+      <button class="linkcard" data-kind="wikipedia">
+        <div class="lc-title">Wikipedia</div>
+        <div class="lc-text">概要をざっと掴む</div>
+      </button>
+      <button class="linkcard" data-kind="images">
+        <div class="lc-title">画像検索</div>
+        <div class="lc-text">雰囲気を一気に掴む</div>
+      </button>
+      <button class="linkcard" data-kind="youtube">
+        <div class="lc-title">YouTube</div>
+        <div class="lc-text">現地映像を探す</div>
+      </button>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2 class="h2">履歴（端末内）</h2>
+    <div class="history" id="history"></div>
+    <div class="actions">
+      <button class="btn btn-ghost" id="btnClearHistory">履歴を消す</button>
+    </div>
+  </section>
+</main>
+
+<script>
+  const $ = (id) => document.getElementById(id);
+
+  const ENGINE = {
+    google: (q) => `https://www.google.com/search?q=${encodeURIComponent(q)}`,
+    yahoo: (q) => `https://search.yahoo.co.jp/search?p=${encodeURIComponent(q)}`,
+    bing: (q) => `https://www.bing.com/search?q=${encodeURIComponent(q)}`,
+    duckduckgo: (q) => `https://duckduckgo.com/?q=${encodeURIComponent(q)}`,
+    yandex: (q) => `https://yandex.com/search/?text=${encodeURIComponent(q)}`,
+    youtube: (q) => `https://www.youtube.com/results?search_query=${encodeURIComponent(q)}`,
+    amazon: (q) => `https://www.amazon.co.jp/s?k=${encodeURIComponent(q)}`
+  };
+
+  const HISTORY_KEY = "sehub_history_v1";
+  const SETTINGS_KEY = "sehub_settings_v1";
+
+  function loadSettings(){
+    try {
+      const s = JSON.parse(localStorage.getItem(SETTINGS_KEY) || "{}");
+      if (s.place) $("place").value = s.place;
+      if (s.route != null) $("route").value = s.route;
+      if (s.engine) $("engine").value = s.engine;
+      $("newtab").checked = s.newtab ?? true;
+      $("multitab").checked = s.multitab ?? false;
+    } catch {}
+  }
+
+  function saveSettings(){
+    const s = {
+      place: $("place").value,
+      route: $("route").value,
+      engine: $("engine").value,
+      newtab: $("newtab").checked,
+      multitab: $("multitab").checked
+    };
+    localStorage.setItem(SETTINGS_KEY, JSON.stringify(s));
+  }
+
+  function normalizeQuery(place, route, tail){
+    const base = place.trim();
+    if (!base) return "";
+    const r = route ? route.trim() : "";
+    const head = r ? `${base} ${r}` : base;
+    return tail ? `${head} ${tail}` : head;
+  }
+
+  function openUrl(url){
+    if ($("newtab").checked) window.open(url, "_blank", "noopener,noreferrer");
+    else location.href = url;
+  }
+
+  function pushHistory(q){
+    const now = new Date();
+    const item = { q, t: now.toISOString() };
+    const list = loadHistory();
+    // 重複を前に
+    const filtered = list.filter(x => x.q !== q);
+    filtered.unshift(item);
+    localStorage.setItem(HISTORY_KEY, JSON.stringify(filtered.slice(0, 30)));
+    renderHistory();
+  }
+
+  function loadHistory(){
+    try { return JSON.parse(localStorage.getItem(HISTORY_KEY) || "[]"); }
+    catch { return []; }
+  }
+
+  function renderHistory(){
+    const el = $("history");
+    const list = loadHistory();
+    if (!list.length){
+      el.innerHTML = `<div class="empty">まだ履歴はありません。</div>`;
+      return;
+    }
+    el.innerHTML = list.map((x, i) => {
+      const d = new Date(x.t);
+      const label = `${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,"0")}/${String(d.getDate()).padStart(2,"0")}`;
+      return `
+        <div class="hist-item">
+          <div class="hist-q">${escapeHtml(x.q)}</div>
+          <div class="hist-meta">${label}</div>
+          <div class="hist-actions">
+            <button class="mini" data-run="${escapeAttr(x.q)}">検索</button>
+          </div>
+        </div>
+      `;
+    }).join("");
+
+    el.querySelectorAll("button[data-run]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const q = btn.getAttribute("data-run");
+        runSearch(q);
+      });
+    });
+  }
+
+  function escapeHtml(s){
+    return (s || "").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#39;");
+  }
+  function escapeAttr(s){
+    return escapeHtml(s).replaceAll("\n"," ");
+  }
+
+  function runSearch(query){
+    saveSettings();
+    const engine = $("engine").value;
+    const url = ENGINE[engine](query);
+    openUrl(url);
+    pushHistory(query);
+  }
+
+  function mainQuery(){
+    const place = $("place").value;
+    const route = $("route").value;
+    return normalizeQuery(place, route, "");
+  }
+
+  function multiQueries(){
+    const place = $("place").value;
+    const route = $("route").value;
+    const base = normalizeQuery(place, route, "");
+    if (!base) return [];
+    return [
+      base,
+      normalizeQuery(place, route, "見どころ"),
+      normalizeQuery(place, route, "歴史"),
+      normalizeQuery(place, route, "距離"),
+      normalizeQuery(place, route, "地図")
+    ];
+  }
+
+  $("btnMain").addEventListener("click", () => {
+    const q = mainQuery();
+    if (!q) return;
+    if ($("multitab").checked) {
+      multiQueries().forEach(runSearch);
+    } else {
+      runSearch(q);
+    }
+  });
+
+  $("btnQuick").addEventListener("click", () => {
+    const qs = multiQueries();
+    if (!qs.length) return;
+    // 同時検索は常に新タブ推奨
+    $("newtab").checked = true;
+    qs.forEach(runSearch);
+  });
+
+  $("btnClear").addEventListener("click", () => {
+    $("place").value = "";
+    $("place").focus();
+    saveSettings();
+  });
+
+  $("btnClearHistory").addEventListener("click", () => {
+    localStorage.removeItem(HISTORY_KEY);
+    renderHistory();
+  });
+
+  $("place").addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      $("btnMain").click();
+    }
+  });
+
+  // テンプレチップ
+  $("chips").addEventListener("click", (e) => {
+    const btn = e.target.closest("button[data-q]");
+    if (!btn) return;
+    const place = $("place").value.trim();
+    if (!place) { $("place").focus(); return; }
+
+    const route = $("route").value;
+    const tpl = btn.getAttribute("data-q");
+    const tail = tpl.replace("{PLACE}", place).replace(/\s+/g, " ").trim();
+    const q = route ? `${tail} ${route}` : tail;
+    runSearch(q);
+  });
+
+  // ワンタップ外部リンク
+  document.querySelectorAll(".linkcard").forEach(card => {
+    card.addEventListener("click", () => {
+      const place = $("place").value.trim();
+      if (!place) { $("place").focus(); return; }
+      const route = $("route").value;
+      const q = route ? `${place} ${route}` : place;
+      const kind = card.getAttribute("data-kind");
+
+      let url = "";
+      if (kind === "map") url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(q)}`;
+      if (kind === "wikipedia") url = `https://ja.wikipedia.org/wiki/${encodeURIComponent(place)}`;
+      if (kind === "images") url = `https://www.google.com/search?tbm=isch&q=${encodeURIComponent(q)}`;
+      if (kind === "youtube") url = `https://www.youtube.com/results?search_query=${encodeURIComponent(q)}`;
+
+      if (url) {
+        $("newtab").checked = true;
+        openUrl(url);
+        pushHistory(q);
+      }
+    });
+  });
+
+  // 初期化
+  loadSettings();
+  renderHistory();
+</script>
+</body>
+</html>

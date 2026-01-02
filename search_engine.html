@@ -1,0 +1,243 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>検索ツール｜search engine list</title>
+  <meta name="description" content="検索エンジンを選んで素早く検索できるツールです。" />
+  <link rel="stylesheet" href="search_engine.css">
+</head>
+
+<body>
+  <header class="header">
+    <div class="container header-inner">
+      <div class="brand">
+        <div class="brand-title">検索ツール</div>
+        <div class="brand-sub">Search engine quick launcher</div>
+      </div>
+      <a class="btn btn-ghost" href="index.html">トップへ</a>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="card">
+      <h1 class="h1">すばやく検索</h1>
+      <p class="lead">キーワードを入れて、実用検索はワンタップ。懐かし枠も残しています。</p>
+
+      <div class="controls">
+        <label class="label" for="q">キーワード</label>
+        <div class="searchbar">
+          <input
+            id="q"
+            class="input"
+            type="search"
+            placeholder="例：追分宿 中山道 見どころ"
+            autocomplete="off"
+            enterkeyhint="search"
+          />
+          <button type="button" class="btn btn-primary" id="btnSearch">検索</button>
+        </div>
+
+        <div class="row">
+          <label class="check">
+            <input id="newtab" type="checkbox" checked>
+            <span>新しいタブで開く</span>
+          </label>
+          <label class="check">
+            <input id="remember" type="checkbox" checked>
+            <span>設定を記憶</span>
+          </label>
+        </div>
+
+        <div class="hint">※ Enterキーでも検索できます（最後に選んだ検索先で実行）</div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2 class="h2">実用検索（ワンタップ）</h2>
+      <p class="lead small">よく使う検索先を上に集約しました。最後に使ったものが選択状態になります。</p>
+
+      <div class="engine-buttons" id="practicalButtons">
+        <button class="engine-btn" data-engine="google">Google</button>
+        <button class="engine-btn" data-engine="bing">Bing</button>
+        <button class="engine-btn" data-engine="duckduckgo">DuckDuckGo</button>
+        <button class="engine-btn" data-engine="gimage">Google画像</button>
+        <button class="engine-btn" data-engine="gmap">Googleマップ</button>
+        <button class="engine-btn" data-engine="youtube">YouTube</button>
+        <button class="engine-btn" data-engine="wikipedia">Wikipedia</button>
+        <button class="engine-btn" data-engine="amazon">Amazon</button>
+      </div>
+
+      <div class="divider"></div>
+
+      <label class="label" for="engineSelect">検索先（プルダウンでも選べます）</label>
+      <select id="engineSelect" class="select" aria-label="検索先を選択">
+        <optgroup label="実用検索">
+          <option value="google">Google</option>
+          <option value="bing">Bing</option>
+          <option value="duckduckgo">DuckDuckGo</option>
+          <option value="gimage">Google画像</option>
+          <option value="gmap">Googleマップ</option>
+          <option value="youtube">YouTube</option>
+          <option value="wikipedia">Wikipedia</option>
+          <option value="amazon">Amazon</option>
+        </optgroup>
+
+        <optgroup label="懐かし検索">
+          <option value="yahoo">Yahoo</option>
+          <option value="lycos">Lycos</option>
+          <option value="excite">Excite</option>
+          <option value="yandex">Yandex</option>
+        </optgroup>
+      </select>
+    </section>
+
+    <section class="card">
+      <details class="details">
+        <summary class="summary">懐かしの検索エンジン（開く）</summary>
+        <p class="lead small">残しておきたい枠。必要なときだけ使えます。</p>
+
+        <div class="engine-buttons nostalgic">
+          <button class="engine-btn" data-engine="yahoo">Yahoo</button>
+          <button class="engine-btn" data-engine="lycos">Lycos</button>
+          <button class="engine-btn" data-engine="excite">Excite</button>
+          <button class="engine-btn" data-engine="yandex">Yandex</button>
+        </div>
+
+        <div class="table-wrap" role="region" aria-label="検索エンジン一覧（横スクロール可）" tabindex="0">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>name</th>
+                <th>url</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td>Google</td><td><a href="https://www.google.com/" target="_blank" rel="noopener noreferrer">https://www.google.com/</a></td></tr>
+              <tr><td>Bing</td><td><a href="https://www.bing.com/" target="_blank" rel="noopener noreferrer">https://www.bing.com/</a></td></tr>
+              <tr><td>DuckDuckGo</td><td><a href="https://duckduckgo.com/" target="_blank" rel="noopener noreferrer">https://duckduckgo.com/</a></td></tr>
+              <tr><td>Yahoo</td><td><a href="https://search.yahoo.co.jp/" target="_blank" rel="noopener noreferrer">https://search.yahoo.co.jp/</a></td></tr>
+              <tr><td>Yandex</td><td><a href="https://yandex.com/" target="_blank" rel="noopener noreferrer">https://yandex.com/</a></td></tr>
+              <tr><td>Lycos</td><td><a href="https://search.lycos.com/" target="_blank" rel="noopener noreferrer">https://search.lycos.com/</a></td></tr>
+              <tr><td>Excite</td><td><a href="https://www.excite.com/" target="_blank" rel="noopener noreferrer">https://www.excite.com/</a></td></tr>
+              <tr><td>YouTube</td><td><a href="https://www.youtube.com/" target="_blank" rel="noopener noreferrer">https://www.youtube.com/</a></td></tr>
+              <tr><td>Wikipedia</td><td><a href="https://ja.wikipedia.org/" target="_blank" rel="noopener noreferrer">https://ja.wikipedia.org/</a></td></tr>
+              <tr><td>Amazon</td><td><a href="https://www.amazon.co.jp/" target="_blank" rel="noopener noreferrer">https://www.amazon.co.jp/</a></td></tr>
+              <tr><td>Googleマップ</td><td><a href="https://www.google.com/maps" target="_blank" rel="noopener noreferrer">https://www.google.com/maps</a></td></tr>
+              <tr><td>Google画像</td><td><a href="https://www.google.com/imghp" target="_blank" rel="noopener noreferrer">https://www.google.com/imghp</a></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </details>
+    </section>
+  </main>
+
+  <script>
+    const STORAGE_KEY = "se_settings_v2";
+
+    const ENGINE = {
+      google: (q) => `https://www.google.com/search?q=${encodeURIComponent(q)}`,
+      bing: (q) => `https://www.bing.com/search?q=${encodeURIComponent(q)}`,
+      duckduckgo: (q) => `https://duckduckgo.com/?q=${encodeURIComponent(q)}`,
+      yahoo: (q) => `https://search.yahoo.co.jp/search?p=${encodeURIComponent(q)}`,
+      yandex: (q) => `https://yandex.com/search/?text=${encodeURIComponent(q)}`,
+      lycos: (q) => `https://search.lycos.com/web/?q=${encodeURIComponent(q)}`,
+      excite: (q) => `https://results.excite.com/serp?q=${encodeURIComponent(q)}`,
+      youtube: (q) => `https://www.youtube.com/results?search_query=${encodeURIComponent(q)}`,
+      amazon: (q) => `https://www.amazon.co.jp/s?k=${encodeURIComponent(q)}`,
+      gmap: (q) => `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(q)}`,
+      gimage: (q) => `https://www.google.com/search?tbm=isch&q=${encodeURIComponent(q)}`,
+      wikipedia: (q) => `https://ja.wikipedia.org/wiki/${encodeURIComponent(q.replace(/\s+/g, "_"))}`
+    };
+
+    const $ = (id) => document.getElementById(id);
+
+    function saveSettings() {
+      if (!$("remember").checked) return;
+      const s = {
+        q: $("q").value,
+        engine: $("engineSelect").value,
+        newtab: $("newtab").checked,
+        remember: $("remember").checked
+      };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(s));
+    }
+
+    function loadSettings() {
+      try {
+        const s = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
+        if (typeof s.q === "string") $("q").value = s.q;
+        if (typeof s.engine === "string" && s.engine) $("engineSelect").value = s.engine;
+        if (typeof s.newtab === "boolean") $("newtab").checked = s.newtab;
+        if (typeof s.remember === "boolean") $("remember").checked = s.remember;
+      } catch {}
+      syncActiveButton();
+    }
+
+    function openUrl(url) {
+      if ($("newtab").checked) window.open(url, "_blank", "noopener,noreferrer");
+      else location.href = url;
+    }
+
+    function run(engineKey) {
+      const q = $("q").value.trim();
+      if (!q) { $("q").focus(); return; }
+
+      const fn = ENGINE[engineKey];
+      if (!fn) return;
+
+      $("engineSelect").value = engineKey;
+      syncActiveButton();
+      saveSettings();
+      openUrl(fn(q));
+    }
+
+    function runSelected() {
+      run($("engineSelect").value);
+    }
+
+    function syncActiveButton() {
+      const current = $("engineSelect").value;
+      document.querySelectorAll(".engine-btn").forEach(btn => {
+        const on = btn.dataset.engine === current;
+        btn.classList.toggle("is-active", on);
+        btn.setAttribute("aria-pressed", on ? "true" : "false");
+      });
+    }
+
+    // 実用ボタン
+    document.addEventListener("click", (e) => {
+      const btn = e.target.closest(".engine-btn");
+      if (!btn) return;
+      run(btn.dataset.engine);
+    });
+
+    // プルダウン変更
+    $("engineSelect").addEventListener("change", () => {
+      syncActiveButton();
+      saveSettings();
+    });
+
+    // 検索ボタン
+    $("btnSearch").addEventListener("click", runSelected);
+
+    // Enterで検索
+    $("q").addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        runSelected();
+      }
+    });
+
+    // 設定変更は随時保存
+    $("newtab").addEventListener("change", saveSettings);
+    $("remember").addEventListener("change", saveSettings);
+    $("q").addEventListener("input", () => {
+      // 入力中は保存しすぎない（軽量に）
+      // ここでは保存しない。検索実行時に保存。
+    });
+
+    loadSettings();
+  </script>
+</body>
+</html>

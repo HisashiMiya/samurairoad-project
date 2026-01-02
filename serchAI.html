@@ -1,0 +1,452 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>AI Cockpit & Search</title>
+  <meta name="description" content="AIと検索を統合した司令室ツール" />
+  <link rel="stylesheet" href="search_engine.css">
+  <style>
+    /* 追加スタイル：AIモード用（元のまま＋道具棚） */
+    .mode-select-wrap {
+      margin-bottom: 1rem;
+      background: #f0f4f8;
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid #dce3e8;
+    }
+    .mode-label {
+      font-weight: bold;
+      font-size: 0.9rem;
+      color: #333;
+      display: block;
+      margin-bottom: 0.5rem;
+    }
+    .ai-badge {
+      display: inline-block;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      margin-left: 5px;
+      background: #e2e8f0;
+      color: #475569;
+    }
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0,0,0,0.85);
+      color: #fff;
+      padding: 10px 16px;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      opacity: 0;
+      transition: opacity 0.25s;
+      pointer-events: none;
+      z-index: 999;
+      max-width: calc(100% - 24px);
+      text-align: center;
+    }
+    .toast.show { opacity: 1; }
+
+    /* 道具棚 */
+    .shelf-grid{
+      display:grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+      margin-top: 10px;
+    }
+    @media (min-width: 720px){
+      .shelf-grid{ grid-template-columns: 1fr 1fr; }
+    }
+    .shelf-item{
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      padding: 12px;
+      background: #fff;
+    }
+    .shelf-title{
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+    .shelf-desc{
+      margin: 0 0 10px;
+      color: #555;
+      font-size: 0.92rem;
+      line-height: 1.5;
+    }
+    .shelf-actions{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+    }
+    .btn-shelf{
+      min-height: 44px;
+      padding: 10px 12px;
+      border-radius: 999px;
+      border: 1px solid #d0d7de;
+      background: #fff;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    .btn-shelf:hover{ background:#f6f8fa; }
+    .note{
+      font-size: 0.85rem;
+      color: #666;
+      margin-top: 10px;
+      line-height: 1.6;
+    }
+    .note small{ color:#777; }
+    .row2{
+      display:flex;
+      gap:12px;
+      flex-wrap:wrap;
+      align-items:center;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+
+<body>
+  <header class="header">
+    <div class="container header-inner">
+      <div class="brand">
+        <div class="brand-title">AI Cockpit</div>
+        <div class="brand-sub">SamuraiRoad & Data Analysis Hub</div>
+      </div>
+      <a class="btn btn-ghost" href="index.html">トップへ</a>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="card">
+      <h1 class="h1">司令室 (Command Center)</h1>
+      <p class="lead">キーワードを入力し、AIまたは検索エンジンを選択してください。</p>
+
+      <div class="controls">
+        <div class="mode-select-wrap">
+          <label class="mode-label" for="promptMode">
+            🛠️ 動作モード（自動で指示を付与します）
+          </label>
+          <select id="promptMode" class="select">
+            <option value="normal">通常検索（キーワードのみ）</option>
+            <option value="history">歴史調査 (SamuraiRoad用)</option>
+            <option value="code">コーディング (Web制作)</option>
+            <option value="summary">要約・整理 (長文など)</option>
+            <option value="analysis">データ分析 (統計/競馬/競輪/オート/ボート)</option>
+          </select>
+          <div class="row2">
+            <label class="check">
+              <input id="copyOnAI" type="checkbox" checked>
+              <span>AIボタン押下で指示を自動コピー</span>
+            </label>
+            <label class="check">
+              <input id="preferRawForSearch" type="checkbox" checked>
+              <span>検索エンジンには短いキーワードのみ送る</span>
+            </label>
+          </div>
+        </div>
+
+        <label class="label" for="q">入力・指示内容</label>
+        <div class="searchbar">
+          <input
+            id="q"
+            class="input"
+            type="search"
+            placeholder="例：須原宿 水船 歴史 / 明日の川口オート 12R"
+            autocomplete="off"
+            enterkeyhint="search"
+          />
+          <button type="button" class="btn btn-primary" id="btnSearch">実行</button>
+        </div>
+
+        <div class="row">
+          <label class="check">
+            <input id="newtab" type="checkbox" checked>
+            <span>新しいタブで開く</span>
+          </label>
+          <label class="check">
+            <input id="remember" type="checkbox" checked>
+            <span>設定を記憶</span>
+          </label>
+        </div>
+
+        <div class="hint">※ Enterキーは「Google」で実行（必要なら後で“最後に使った先”にもできます）</div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2 class="h2">AI エージェント <span class="lead small">※自動コピー機能付き</span></h2>
+      <p class="lead small">ボタンを押すと、現在の「モード」に合わせた指示文をコピーしてサイトを開きます（対応ブラウザのみ）。あとは貼り付けるだけ。</p>
+
+      <div class="engine-buttons" id="aiButtons">
+        <button class="engine-btn" data-engine="chatgpt">ChatGPT</button>
+        <button class="engine-btn" data-engine="gemini">Gemini</button>
+        <button class="engine-btn" data-engine="perplexity">Perplexity</button>
+        <button class="engine-btn" data-engine="copilot">Copilot</button>
+        <button class="engine-btn" data-engine="claude">Claude</button>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2 class="h2">Web検索・ツール</h2>
+      <div class="engine-buttons" id="practicalButtons">
+        <button class="engine-btn" data-engine="google">Google</button>
+        <button class="engine-btn" data-engine="gmap">Googleマップ</button>
+        <button class="engine-btn" data-engine="youtube">YouTube</button>
+        <button class="engine-btn" data-engine="wikipedia">Wikipedia</button>
+        <button class="engine-btn" data-engine="gimage">Google画像</button>
+        <button class="engine-btn" data-engine="amazon">Amazon</button>
+      </div>
+
+      <div class="divider"></div>
+
+      <details class="details">
+        <summary class="summary">その他の検索エンジン</summary>
+        <div class="engine-buttons nostalgic">
+          <button class="engine-btn" data-engine="bing">Bing</button>
+          <button class="engine-btn" data-engine="duckduckgo">DuckDuckGo</button>
+          <button class="engine-btn" data-engine="yahoo">Yahoo</button>
+        </div>
+      </details>
+    </section>
+
+    <!-- ③ 道具棚（Amazon導線） -->
+    <section class="card">
+      <h2 class="h2">道具棚（街道歩き・制作の装備） <span class="ai-badge">Amazon</span></h2>
+      <p class="lead small">押し売りではなく「次の一歩に必要な道具」を置く棚です。検索クエリで開くので、品切れにも強いです。</p>
+
+      <div class="shelf-grid" id="gearShelf">
+        <!-- JSで生成 -->
+      </div>
+
+      <p class="note">
+        <small>※アフィリエイト利用時は、ページどこかに「当サイトはアフィリエイトリンクを含みます」等の表記を置くのが安全です。</small>
+      </p>
+    </section>
+  </main>
+
+  <div id="toast" class="toast">指示をコピーしました。貼り付けてください</div>
+
+  <script>
+    const STORAGE_KEY = "ai_cockpit_v11";
+    const $ = (id) => document.getElementById(id);
+
+    // AmazonアソシエイトID（持っていれば入れる。例：yourtag-22）
+    const AMAZON_TAG = ""; // ←必要なら設定
+
+    const PROMPTS = {
+      normal: (q) => q,
+      history: (q) => `あなたは歴史の専門家です。以下のテーマについて、江戸時代の史実や文献に基づき、正確かつ詳細に解説してください。観光客が興味を持ちそうな逸話があればそれも含めてください。\n\nテーマ: ${q}`,
+      analysis: (q) => `あなたはデータアナリストです。以下の対象について、過去のデータや傾向を分析し、論理的な予測や考察を行ってください。勝率や期待値などの観点も含めてください。\n\n対象: ${q}`,
+      code: (q) => `あなたは優秀なWebエンジニアです。以下の要件を実現するための、モダンでクリーンなコード（HTML/CSS/JS等）を作成してください。解説は簡潔にお願いします。\n\n要件: ${q}`,
+      summary: (q) => `以下の内容を、要点を押さえて分かりやすく要約してください。箇条書きを使って構造化してください。\n\n内容: ${q}`
+    };
+
+    // isAI: trueなら「コピー＆GO」寄り
+    const ENGINE = {
+      // AI
+      chatgpt:    { url: "https://chatgpt.com/", isAI: true },
+      gemini:     { url: "https://gemini.google.com/app", isAI: true },
+      perplexity: { url: (q) => `https://www.perplexity.ai/search?q=${encodeURIComponent(q)}`, isAI: false },
+      copilot:    { url: "https://copilot.microsoft.com/", isAI: true },
+      claude:     { url: "https://claude.ai/new", isAI: true },
+
+      // Search
+      google:     { url: (q) => `https://www.google.com/search?q=${encodeURIComponent(q)}`, isAI: false },
+      bing:       { url: (q) => `https://www.bing.com/search?q=${encodeURIComponent(q)}`, isAI: false },
+      duckduckgo: { url: (q) => `https://duckduckgo.com/?q=${encodeURIComponent(q)}`, isAI: false },
+      yahoo:      { url: (q) => `https://search.yahoo.co.jp/search?p=${encodeURIComponent(q)}`, isAI: false },
+      youtube:    { url: (q) => `https://www.youtube.com/results?search_query=${encodeURIComponent(q)}`, isAI: false },
+      amazon:     { url: (q) => buildAmazonSearchUrl(q), isAI: false },
+      gmap:       { url: (q) => `https://www.google.com/maps/search/${encodeURIComponent(q)}`, isAI: false },
+      gimage:     { url: (q) => `https://www.google.com/search?tbm=isch&q=${encodeURIComponent(q)}`, isAI: false },
+      wikipedia:  { url: (q) => `https://ja.wikipedia.org/wiki/${encodeURIComponent(q.replace(/\s+/g, "_"))}`, isAI: false }
+    };
+
+    function showToast(msg) {
+      const t = $("toast");
+      t.textContent = msg;
+      t.classList.add("show");
+      setTimeout(() => t.classList.remove("show"), 2200);
+    }
+
+    function saveSettings() {
+      if (!$("remember").checked) return;
+      const s = {
+        q: $("q").value,
+        mode: $("promptMode").value,
+        newtab: $("newtab").checked,
+        remember: $("remember").checked,
+        copyOnAI: $("copyOnAI").checked,
+        preferRawForSearch: $("preferRawForSearch").checked
+      };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(s));
+    }
+
+    function loadSettings() {
+      try {
+        const s = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
+        if (typeof s.q === "string") $("q").value = s.q;
+        if (typeof s.mode === "string") $("promptMode").value = s.mode;
+        if (typeof s.newtab === "boolean") $("newtab").checked = s.newtab;
+        if (typeof s.remember === "boolean") $("remember").checked = s.remember;
+        if (typeof s.copyOnAI === "boolean") $("copyOnAI").checked = s.copyOnAI;
+        if (typeof s.preferRawForSearch === "boolean") $("preferRawForSearch").checked = s.preferRawForSearch;
+      } catch {}
+    }
+
+    function openUrl(url) {
+      if ($("newtab").checked) window.open(url, "_blank", "noopener,noreferrer");
+      else location.href = url;
+    }
+
+    function buildAmazonSearchUrl(q) {
+      const base = `https://www.amazon.co.jp/s?k=${encodeURIComponent(q)}`;
+      if (!AMAZON_TAG) return base;
+      // tagパラメータは商品ページで効きやすいが、検索URLにも付けておくと後続で引き継がれることがある
+      return base + `&tag=${encodeURIComponent(AMAZON_TAG)}`;
+    }
+
+    async function maybeCopy(text, label) {
+      if (!$("copyOnAI").checked) return;
+      if (!text) return;
+      try {
+        await navigator.clipboard.writeText(text);
+        showToast(label || "指示をコピーしました");
+      } catch (e) {
+        console.warn("Copy failed", e);
+        // 失敗しても致命ではないので、通知だけ
+        showToast("コピー失敗（ブラウザ制限の可能性）");
+      }
+    }
+
+    function buildFinalQuery(rawQ) {
+      const mode = $("promptMode").value;
+      const generator = PROMPTS[mode] || PROMPTS.normal;
+      return { mode, final: generator(rawQ) };
+    }
+
+    async function run(engineKey) {
+      const rawQ = $("q").value.trim();
+      const conf = ENGINE[engineKey];
+      if (!conf) return;
+
+      // 何も入力がない場合、検索は止め、AIは開くだけ許可
+      if (!rawQ && !conf.isAI && engineKey !== "perplexity") {
+        $("q").focus();
+        return;
+      }
+
+      saveSettings();
+
+      const { mode, final } = buildFinalQuery(rawQ);
+
+      // AI系：コピーして開く（PerplexityはURLに乗せる方が強いので例外）
+      if (conf.isAI) {
+        await maybeCopy(final, `【${mode}モード】指示をコピーしました`);
+        const targetUrl = typeof conf.url === "function" ? conf.url(final) : conf.url;
+        openUrl(targetUrl);
+        return;
+      }
+
+      // 検索系：短いキーワードを優先（チェックで切替）
+      const qForSearch = $("preferRawForSearch").checked ? rawQ : final;
+      const targetUrl = typeof conf.url === "function" ? conf.url(qForSearch) : conf.url;
+      openUrl(targetUrl);
+    }
+
+    // 道具棚（検索クエリで開く：品切れに強い＆更新不要）
+    const SHELF = [
+      {
+        title: "街道歩き：モバイルバッテリー",
+        desc: "長距離歩行の生命線。薄型・軽量・急速充電が便利。",
+        q: "モバイルバッテリー 10000mAh 軽量 急速充電"
+      },
+      {
+        title: "街道歩き：歩きやすい靴",
+        desc: "石畳や舗装路が混ざるので、クッション性と滑りにくさ重視。",
+        q: "ウォーキングシューズ メンズ レディース クッション 滑りにくい"
+      },
+      {
+        title: "街道歩き：雨対策",
+        desc: "突然の雨に。薄手レインウェア＋防水スタッフバッグが快適。",
+        q: "レインウェア 上下 セット 軽量 防水"
+      },
+      {
+        title: "街道歩き：ガイドブック",
+        desc: "宿場の背景が分かると歩きが楽しくなる。地図付きがおすすめ。",
+        q: "中山道 ガイドブック 宿場 歴史"
+      },
+      {
+        title: "制作：作業効率アップ（キーボード）",
+        desc: "文章・コードが多いなら、静音・打鍵感の良いものが効く。",
+        q: "キーボード 静音 テンキーレス"
+      },
+      {
+        title: "制作：マイク（動画/音声）",
+        desc: "レビュー動画や解説の音質が上がると視聴維持率が上がりやすい。",
+        q: "USB マイク ノイズ抑制"
+      }
+    ];
+
+    function renderShelf() {
+      const wrap = $("gearShelf");
+      wrap.innerHTML = "";
+      SHELF.forEach((item) => {
+        const el = document.createElement("div");
+        el.className = "shelf-item";
+        el.innerHTML = `
+          <div class="shelf-title">${item.title}</div>
+          <p class="shelf-desc">${item.desc}</p>
+          <div class="shelf-actions">
+            <button class="btn-shelf" data-shelf-q="${encodeURIComponent(item.q)}">Amazonで探す</button>
+            <button class="btn-shelf" data-shelf-copy="${encodeURIComponent(item.q)}">検索語をコピー</button>
+          </div>
+        `;
+        wrap.appendChild(el);
+      });
+    }
+
+    // クリック（多重登録しない形に修正）
+    document.addEventListener("click", async (e) => {
+      const btn = e.target.closest(".engine-btn");
+      if (btn) {
+        run(btn.dataset.engine);
+        return;
+      }
+      const shelfBtn = e.target.closest(".btn-shelf");
+      if (shelfBtn) {
+        const q1 = shelfBtn.getAttribute("data-shelf-q");
+        const q2 = shelfBtn.getAttribute("data-shelf-copy");
+        if (q1) {
+          openUrl(buildAmazonSearchUrl(decodeURIComponent(q1)));
+        } else if (q2) {
+          await maybeCopy(decodeURIComponent(q2), "検索語をコピーしました");
+        }
+        return;
+      }
+    });
+
+    $("btnSearch").addEventListener("click", () => run("google"));
+
+    $("promptMode").addEventListener("change", saveSettings);
+    $("newtab").addEventListener("change", saveSettings);
+    $("remember").addEventListener("change", saveSettings);
+    $("copyOnAI").addEventListener("change", saveSettings);
+    $("preferRawForSearch").addEventListener("change", saveSettings);
+
+    $("q").addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        run("google");
+      }
+    });
+
+    loadSettings();
+    renderShelf();
+  </script>
+</body>
+</html>

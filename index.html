@@ -708,7 +708,36 @@ body.sheet-collapsed .panel > .row{
     // pointLL をルートにスナップし、始点からのSを返す
     const sn = snapToRoute(routeName, pointLL);
     return sn ? sn.s : null;
+  
+  function latLngAtRouteS(routeName, s){
+    const c = routeCache[routeName];
+    if (!c || !c.latlngs || c.latlngs.length < 2) return null;
+    const total = c.cum[c.cum.length-1];
+    if (!(s>=0) || total<=0) return null;
+    // clamp
+    if (s <= 0) return c.latlngs[0];
+    if (s >= total) return c.latlngs[c.latlngs.length-1];
+    // find segment (linear scan; route points are not huge. can optimize later)
+    let i = 0;
+    while (i < c.cum.length-1 && c.cum[i+1] < s) i++;
+    const s0 = c.cum[i], s1 = c.cum[i+1];
+    const t = (s - s0) / (s1 - s0);
+    const a = c.latlngs[i], b = c.latlngs[i+1];
+    return L.latLng(a.lat + (b.lat-a.lat)*t, a.lng + (b.lng-a.lng)*t);
   }
+
+  function synthesizePoiPointIfMissing(routeName, props, maxNo){
+    // プロパティnoに基づき、ルートの始点〜終点を等分して仮配置（参加型前提の暫定）
+    // ルートにsnakeしても「前方判定」は安定する。精度は後で修正提案で上げる。
+    const no = Number(props?.no);
+    if (!Number.isFinite(no) || !Number.isFinite(maxNo) || maxNo <= 0) return null;
+    const c = routeCache[routeName];
+    if (!c || !c.cum || c.cum.length < 2) return null;
+    const total = c.cum[c.cum.length-1];
+    const s = total * Math.min(Math.max(no / maxNo, 0), 1);
+    return latLngAtRouteS(routeName, s);
+  }
+}
 
   function calculateRouteDistance(currentLatLng, routeName, nextStationLatLng){
     // 道なり距離（m）。ルートキャッシュがない場合は直線距離でフォールバック
@@ -918,10 +947,24 @@ function ensureRoute(name){
       const st = ensureStationLayer(route); st.clearLayers();
       stationIndex[route] = [];
       if (ichirizukaLayers[route]) ichirizukaLayers[route].clearLayers();
-      (fc.features||[]).forEach(f=>{
+      (const features = (fc.features||[]);
+      // no の最大値（等分仮配置に使用）
+      const maxNo = (features.reduce((mx,f)=>Math.max(mx, Number(f?.properties?.no)), -Infinity));
+      features.forEach(f=>{
         const p = f.properties || {};
-        const g = f.geometry;
-        if (!g || g.type !== "Point") return; // 未設定はスキップ
+        let g = f.geometry;
+        if (!g || g.type !== "Point"){
+          // 座標が入っていないPOIは、ルートに沿って仮配置（参加型の暫定）して“動く”状態を作る
+          const ll = synthesizePoiPointIfMissing(route, p, maxNo);
+          if (ll){
+            p._provisional = true;
+            p.confidence = p.confidence || "low";
+            g = { type: "Point", coordinates: [ll.lng, ll.lat] };
+          } else {
+            return; // まだルート未ロード等
+          }
+        }
+
         if (p.type === "宿場") addStationFeature(route, p, g);
         if (p.type === "一里塚") addIchirizukaFeature(route, p, g);
       });
