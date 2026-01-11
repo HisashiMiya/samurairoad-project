@@ -1,0 +1,334 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Online Shogi + Chat (CF Workers/DO)</title>
+  <style>
+    :root{--bg:#0b1020;--card:#111a33;--line:rgba(255,255,255,.12);--text:#e8eefc;--muted:#b9c6ea;--accent:#7aa2ff;}
+    body{margin:0;background:linear-gradient(180deg,#070b18,var(--bg));color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,"Noto Sans JP",sans-serif;}
+    .wrap{max-width:1100px;margin:0 auto;padding:16px;display:grid;gap:14px}
+    @media(min-width:980px){.wrap{grid-template-columns: 1fr 360px;align-items:start}}
+    .card{background:rgba(17,26,51,.55);border:1px solid var(--line);border-radius:16px;padding:14px}
+    h1{font-size:1.2rem;margin:0 0 8px}
+    .muted{color:var(--muted);font-size:.92rem;line-height:1.6}
+    .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+    .btn{min-height:44px;padding:10px 14px;border-radius:999px;border:1px solid var(--line);background:#0f1730;color:var(--text);cursor:pointer;font-weight:700}
+    .btn.primary{background:#1c2a55;border-color:rgba(122,162,255,.45)}
+    .input{min-height:44px;border-radius:12px;border:1px solid var(--line);background:#0f1730;color:var(--text);padding:10px 12px;width:100%}
+    .status{padding:10px;border-radius:12px;background:rgba(0,0,0,.25);border:1px solid var(--line);font-size:.92rem}
+    .board{
+      display:grid;grid-template-columns:repeat(9,1fr);
+      aspect-ratio:1/1;width:min(92vw,640px);margin:0 auto;
+      border:1px solid var(--line);border-radius:14px;overflow:hidden;background:rgba(255,255,255,.04);
+    }
+    .sq{display:flex;align-items:center;justify-content:center;border:1px solid rgba(255,255,255,.06);user-select:none;position:relative;font-weight:800;
+      font-size:clamp(12px,2.1vw,20px);cursor:pointer;}
+    .sq:hover{background:rgba(122,162,255,.08)}
+    .sq.sel{outline:2px solid var(--accent);outline-offset:-2px;background:rgba(122,162,255,.12)}
+    .coord{position:absolute;bottom:4px;right:6px;font-size:10px;color:rgba(255,255,255,.35);font-weight:600}
+    .pS{color:#e8eefc}
+    .pG{color:#ffcc66;transform:rotate(180deg)}
+    .hands{display:grid;gap:10px;margin-top:10px}
+    .hand{border:1px solid var(--line);border-radius:12px;padding:10px;background:rgba(0,0,0,.18)}
+    .handTitle{font-weight:800;margin-bottom:6px}
+    .handPieces{display:flex;gap:8px;flex-wrap:wrap}
+    .chip{border:1px solid rgba(255,255,255,.12);border-radius:999px;padding:6px 10px;font-weight:800;cursor:pointer;background:rgba(255,255,255,.04)}
+    .chip.sel{outline:2px solid var(--accent)}
+    .chatLog{height:320px;overflow:auto;border:1px solid var(--line);border-radius:12px;padding:10px;background:rgba(0,0,0,.22)}
+    .msg{margin:0 0 8px}
+    .msg b{color:var(--accent)}
+    .small{font-size:.85rem;color:var(--muted)}
+    code{background:rgba(255,255,255,.08);padding:2px 6px;border-radius:6px}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <section class="card">
+      <h1>オンライン将棋 + チャット（Workers/DO）</h1>
+      <p class="muted">
+        URLの <code>#room=xxxx</code> を共有すると同じ部屋に入れます。<br>
+        MVPのため合法手・成り・王手判定は未対応（次段階で追加できます）。
+      </p>
+
+      <div class="row" style="margin:10px 0">
+        <input id="name" class="input" style="max-width:220px" placeholder="名前" />
+        <button class="btn primary" id="btnConnect">接続</button>
+        <button class="btn" id="btnCopyUrl">部屋URLコピー</button>
+        <button class="btn" id="btnReset">リセット</button>
+      </div>
+
+      <div class="status" id="status">未接続</div>
+
+      <div style="margin-top:12px">
+        <div class="board" id="board"></div>
+
+        <div class="hands">
+          <div class="hand">
+            <div class="handTitle">持ち駒（自分の手番で打てます）</div>
+            <div class="handPieces" id="hand"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <aside class="card">
+      <h1>チャット</h1>
+      <div class="chatLog" id="chatLog"></div>
+      <div class="row" style="margin-top:10px">
+        <input id="chatInput" class="input" placeholder="メッセージ…" />
+      </div>
+      <div class="row" style="margin-top:10px">
+        <button class="btn primary" id="btnSend">送信</button>
+      </div>
+      <p class="small">※観戦者もチャット可能。対局は先着2人がプレイヤーになります。</p>
+    </aside>
+  </div>
+
+<script>
+(() => {
+  // ★ここを自分のWorker URLに変更★
+  const WORKER_BASE = "https://YOUR-WORKER.workers.dev";
+
+  const PIECE = {K:"王",R:"飛",B:"角",G:"金",S:"銀",N:"桂",L:"香",P:"歩"};
+
+  const $ = (id) => document.getElementById(id);
+  const boardEl = $("board");
+  const statusEl = $("status");
+  const handEl = $("hand");
+  const chatLog = $("chatLog");
+
+  let ws = null;
+  let you = { name:"", role:"spectator" };
+  let game = null;
+
+  let selected = null; // {r,c}
+  let selectedDrop = null; // "P" etc
+
+  function roomId() {
+    const h = location.hash || "";
+    const m = h.match(/room=([a-zA-Z0-9_-]+)/);
+    if (m) return m[1];
+    // auto-generate if missing
+    const id = Math.random().toString(36).slice(2, 8);
+    location.hash = `room=${id}`;
+    return id;
+  }
+
+  function setStatus(text){ statusEl.textContent = text; }
+
+  function coordLabel(r,c){
+    const file = 9 - c;
+    const rank = r + 1;
+    return `${file}${rank}`;
+  }
+
+  function renderBoard(){
+    if (!game) return;
+    boardEl.innerHTML = "";
+    for (let r=0; r<9; r++){
+      for (let c=0; c<9; c++){
+        const cell = game.board[r][c];
+        const sq = document.createElement("div");
+        sq.className = "sq";
+        sq.dataset.r = r;
+        sq.dataset.c = c;
+        if (selected && selected.r===r && selected.c===c) sq.classList.add("sel");
+
+        if (cell){
+          const span = document.createElement("span");
+          span.className = cell.side==="S" ? "pS" : "pG";
+          span.textContent = PIECE[cell.p] || cell.p;
+          sq.appendChild(span);
+        }
+        const coord = document.createElement("span");
+        coord.className = "coord";
+        coord.textContent = coordLabel(r,c);
+        sq.appendChild(coord);
+
+        boardEl.appendChild(sq);
+      }
+    }
+    renderHand();
+  }
+
+  function mySide(){
+    // MVP: seat mapping is done on server; we infer side by turn display only.
+    // We'll allow action only if role=player; server enforces turn anyway.
+    return null;
+  }
+
+  function renderHand(){
+    handEl.innerHTML = "";
+    if (!game) return;
+    const h = game.hand[game.turn] || {}; // show current-turn hand? better show your own, but seat mapping is MVP
+    // For better UX: show both hands? Here show current-turn side’s hand to simplify.
+    const keys = Object.keys(h).sort();
+    if (keys.length === 0) {
+      const s = document.createElement("span");
+      s.className = "small";
+      s.textContent = "なし";
+      handEl.appendChild(s);
+      return;
+    }
+    keys.forEach(p => {
+      const b = document.createElement("button");
+      b.type="button";
+      b.className = "chip" + (selectedDrop===p ? " sel" : "");
+      b.textContent = `${PIECE[p]}×${h[p]}`;
+      b.dataset.piece = p;
+      handEl.appendChild(b);
+    });
+  }
+
+  function appendChat(name, text, t){
+    const p = document.createElement("p");
+    p.className = "msg";
+    const time = new Date(t || Date.now()).toLocaleTimeString();
+    p.innerHTML = `<b>${escapeHtml(name)}</b> <span class="small">${escapeHtml(time)}</span><br>${escapeHtml(text)}`;
+    chatLog.appendChild(p);
+    chatLog.scrollTop = chatLog.scrollHeight;
+  }
+
+  function escapeHtml(s){
+    return String(s).replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#39;");
+  }
+
+  function connect(){
+    const rid = roomId();
+    const name = ($("name").value || "You").trim().slice(0,24);
+    you.name = name;
+
+    if (ws) { try{ ws.close(); }catch{} ws=null; }
+
+    const u = new URL(WORKER_BASE.replace(/^http/,"ws") + `/ws/${encodeURIComponent(rid)}`);
+    u.searchParams.set("name", name);
+
+    ws = new WebSocket(u.toString());
+
+    ws.onopen = () => setStatus(`接続中… room=${rid}`);
+    ws.onclose = () => setStatus("切断されました");
+    ws.onerror = () => setStatus("接続エラー（Worker URLを確認してください）");
+
+    ws.onmessage = (ev) => {
+      const m = JSON.parse(ev.data);
+
+      if (m.type === "init") {
+        you.role = m.you.role;
+        game = m.game;
+        setStatus(`接続完了：${you.role} / 手番=${game.turn==="S"?"先手(S)":"後手(G)"}`);
+        // render chat history
+        chatLog.innerHTML = "";
+        (game.chat || []).forEach(e => appendChat(e.name, e.text, e.t));
+        renderBoard();
+        return;
+      }
+
+      if (m.type === "state") {
+        game = m.game;
+        setStatus(`更新：手番=${game.turn==="S"?"先手(S)":"後手(G)"} / あなた=${you.role}`);
+        selected = null;
+        selectedDrop = null;
+        renderBoard();
+        return;
+      }
+
+      if (m.type === "chat") {
+        appendChat(m.entry.name, m.entry.text, m.entry.t);
+        return;
+      }
+
+      if (m.type === "presence") {
+        appendChat("system", m.message, Date.now());
+        return;
+      }
+
+      if (m.type === "error") {
+        appendChat("error", m.message, Date.now());
+        return;
+      }
+
+      if (m.type === "role") {
+        you.role = m.role;
+        appendChat("system", `あなたの役割：${m.role}`, Date.now());
+        setStatus(`役割更新：${m.role}`);
+        return;
+      }
+    };
+  }
+
+  // Board clicks
+  boardEl.addEventListener("click", (e) => {
+    if (!ws || ws.readyState !== 1 || !game) return;
+    const sq = e.target.closest(".sq");
+    if (!sq) return;
+    const r = Number(sq.dataset.r);
+    const c = Number(sq.dataset.c);
+
+    // drop selected
+    if (selectedDrop) {
+      ws.send(JSON.stringify({ type:"move", kind:"drop", dropPiece:selectedDrop, to:{r,c} }));
+      return;
+    }
+
+    const cell = game.board[r][c];
+
+    if (!selected) {
+      if (!cell) return;
+      selected = {r,c};
+      renderBoard();
+      return;
+    }
+
+    // second click => move
+    ws.send(JSON.stringify({ type:"move", kind:"board", from:selected, to:{r,c} }));
+  });
+
+  // hand piece select
+  document.addEventListener("click", (e) => {
+    const chip = e.target.closest(".chip");
+    if (!chip) return;
+    const p = chip.dataset.piece;
+    if (!p) return;
+    selectedDrop = (selectedDrop === p) ? null : p;
+    selected = null;
+    renderBoard();
+  });
+
+  // chat
+  function sendChat(){
+    if (!ws || ws.readyState !== 1) return;
+    const text = ($("chatInput").value || "").trim();
+    if (!text) return;
+    ws.send(JSON.stringify({ type:"chat", text }));
+    $("chatInput").value = "";
+  }
+
+  $("btnConnect").addEventListener("click", connect);
+  $("btnSend").addEventListener("click", sendChat);
+  $("chatInput").addEventListener("keydown", (e) => {
+    if (e.key==="Enter") { e.preventDefault(); sendChat(); }
+  });
+
+  $("btnReset").addEventListener("click", () => {
+    if (!ws || ws.readyState !== 1) return;
+    ws.send(JSON.stringify({ type:"reset" }));
+  });
+
+  $("btnCopyUrl").addEventListener("click", async () => {
+    try{
+      await navigator.clipboard.writeText(location.href);
+      appendChat("system", "部屋URLをコピーしました", Date.now());
+    }catch{
+      appendChat("system", "コピーできませんでした（手動でURLをコピーしてください）", Date.now());
+    }
+  });
+
+  // init
+  $("name").value = localStorage.getItem("shogi_name") || "You";
+  $("name").addEventListener("change", () => localStorage.setItem("shogi_name", $("name").value));
+  roomId(); // ensure hash exists
+})();
+</script>
+</body>
+</html>
