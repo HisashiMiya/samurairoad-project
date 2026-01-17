@@ -18,11 +18,12 @@
     <section class="card">
       <h1>極み将棋：ヘルプ</h1>
       <div class="row" style="margin-top:10px">
-        <a class="btn primary" href="./">対局画面へ戻る</a>
-        <a class="btn ghost" href="./#room=lobby">ロビーへ</a>
+        <a class="btn primary" href="./shogi.html">対局画面へ戻る</a>
+        <a class="btn ghost" href="./shogi.html?room=lobby">ロビーへ</a>
       </div>
       <p class="muted note" style="margin-top:12px">
-        このページは「操作順」のヘルプです<br>
+        このページは「操作順」を最短で理解できるようにまとめたものです。<br>
+        サーバ（Worker/DO）は中継のみで、盤面や棋譜の意味理解はクライアント側で完結します。
       </p>
     </section>
 
@@ -63,8 +64,7 @@
       <ol class="steps note">
         <li>「持ち駒」エリアで駒を選びます（自分の手番のみ選択可）。</li>
         <li>盤の空マスをタップすると打てます。</li>
-        <li>二歩・行き所のない駒の打ちは最低限ガードされています。</li>
-        <li>駒の移動先は自由です。ルール違反もできます。</li>
+        <li>二歩・行き所のない駒の打ちは最低限ガードされています（MVP）。</li>
       </ol>
     </section>
 
@@ -72,7 +72,7 @@
       <h1>4. 成り（確認／強制成り）</h1>
       <div class="note">
         <div>・成れる手は確認が出ます。</div>
-        <div>・行き所のない駒は強制成りになります。</div>
+        <div>・行き所のない駒など、必要な場合は強制成りになります。</div>
       </div>
     </section>
 
