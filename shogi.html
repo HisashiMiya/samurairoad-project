@@ -67,6 +67,7 @@
       <div class="tabs">
         <button class="btn" id="tabSettings" type="button">設定</button>
         <button class="btn" id="tabKifu" type="button">棋譜</button>
+        <a class="btn" id="tabHelp" href="./shogihelp.html" target="_blank" rel="noopener">ヘルプ</a>
         <button class="btn ghost closeBtn" id="btnDrawerClose" type="button">×</button>
       </div>
 
@@ -93,6 +94,18 @@
     </div>
   </div>
 
+  
+  <!-- UI Modal (no browser alert/confirm) -->
+  <div id="uiModal" style="display:none;position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,.6)">
+    <div style="max-width:520px;margin:12vh auto 0;background:rgba(17,26,51,.98);border:1px solid rgba(255,255,255,.14);border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,.45);padding:14px 14px 12px">
+      <div id="uiModalMsg" style="line-height:1.7"></div>
+      <div class="row" style="margin-top:12px;justify-content:flex-end;gap:8px">
+        <button class="btn ghost" id="uiModalCancel" type="button" style="display:none">キャンセル</button>
+        <button class="btn primary" id="uiModalOk" type="button">OK</button>
+      </div>
+    </div>
+  </div>
+
   <div class="wrap">
     <section class="card" id="gamePanel">
       <h1>極み将棋</h1>
@@ -103,7 +116,7 @@
       <div class="row" style="margin:10px 0">
         <input id="name" class="input" style="max-width:220px" placeholder="名前" />
         <button class="btn primary" id="btnConnect">接続</button>
-        <button class="btn" id="btnCopyUrl">部屋URLコピー</button>
+        <button class="btn" id="btnCopyUrl">部屋コピー</button>
         <button class="btn" id="btnReset">リセット</button>
         <button class="btn" id="btnFull">⛶ 全画面</button>
         <button class="btn chatToggle" id="btnChatToggle">💬 チャット</button>
@@ -215,6 +228,55 @@
   const btnCopyUrl = document.getElementById("btnCopyUrl");
   const btnReset = document.getElementById("btnReset");
   const btnFull = document.getElementById("btnFull");
+
+  // ---- UI Modal (replace browser alert/confirm to avoid site/title display) ----
+  const uiModal = document.getElementById("uiModal");
+  const uiModalMsg = document.getElementById("uiModalMsg");
+  const uiModalOk = document.getElementById("uiModalOk");
+  const uiModalCancel = document.getElementById("uiModalCancel");
+
+  function uiAlert(message){
+    return new Promise((resolve)=>{
+      if (!uiModal) { window.alert(message); resolve(); return; }
+      uiModalMsg.textContent = message;
+      uiModalCancel.style.display = "none";
+      uiModalOk.textContent = "OK";
+      uiModal.style.display = "block";
+      const done = ()=>{ uiModal.style.display="none"; cleanup(); resolve(); };
+      const onOk = ()=>done();
+      const onBg = (e)=>{ if(e.target===uiModal) done(); };
+      function cleanup(){
+        uiModalOk.removeEventListener("click", onOk);
+        uiModal.removeEventListener("click", onBg);
+      }
+      uiModalOk.addEventListener("click", onOk);
+      uiModal.addEventListener("click", onBg);
+    });
+  }
+
+  function uiConfirm(message, okText="OK", cancelText="キャンセル"){
+    return new Promise((resolve)=>{
+      if (!uiModal) { resolve(window.confirm(message)); return; }
+      uiModalMsg.textContent = message;
+      uiModalCancel.style.display = "inline-flex";
+      uiModalOk.textContent = okText;
+      uiModalCancel.textContent = cancelText;
+      uiModal.style.display = "block";
+      const done = (v)=>{ uiModal.style.display="none"; cleanup(); resolve(v); };
+      const onOk = ()=>done(true);
+      const onCancel = ()=>done(false);
+      const onBg = (e)=>{ if(e.target===uiModal) done(false); };
+      function cleanup(){
+        uiModalOk.removeEventListener("click", onOk);
+        uiModalCancel.removeEventListener("click", onCancel);
+        uiModal.removeEventListener("click", onBg);
+      }
+      uiModalOk.addEventListener("click", onOk);
+      uiModalCancel.addEventListener("click", onCancel);
+      uiModal.addEventListener("click", onBg);
+    });
+  }
+
   const btnChatToggle = document.getElementById("btnChatToggle");
   const chatLog = document.getElementById("chatLog");
   const chatInput = document.getElementById("chatInput");
@@ -321,6 +383,7 @@
 
   // ---- 棋譜 自動取得（ローカル保存） ----
   let kifuAutoEnabled = false;
+  let suppressAutoLoadOnce = false; // reset等でローカル自動読込を一度だけ抑止
 
   function kifuStorageKey(){
     return `kiwami_kifu_v1:${currentRoom()}`;
@@ -491,15 +554,42 @@ selected = null;
   }
 
   function importKifuJSON(text){
+    // tolerate pasted logs / timestamps / BOM etc.
+    let t = (text || "").trim();
+
+    // Strip UTF-8 BOM if present
+    if (t.charCodeAt(0) === 0xFEFF) t = t.slice(1).trim();
+
+    // If user pasted with prefix (e.g., "2026/01/17 16:57 ...{json}")
+    const firstObj = t.search(/[\{\[]/);
+    if (firstObj > 0) t = t.slice(firstObj).trim();
+
     let obj = null;
-    try{ obj = JSON.parse(text); }catch{ return { ok:false, msg:"JSONとして解析できません" }; }
-    if (!obj || !Array.isArray(obj.moves)) return { ok:false, msg:"moves配列が見つかりません" };
+    try{
+      obj = JSON.parse(t);
+    }catch(e){
+      const msg = (e && e.message) ? e.message : "parse error";
+      return { ok:false, msg:`JSONとして解析できません（${msg}）` };
+    }
+
+    // Accept formats:
+    // 1) {moves:[...]}
+    // 2) {kifu:{moves:[...]}}
+    // 3) [...]  (array of records)
+    let moves = null;
+    if (Array.isArray(obj)) moves = obj;
+    else if (obj && Array.isArray(obj.moves)) moves = obj.moves;
+    else if (obj && obj.kifu && Array.isArray(obj.kifu.moves)) moves = obj.kifu.moves;
+
+    if (!moves) return { ok:false, msg:"moves配列が見つかりません" };
+
     ensureKifu(game);
-    game.kifu.moves = obj.moves;
-    game.kifu.cursor = obj.moves.length;
+    game.kifu.moves = moves;
+    game.kifu.cursor = moves.length;
     rebuildToCursor(game.kifu.cursor);
-    return { ok:true, msg:`インポートOK（手数 ${obj.moves.length}）` };
+    return { ok:true, msg:`インポートOK（手数 ${moves.length}）` };
   }
+
 
   let myName = "guest";
   let mySide = null; // "S" or "G" is learned from your first move/drop
@@ -517,7 +607,9 @@ selected = null;
   }
 
   function setTurnUI(){
-    const t = game.turn === "S" ? "先手" : "後手";
+    const base = (game.turn === "S") ? "先手" : "後手";
+    const you = (mySide && game.turn === mySide) ? "（あなた）" : "";
+    const t = base + you;
     turnText.textContent = `手番: ${t}`;
     handHintS.textContent = (game.turn === "S") ? "（手番なら選択できます）" : "";
     handHintG.textContent = (game.turn === "G") ? "（手番なら選択できます）" : "";
@@ -538,8 +630,8 @@ selected = null;
   }
 
   function showWinPopup(winnerSide){
-    // 要望：王が取られた後は「XXXの勝ち」だけポップアップ表示
-    window.alert(`${sideLabel(winnerSide)}の勝ち`);
+    // 王が取られた後は「勝ち」だけ表示（ブラウザalertは使わない）
+    uiAlert(`${sideLabel(winnerSide)}の勝ち`);
   }
 
 
@@ -620,17 +712,23 @@ selected = null;
   function appendChat(user, text){
     const div = document.createElement("div");
     div.className = "msg";
-    div.innerHTML = `<b>${escapeHtml(user)}</b> ${escapeHtml(text)}`;
+    div.innerHTML = `<b>${escapeHtml(user)}</b> <span class="small" style="opacity:.7;margin-left:.35rem">${fmtDT()}</span><div style="margin-top:2px">${escapeHtml(text)}</div>`;
     chatLog.appendChild(div);
     chatLog.scrollTop = chatLog.scrollHeight;
   }
   function appendSystem(text){
     const div = document.createElement("div");
     div.className = "msg";
-    div.innerHTML = `<span class="small">${escapeHtml(text)}</span>`;
+    div.innerHTML = `<span class="small" style="opacity:.7;margin-right:.35rem">${fmtDT()}</span><span class="small">${escapeHtml(text)}</span>`;
     chatLog.appendChild(div);
     chatLog.scrollTop = chatLog.scrollHeight;
   }
+  function fmtDT(d=new Date()){
+    // yyyy/mm/dd hh:mm
+    const pad = (n)=>String(n).padStart(2,"0");
+    return `${d.getFullYear()}/${pad(d.getMonth()+1)}/${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  }
+
   function escapeHtml(s){
     return String(s)
       .replaceAll("&","&amp;")
@@ -903,12 +1001,16 @@ selected = null;
         game = ensureKifu(normalizeRoles(normalizeHands(m.payload)));
         // ローカル棋譜があり、サーバ側が空なら自動読込（MVP）
         try{
-          ensureKifu(game);
-          if ((game.kifu.moves||[]).length === 0){
-            const r = loadKifuFromLocal();
-            if (r.ok) appendSystem(r.msg);
+          if (suppressAutoLoadOnce){
+            suppressAutoLoadOnce = false;
+          } else {
+            ensureKifu(game);
+            if ((game.kifu.moves||[]).length === 0){
+              const r = loadKifuFromLocal();
+              if (r.ok) appendSystem(r.msg);
+            }
           }
-        }catch{}
+        }catch{} 
         updateMySideFromRoles();
         selected = null;
         selectedDrop = null;
@@ -946,7 +1048,7 @@ selected = null;
     ws.send(JSON.stringify({ type:"state", room: currentRoom(), payload: game }));
   }
 
-  boardEl.addEventListener("click", (e) => {
+  boardEl.addEventListener("click", async (e) => {
     ensureAudioUnlocked();
     const cell = e.target.closest(".cell");
     if (!cell) return;
@@ -995,31 +1097,28 @@ selected = null;
     const from = selected;
     let piece = game.board[from.r][from.c];
     if (!piece){ selected=null; draw(); return; }
-
     const dest = game.board[r][c];
     if (dest && toSide(dest) === game.turn){ selected=null; draw(); return; }
 
+    // 先に成り判定（盤面を動かす前に確認する：駒が消えないように）
+    const promote = await decidePromotionAsync(game.turn, piece, from.r, r);
+    if (promote) piece = applyPromotion(piece);
+
     let didCapture = false;
     if (dest){
+      didCapture = true;
       if (isKingPiece(dest)){
-        // Capture king -> game over
-        // Winner is the side who captured
+        // Capture king -> game over (show only)
         showWinPopup(game.turn);
         // Do not add king to hand
       } else {
         addToHand(game.turn, dest);
       }
-      didCapture = true;
     }
 
     game.board[from.r][from.c] = null;
-
-    const promote = decidePromotion(game.turn, piece, from.r, r);
-    if (promote) piece = applyPromotion(piece);
-
     game.board[r][c] = piece;
-
-    // 棋譜に記録（自動取得ONならローカル保存も走る）
+// 棋譜に記録（自動取得ONならローカル保存も走る）
     const captureForKifu = (dest && !isKingPiece(dest)) ? dest : null;
     recordMove(game.turn, from, { r, c }, piece, captureForKifu);
 
@@ -1039,7 +1138,7 @@ selected = null;
   btnCopyUrl.addEventListener("click", async () => {
     const room = currentRoom();
     const url = `${location.origin}${location.pathname}#room=${room}`;
-    try{ await navigator.clipboard.writeText(url); appendSystem("部屋URLをコピーしました"); }
+    try{ await navigator.clipboard.writeText(url); appendSystem("部屋をコピーしました"); }
     catch{ appendSystem("コピーに失敗（ブラウザ権限）"); }
   });
   btnFull.addEventListener("click", async () => {
@@ -1069,8 +1168,8 @@ selected = null;
     appendSystem("棋譜の自動取得を停止しました");
   });
 
-  btnKifuDelete.addEventListener("click", () => {
-    if (!window.confirm("ローカルの棋譜ファイルを削除しますか？")) return;
+  btnKifuDelete.addEventListener("click", async () => {
+    if (!(await uiConfirm("ローカルの棋譜ファイルを削除しますか？", "削除", "やめる"))) return;
     deleteKifuLocal();
     ensureKifu(game);
     game.kifu.moves = [];
@@ -1104,6 +1203,7 @@ selected = null;
 
   btnReset.addEventListener("click", () => {
     ensureAudioUnlocked();
+    suppressAutoLoadOnce = true;
     game = ensureKifu(normalizeRoles(normalizeHands(initialGame())));
     game.hands = {S:{}, G:{}};
     game.kifu.moves = [];
