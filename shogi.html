@@ -15,40 +15,117 @@
     .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
     .btn{min-height:44px;padding:10px 14px;border-radius:999px;border:1px solid var(--line);background:#0f1730;color:var(--text);cursor:pointer;font-weight:700}
     .btn.primary{background:#1c2a55;border-color:rgba(122,162,255,.45)}
+    .btn.ghost{background:rgba(255,255,255,.04)}
+    .btn[disabled]{opacity:.45;cursor:not-allowed}
     .input{min-height:44px;border-radius:12px;border:1px solid var(--line);background:#0f1730;color:var(--text);padding:10px 12px;width:100%}
     .status{padding:10px;border-radius:12px;background:rgba(0,0,0,.25);border:1px solid var(--line);font-size:.92rem}
-    .board{
-      display:grid;grid-template-columns:repeat(9,1fr);
-      aspect-ratio:1/1;width:min(92vw,640px);margin:0 auto;
-      border:1px solid var(--line);border-radius:14px;overflow:hidden;background:rgba(255,255,255,.04);
+    .badge{display:inline-flex;align-items:center;gap:8px;padding:6px 10px;border-radius:999px;border:1px solid var(--line);background:rgba(0,0,0,.18);font-weight:800}
+    .dot{width:10px;height:10px;border-radius:999px;background:rgba(122,162,255,.7)}
+
+    /* 将棋盤 */
+    #board{
+      display:grid;
+      grid-template-columns:repeat(9,1fr);
+      grid-template-rows:repeat(9,1fr);
+      aspect-ratio:1/1;
+      width:min(92vw,640px);
+      margin:0 auto;
+      background:#f1d79a;
+      border:6px solid #b58a45;
+      border-radius:14px;
+      overflow:hidden;
+      box-shadow:0 10px 30px rgba(0,0,0,.35);
     }
-    .sq{display:flex;align-items:center;justify-content:center;border:1px solid rgba(255,255,255,.06);user-select:none;position:relative;font-weight:800;
-      font-size:clamp(12px,2.1vw,20px);cursor:pointer;}
-    .sq:hover{background:rgba(122,162,255,.08)}
-    .sq.sel{outline:2px solid var(--accent);outline-offset:-2px;background:rgba(122,162,255,.12)}
-    .coord{position:absolute;bottom:4px;right:6px;font-size:10px;color:rgba(255,255,255,.35);font-weight:600}
-    .pS{color:#e8eefc}
-    .pG{color:#ffcc66;transform:rotate(180deg)}
+    .cell{
+      border:1px solid rgba(0,0,0,.35);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-weight:800;
+      cursor:pointer;
+      user-select:none;
+      position:relative;
+      font-size:clamp(16px,2.4vw,26px);
+      color:#102040;
+    }
+    .cell:hover{background:rgba(122,162,255,.08)}
+    .cell.sel{
+      outline:3px solid rgba(122,162,255,.9);
+      outline-offset:-3px;
+      background:rgba(122,162,255,.12);
+    }
+    .cell.rev{ color:#3a2a12; transform:rotate(180deg); }
+    .piece.promoted{ color:#c81e1e; } /* ✅ 成駒を赤文字 */
+    .coord{
+      position:absolute;
+      right:4px;
+      bottom:3px;
+      font-size:10px;
+      color:rgba(0,0,0,.35);
+      font-weight:600;
+      transform:none;
+      pointer-events:none;
+    }
+    .hint{margin-top:10px;color:var(--muted);font-size:.9rem;line-height:1.5}
+
+    /* 持ち駒 */
     .hands{display:grid;gap:10px;margin-top:10px}
     .hand{border:1px solid var(--line);border-radius:12px;padding:10px;background:rgba(0,0,0,.18)}
-    .handTitle{font-weight:800;margin-bottom:6px}
+    .handTitle{display:flex;justify-content:space-between;align-items:center;font-weight:900;margin-bottom:8px}
     .handPieces{display:flex;gap:8px;flex-wrap:wrap}
-    .chip{border:1px solid rgba(255,255,255,.12);border-radius:999px;padding:6px 10px;font-weight:800;cursor:pointer;background:rgba(255,255,255,.04)}
+    .chip{border:1px solid rgba(0,0,0,.25);border-radius:999px;padding:6px 10px;font-weight:900;cursor:pointer;background:#f1d79a;display:inline-flex;gap:6px;align-items:center;color:#102040}
     .chip.sel{outline:2px solid var(--accent)}
+    .chip.disabled{opacity:.4;cursor:not-allowed}
+    .chip .cnt{font-size:.85rem;color:var(--muted);font-weight:800}
+
+    /* チャット */
     .chatLog{height:320px;overflow:auto;border:1px solid var(--line);border-radius:12px;padding:10px;background:rgba(0,0,0,.22)}
     .msg{margin:0 0 8px}
     .msg b{color:var(--accent)}
     .small{font-size:.85rem;color:var(--muted)}
     code{background:rgba(255,255,255,.08);padding:2px 6px;border-radius:6px}
+  
+    .badge.turnBig{
+      font-size:1.05rem;
+      padding:10px 14px;
+      border-color:rgba(122,162,255,.65);
+      box-shadow:0 6px 18px rgba(0,0,0,.25);
+      background:rgba(122,162,255,.10);
+    }
+    .badge.turnBig .dot{
+      width:12px;height:12px;
+      box-shadow:0 0 0 4px rgba(122,162,255,.15);
+    }
+
+  
+    .badge.turnBig.turnMine{
+      border-color:rgba(80,220,150,.85);
+      background:rgba(80,220,150,.12);
+      box-shadow:0 8px 22px rgba(0,0,0,.28);
+    }
+    .badge.turnBig.turnMine .dot{
+      background:rgba(80,220,150,.95);
+      box-shadow:0 0 0 5px rgba(80,220,150,.18);
+    }
+    .badge.turnBig.turnOther{
+      border-color:rgba(255,190,90,.75);
+      background:rgba(255,190,90,.10);
+    }
+    .badge.turnBig.turnOther .dot{
+      background:rgba(255,190,90,.9);
+      box-shadow:0 0 0 5px rgba(255,190,90,.16);
+    }
+
   </style>
 </head>
 <body>
   <div class="wrap">
     <section class="card">
-      <h1>オンライン将棋 + チャット（Workers/DO）</h1>
+      <h1>極み将棋</h1>
       <p class="muted">
         URLの <code>#room=xxxx</code> を共有すると同じ部屋に入れます。<br>
-        MVPのため合法手・成り・王手判定は未対応（次段階で追加できます）。
+        MVP：合法手・王手判定・打ち歩詰め等は未対応（ただし「二歩」「行き所のない駒の打ち」は最低限ガード）。<br>
+        <b>成り</b>は実装済み（成れる場合は確認、強制成りも対応）。
       </p>
 
       <div class="row" style="margin:10px 0">
@@ -56,20 +133,41 @@
         <button class="btn primary" id="btnConnect">接続</button>
         <button class="btn" id="btnCopyUrl">部屋URLコピー</button>
         <button class="btn" id="btnReset">リセット</button>
+        <button class="btn ghost" id="btnSound">🔊 音: ON</button>
+      </div>
+<div class="status" id="status">未接続</div>
+
+      <div class="row" style="margin:10px 0 12px">
+        <span class="badge turnBig" id="turnBadge"><span class="dot"></span><span id="turnText">手番: -</span></span>
       </div>
 
-      <div class="status" id="status">未接続</div>
+
+<div class="hand">
+            <div class="handTitle"><span>後手の持ち駒</span><span class="small" id="handHintG"></span></div>
+            <div class="handPieces" id="handG"></div>
+          </div>
 
       <div style="margin-top:12px">
-        <div class="board" id="board"></div>
+        <div id="board" aria-label="shogi-board"></div>
 
         <div class="hands">
+          
           <div class="hand">
-            <div class="handTitle">持ち駒（自分の手番で打てます）</div>
-            <div class="handPieces" id="hand"></div>
+            <div class="handTitle"><span>先手の持ち駒</span><span class="small" id="handHintS"></span></div>
+            <div class="handPieces" id="handS"></div>
           </div>
         </div>
+
+        <div class="hint">
+          ・持ち駒は <b>自分の手番</b>のときだけ選べます（選択→盤の空マスをクリックで打つ）。<br>
+          ・盤の駒を選択→移動先クリックで動かします。<br>
+          ・王が取られたら勝敗表示→「続けますか？」を出します（双方Yesでリセット）。<br>・通信基盤は変更なし（Worker/DOは中継・同期・保存のみ）。
+        </div>
+      
+      <div class="small" style="margin-top:14px;text-align:right;opacity:.85">
+        © hisa.miya
       </div>
+</div>
     </section>
 
     <aside class="card">
@@ -81,253 +179,597 @@
       <div class="row" style="margin-top:10px">
         <button class="btn primary" id="btnSend">送信</button>
       </div>
-      <p class="small">※観戦者もチャット可能。対局は先着2人がプレイヤーになります。</p>
+      <p class="small">※観戦者もチャット可能。対局は先着2人がプレイヤーになります（MVPのため強制は未実装）。</p>
     </aside>
   </div>
 
 <script>
 (() => {
-  // ★ここを自分のWorker URLに変更★
-  const WORKER_BASE = "https://YOUR-WORKER.workers.dev";
+  // Worker（※パスは依頼がない限り変更しない）
+  const WORKER_WS = "wss://samurairoad-ws.korokorokororintyo.workers.dev";
 
-  const PIECE = {K:"王",R:"飛",B:"角",G:"金",S:"銀",N:"桂",L:"香",P:"歩"};
+  // DOM
+  const boardEl  = document.getElementById("board");
+  const statusEl = document.getElementById("status");
+  const nameEl   = document.getElementById("name");
+  const btnConnect = document.getElementById("btnConnect");
+  const btnCopyUrl = document.getElementById("btnCopyUrl");
+  const btnReset = document.getElementById("btnReset");
+  const chatLog = document.getElementById("chatLog");
+  const chatInput = document.getElementById("chatInput");
+  const btnSend = document.getElementById("btnSend");
+  const btnSound = document.getElementById("btnSound");
+  const turnText = document.getElementById("turnText");
+  const handS = document.getElementById("handS");
+  const handG = document.getElementById("handG");
+  const handHintS = document.getElementById("handHintS");
+  const handHintG = document.getElementById("handHintG");
 
-  const $ = (id) => document.getElementById(id);
-  const boardEl = $("board");
-  const statusEl = $("status");
-  const handEl = $("hand");
-  const chatLog = $("chatLog");
+  // Name cache
+  try{
+    const cached = localStorage.getItem("shogi_name");
+    if (cached && !nameEl.value) nameEl.value = cached;
+  }catch{}
 
-  let ws = null;
-  let you = { name:"", role:"spectator" };
-  let game = null;
 
-  let selected = null; // {r,c}
-  let selectedDrop = null; // "P" etc
+  // 駒表記（大文字=先手 / 小文字=後手 / "+X"=成り）
+  const PIECE = {
+    L:"香",N:"桂",S:"銀",G:"金",K:"王",R:"飛",B:"角",P:"歩",
+    l:"香",n:"桂",s:"銀",g:"金",k:"王",r:"飛",b:"角",p:"歩",
+    "+P":"と","+p":"と",
+    "+L":"成香","+l":"成香",
+    "+N":"成桂","+n":"成桂",
+    "+S":"成銀","+s":"成銀",
+    "+B":"馬","+b":"馬",
+    "+R":"龍","+r":"龍"
+  };
 
-  function roomId() {
-    const h = location.hash || "";
-    const m = h.match(/room=([a-zA-Z0-9_-]+)/);
-    if (m) return m[1];
-    // auto-generate if missing
-    const id = Math.random().toString(36).slice(2, 8);
-    location.hash = `room=${id}`;
-    return id;
+  const HAND_ORDER = ["R","B","G","S","N","L","P"];
+  const HAND_LABEL = { R:"飛",B:"角",G:"金",S:"銀",N:"桂",L:"香",P:"歩" };
+
+  function basePiece(p){ return (typeof p === "string" && p.startsWith("+")) ? p.slice(1) : p; }
+  function isPromoted(p){ return (typeof p === "string" && p.startsWith("+")); }
+  function isSente(p){ const b = basePiece(p); return b && b === b.toUpperCase(); }
+  function isGote(p){ const b = basePiece(p); return b && b === b.toLowerCase(); }
+  function toSide(piece){ return isSente(piece) ? "S" : "G"; }
+
+  function normalizeHands(g){
+    if (!g.hands) g.hands = { S: {}, G: {} };
+    if (!g.hands.S) g.hands.S = {};
+    if (!g.hands.G) g.hands.G = {};
+    return g;
   }
 
-  function setStatus(text){ statusEl.textContent = text; }
-
-  function coordLabel(r,c){
-    const file = 9 - c;
-    const rank = r + 1;
-    return `${file}${rank}`;
-  }
-
-  function renderBoard(){
-    if (!game) return;
-    boardEl.innerHTML = "";
-    for (let r=0; r<9; r++){
-      for (let c=0; c<9; c++){
-        const cell = game.board[r][c];
-        const sq = document.createElement("div");
-        sq.className = "sq";
-        sq.dataset.r = r;
-        sq.dataset.c = c;
-        if (selected && selected.r===r && selected.c===c) sq.classList.add("sel");
-
-        if (cell){
-          const span = document.createElement("span");
-          span.className = cell.side==="S" ? "pS" : "pG";
-          span.textContent = PIECE[cell.p] || cell.p;
-          sq.appendChild(span);
-        }
-        const coord = document.createElement("span");
-        coord.className = "coord";
-        coord.textContent = coordLabel(r,c);
-        sq.appendChild(coord);
-
-        boardEl.appendChild(sq);
-      }
-    }
-    renderHand();
-  }
-
-  function mySide(){
-    // MVP: seat mapping is done on server; we infer side by turn display only.
-    // We'll allow action only if role=player; server enforces turn anyway.
-    return null;
-  }
-
-  function renderHand(){
-    handEl.innerHTML = "";
-    if (!game) return;
-    const h = game.hand[game.turn] || {}; // show current-turn hand? better show your own, but seat mapping is MVP
-    // For better UX: show both hands? Here show current-turn side’s hand to simplify.
-    const keys = Object.keys(h).sort();
-    if (keys.length === 0) {
-      const s = document.createElement("span");
-      s.className = "small";
-      s.textContent = "なし";
-      handEl.appendChild(s);
-      return;
-    }
-    keys.forEach(p => {
-      const b = document.createElement("button");
-      b.type="button";
-      b.className = "chip" + (selectedDrop===p ? " sel" : "");
-      b.textContent = `${PIECE[p]}×${h[p]}`;
-      b.dataset.piece = p;
-      handEl.appendChild(b);
+  function initialGame(){
+    return normalizeHands({
+      turn:"S",
+      board:[
+        ["l","n","s","g","k","g","s","n","l"],
+        [null,"r",null,null,null,null,null,"b",null],
+        ["p","p","p","p","p","p","p","p","p"],
+        [null,null,null,null,null,null,null,null,null],
+        [null,null,null,null,null,null,null,null,null],
+        [null,null,null,null,null,null,null,null,null],
+        ["P","P","P","P","P","P","P","P","P"],
+        [null,"B",null,null,null,null,null,"R",null],
+        ["L","N","S","G","K","G","S","N","L"],
+      ],
+      hands: { S: {}, G: {} },
+      meta: { gameOver: false, winner: null, rematch: { S: null, G: null } }
     });
   }
 
-  function appendChat(name, text, t){
-    const p = document.createElement("p");
-    p.className = "msg";
-    const time = new Date(t || Date.now()).toLocaleTimeString();
-    p.innerHTML = `<b>${escapeHtml(name)}</b> <span class="small">${escapeHtml(time)}</span><br>${escapeHtml(text)}`;
-    chatLog.appendChild(p);
-    chatLog.scrollTop = chatLog.scrollHeight;
+  let ws = null;
+  let game = initialGame();
+  let selected = null;         // {r,c}
+  let selectedDrop = null;     // {side,type}
+  let myName = "guest";
+  let mySide = null; // "S" or "G" is learned from your first move/drop
+  let rematchPrompted = false;
+
+  function setStatus(t){ statusEl.textContent = t; }
+  function setTurnUI(){
+    const meta = (game.meta || {});
+    const badge = document.getElementById("turnBadge");
+    if (badge){
+      badge.classList.remove("turnMine","turnOther");
+      if (!meta.gameOver && mySide){
+        badge.classList.add((game.turn === mySide) ? "turnMine" : "turnOther");
+      }
+    }
+    const t = game.turn === "S" ? "先手" : "後手";
+    if (meta.gameOver && meta.winner){
+      turnText.textContent = `終局: ${sideLabel(meta.winner)}の勝ち`;
+    } else {
+      turnText.textContent = `手番: ${t}`;
+    }
+    handHintS.textContent = (game.turn === "S") ? "（手番なら選択できます）" : "";
+    handHintG.textContent = (game.turn === "G") ? "（手番なら選択できます）" : "";
   }
 
+
+  function sideLabel(side){ return side === "S" ? "先手" : "後手"; }
+
+  function isKingPiece(p){
+    const b = basePiece(p);
+    return b === "K" || b === "k";
+  }
+
+  function ensureMeta(){
+    if (!game.meta) game.meta = { gameOver:false, winner:null, rematch:{S:null, G:null} };
+    if (!game.meta.rematch) game.meta.rematch = { S:null, G:null };
+    return game.meta;
+  }
+
+  function setGameOver(winnerSide){
+    const meta = ensureMeta();
+    meta.gameOver = true;
+    meta.winner = winnerSide;
+    meta.rematch = { S: null, G: null };
+    rematchPrompted = false;
+
+    appendSystem(`終局：${sideLabel(winnerSide)}の勝ち（王が取られました）`);
+  }
+
+  function checkAndMaybeReset(){
+    const meta = ensureMeta();
+    if (!meta.gameOver) return;
+    if (meta.rematch.S === true && meta.rematch.G === true){
+      appendSystem("双方Yes：リセットして再開します");
+      game = initialGame();
+      selected = null;
+      selectedDrop = null;
+      // Keep name/side; side stays as-is (players stay same)
+      draw();
+      sendState();
+      sfx.move();
+    }
+  }
+
+  function sendRematchVote(vote){
+    if (!ws || ws.readyState !== 1) return;
+    if (!mySide) return;
+
+    ws.send(JSON.stringify({
+      type:"rematch",
+      room: currentRoom(),
+      user: myName,
+      payload: { side: mySide, vote: !!vote }
+    }));
+    // Local reflect
+    const meta = ensureMeta();
+    meta.rematch[mySide] = !!vote;
+    draw();
+    appendSystem(`${sideLabel(mySide)}：${vote ? "再戦する" : "再戦しない"} を選択`);
+    checkAndMaybeReset();
+  }
+
+  function maybePromptRematch(){
+    const meta = ensureMeta();
+    if (!meta.gameOver) return;
+    if (rematchPrompted) return;
+    if (!mySide) return; // spectator or unidentified
+    rematchPrompted = true;
+    const yes = window.confirm("続けますか？（双方がYesならリセットします）");
+    sendRematchVote(yes);
+  }
+
+
+  // ---- 音（WebAudio） ----
+  let audioEnabled = true;
+  let audioCtx = null;
+  function ensureAudioUnlocked(){
+    if (!audioEnabled) return;
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === "suspended") audioCtx.resume().catch(()=>{});
+  }
+  function beep(freq=440, dur=0.06, type="sine", gain=0.06){
+    if (!audioEnabled) return;
+    ensureAudioUnlocked();
+    if (!audioCtx) return;
+    const t0 = audioCtx.currentTime;
+    const o = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    o.type = type;
+    o.frequency.setValueAtTime(freq, t0);
+    g.gain.setValueAtTime(0.0001, t0);
+    g.gain.exponentialRampToValueAtTime(gain, t0+0.01);
+    g.gain.exponentialRampToValueAtTime(0.0001, t0+dur);
+    o.connect(g); g.connect(audioCtx.destination);
+    o.start(t0); o.stop(t0+dur+0.02);
+  }
+  const sfx = {
+    move(){ beep(520, 0.05, "square", 0.05); },
+    capture(){ beep(220, 0.07, "triangle", 0.06); beep(180, 0.05, "triangle", 0.05); },
+    promote(){ beep(740, 0.05, "sine", 0.05); beep(980, 0.06, "sine", 0.05); },
+    drop(){ beep(430, 0.06, "square", 0.05); },
+    chat(){ beep(660, 0.04, "sine", 0.04); }
+  };
+
+  btnSound.addEventListener("click", () => {
+    audioEnabled = !audioEnabled;
+    btnSound.textContent = audioEnabled ? "🔊 音: ON" : "🔇 音: OFF";
+    if (audioEnabled) ensureAudioUnlocked();
+  });
+
+  function appendChat(user, text){
+    const div = document.createElement("div");
+    div.className = "msg";
+    div.innerHTML = `<b>${escapeHtml(user)}</b> ${escapeHtml(text)}`;
+    chatLog.appendChild(div);
+    chatLog.scrollTop = chatLog.scrollHeight;
+  }
+  function appendSystem(text){
+    const div = document.createElement("div");
+    div.className = "msg";
+    div.innerHTML = `<span class="small">${escapeHtml(text)}</span>`;
+    chatLog.appendChild(div);
+    chatLog.scrollTop = chatLog.scrollHeight;
+  }
   function escapeHtml(s){
-    return String(s).replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#39;");
+    return String(s)
+      .replaceAll("&","&amp;")
+      .replaceAll("<","&lt;")
+      .replaceAll(">","&gt;")
+      .replaceAll('"',"&quot;")
+      .replaceAll("'","&#39;");
+  }
+
+  function drawHands(){
+    const s = game.hands.S || {};
+    const g = game.hands.G || {};
+    handS.innerHTML = "";
+    handG.innerHTML = "";
+
+    const render = (side, el) => {
+      const h = side === "S" ? s : g;
+      let any = false;
+
+      for (const t of HAND_ORDER){
+        const n = Number(h[t] || 0);
+        if (n <= 0) continue;
+        any = true;
+
+        const chip = document.createElement("button");
+        chip.className = "chip";
+        chip.type = "button";
+        chip.innerHTML = `<span>${HAND_LABEL[t]}</span><span class="cnt">×${n}</span>`;
+
+        const isMyTurn = (game.turn === side);
+        if (!isMyTurn){
+          chip.classList.add("disabled");
+          chip.disabled = true;
+        } else {
+          chip.addEventListener("click", () => {
+            ensureAudioUnlocked();
+            selected = null;
+            if (selectedDrop && selectedDrop.side === side && selectedDrop.type === t) selectedDrop = null;
+            else selectedDrop = { side, type: t };
+            draw();
+          });
+        }
+
+        if (selectedDrop && selectedDrop.side === side && selectedDrop.type === t) chip.classList.add("sel");
+        el.appendChild(chip);
+      }
+
+      if (!any){
+        const span = document.createElement("span");
+        span.className = "small";
+        span.textContent = "（なし）";
+        el.appendChild(span);
+      }
+    };
+
+    render("S", handS);
+    render("G", handG);
+  }
+
+  function draw(){
+    normalizeHands(game);
+    setTurnUI();
+    drawHands();
+
+    boardEl.innerHTML = "";
+    for (let r=0; r<9; r++){
+      for (let c=0; c<9; c++){
+        const p = game.board[r][c];
+        const d = document.createElement("div");
+        d.className =
+          "cell" +
+          (p && isGote(p) ? " rev" : "") +
+          (selected && selected.r===r && selected.c===c ? " sel" : "");
+        d.dataset.r = r;
+        d.dataset.c = c;
+
+        const pieceSpan = document.createElement("span");
+        pieceSpan.className = "piece" + (p && isPromoted(p) ? " promoted" : "");
+        pieceSpan.textContent = p ? (PIECE[p] || PIECE[basePiece(p)] || "") : "";
+        d.appendChild(pieceSpan);
+
+        const coord = document.createElement("span");
+        coord.className = "coord";
+        coord.textContent = `${9 - c}${r + 1}`;
+        d.appendChild(coord);
+
+        boardEl.appendChild(d);
+      }
+    }
+  }
+
+  // ---- 成り ----
+  function inPromoZone(turn, r){
+    if (turn === "S") return r <= 2;
+    return r >= 6;
+  }
+  function canPromote(pieceBase){
+    return !["K","G","k","g"].includes(pieceBase);
+  }
+  function isPromotableMove(turn, piece, fromR, toR){
+    if (!piece) return false;
+    if (isPromoted(piece)) return false;
+    const b = basePiece(piece);
+    if (!canPromote(b)) return false;
+    return inPromoZone(turn, fromR) || inPromoZone(turn, toR);
+  }
+  function isForcedPromotion(turn, piece, toR){
+    const b = basePiece(piece).toUpperCase();
+    if (b === "P" || b === "L"){
+      return (turn === "S") ? (toR === 0) : (toR === 8);
+    }
+    if (b === "N"){
+      return (turn === "S") ? (toR <= 1) : (toR >= 7);
+    }
+    return false;
+  }
+  function decidePromotion(turn, piece, fromR, toR){
+    if (!isPromotableMove(turn, piece, fromR, toR)) return false;
+    if (isForcedPromotion(turn, piece, toR)) return true;
+    return window.confirm("成りますか？");
+  }
+  function applyPromotion(piece){
+    if (!piece || isPromoted(piece)) return piece;
+    return "+" + piece;
+  }
+
+  // ---- 持ち駒 ----
+  function addToHand(side, capturedPiece){
+    const b = basePiece(capturedPiece);
+    const t = b.toUpperCase();
+    game.hands[side][t] = Number(game.hands[side][t] || 0) + 1;
+  }
+
+  function canDropHere(side, type, r, c){
+    if (game.board[r][c] != null) return false;
+
+    // 行き所のない駒（最低限）
+    if (type === "P" || type === "L"){
+      if (side === "S" && r === 0) return false;
+      if (side === "G" && r === 8) return false;
+    }
+    if (type === "N"){
+      if (side === "S" && r <= 1) return false;
+      if (side === "G" && r >= 7) return false;
+    }
+
+    // 二歩（最低限）
+    if (type === "P"){
+      for (let rr=0; rr<9; rr++){
+        const p = game.board[rr][c];
+        if (!p) continue;
+        if (side === "S" && p === "P") return false;
+        if (side === "G" && p === "p") return false;
+      }
+    }
+    return true;
+  }
+
+  function dropPiece(side, type, r, c){
+    if (!canDropHere(side, type, r, c)){
+      appendSystem("その場所には打てません（空き/二歩/行き所なし）");
+      return false;
+    }
+    const h = game.hands[side];
+    if (Number(h[type] || 0) <= 0) return false;
+
+    const piece = (side === "S") ? type : type.toLowerCase();
+    game.board[r][c] = piece;
+    h[type] = Number(h[type]) - 1;
+    if (h[type] <= 0) delete h[type];
+    return true;
+  }
+
+  // ---- WS ----
+  function currentRoom(){
+    return (location.hash.match(/room=([a-zA-Z0-9_-]+)/)?.[1]) || "lobby";
   }
 
   function connect(){
-    const rid = roomId();
-    const name = ($("name").value || "You").trim().slice(0,24);
-    you.name = name;
+    ensureAudioUnlocked();
+    const room = currentRoom();
+    myName = (nameEl.value || "guest").trim().slice(0, 24) || "guest";
+    try{ localStorage.setItem("shogi_name", myName); }catch{}
+
 
     if (ws) { try{ ws.close(); }catch{} ws=null; }
+    ws = new WebSocket(`${WORKER_WS}/?room=${encodeURIComponent(room)}`);
 
-    const u = new URL(WORKER_BASE.replace(/^http/,"ws") + `/ws/${encodeURIComponent(rid)}`);
-    u.searchParams.set("name", name);
+    ws.onopen = () => {
+      setStatus(`接続中… room=${room}`);
+      appendSystem(`接続しました（room=${room}）`);
+      ws.send(JSON.stringify({ type:"join", user:myName, room, payload:"" }));
+      ws.send(JSON.stringify({ type:"state", room, payload: game }));
+    };
 
-    ws = new WebSocket(u.toString());
-
-    ws.onopen = () => setStatus(`接続中… room=${rid}`);
-    ws.onclose = () => setStatus("切断されました");
-    ws.onerror = () => setStatus("接続エラー（Worker URLを確認してください）");
+    ws.onclose = () => { setStatus("切断されました"); appendSystem("切断されました"); };
+    ws.onerror = () => { setStatus("接続エラー（URL/Worker状態を確認）"); appendSystem("接続エラー"); };
 
     ws.onmessage = (ev) => {
-      const m = JSON.parse(ev.data);
+      let m; try{ m = JSON.parse(ev.data); }catch{ return; }
 
-      if (m.type === "init") {
-        you.role = m.you.role;
-        game = m.game;
-        setStatus(`接続完了：${you.role} / 手番=${game.turn==="S"?"先手(S)":"後手(G)"}`);
-        // render chat history
-        chatLog.innerHTML = "";
-        (game.chat || []).forEach(e => appendChat(e.name, e.text, e.t));
-        renderBoard();
-        return;
-      }
-
-      if (m.type === "state") {
-        game = m.game;
-        setStatus(`更新：手番=${game.turn==="S"?"先手(S)":"後手(G)"} / あなた=${you.role}`);
+      if (m.type === "state" && m.payload && m.payload.board){
+        game = normalizeHands(m.payload);
         selected = null;
         selectedDrop = null;
-        renderBoard();
+        draw();
+        // If this state indicates game over, prompt rematch (players only)
+        if (ensureMeta().gameOver) maybePromptRematch();
         return;
       }
 
-      if (m.type === "chat") {
-        appendChat(m.entry.name, m.entry.text, m.entry.t);
+      if ((m.type === "chat" || m.type === "msg") && (m.payload || m.text)){
+        const text = (typeof m.payload === "string") ? m.payload : (m.text ?? "");
+        const user = m.user || "anon";
+        appendChat(user, text);
+        sfx.chat();
         return;
       }
 
-      if (m.type === "presence") {
-        appendChat("system", m.message, Date.now());
+      
+      if (m.type === "rematch" && m.payload && m.payload.side){
+        const meta = ensureMeta();
+        const side = m.payload.side;
+        const vote = !!m.payload.vote;
+        meta.rematch[side] = vote;
+        appendSystem(`${sideLabel(side)}：${vote ? "再戦する" : "再戦しない"} を選択`);
+        draw();
+        checkAndMaybeReset();
         return;
       }
 
-      if (m.type === "error") {
-        appendChat("error", m.message, Date.now());
-        return;
-      }
-
-      if (m.type === "role") {
-        you.role = m.role;
-        appendChat("system", `あなたの役割：${m.role}`, Date.now());
-        setStatus(`役割更新：${m.role}`);
-        return;
-      }
+      if (m.type === "join"){ appendSystem(`${m.user || "anon"} が入室`); return; }
+      if (m.type === "system"){ appendSystem(String(m.payload ?? "")); return; }
     };
   }
 
-  // Board clicks
-  boardEl.addEventListener("click", (e) => {
-    if (!ws || ws.readyState !== 1 || !game) return;
-    const sq = e.target.closest(".sq");
-    if (!sq) return;
-    const r = Number(sq.dataset.r);
-    const c = Number(sq.dataset.c);
-
-    // drop selected
-    if (selectedDrop) {
-      ws.send(JSON.stringify({ type:"move", kind:"drop", dropPiece:selectedDrop, to:{r,c} }));
-      return;
-    }
-
-    const cell = game.board[r][c];
-
-    if (!selected) {
-      if (!cell) return;
-      selected = {r,c};
-      renderBoard();
-      return;
-    }
-
-    // second click => move
-    ws.send(JSON.stringify({ type:"move", kind:"board", from:selected, to:{r,c} }));
-  });
-
-  // hand piece select
-  document.addEventListener("click", (e) => {
-    const chip = e.target.closest(".chip");
-    if (!chip) return;
-    const p = chip.dataset.piece;
-    if (!p) return;
-    selectedDrop = (selectedDrop === p) ? null : p;
-    selected = null;
-    renderBoard();
-  });
-
-  // chat
   function sendChat(){
+    ensureAudioUnlocked();
     if (!ws || ws.readyState !== 1) return;
-    const text = ($("chatInput").value || "").trim();
+    const text = (chatInput.value || "").trim();
     if (!text) return;
-    ws.send(JSON.stringify({ type:"chat", text }));
-    $("chatInput").value = "";
+    const room = currentRoom();
+    ws.send(JSON.stringify({ type:"msg", user:myName, room, payload:text }));
+    chatInput.value = "";
+    sfx.chat();
   }
 
-  $("btnConnect").addEventListener("click", connect);
-  $("btnSend").addEventListener("click", sendChat);
-  $("chatInput").addEventListener("keydown", (e) => {
-    if (e.key==="Enter") { e.preventDefault(); sendChat(); }
-  });
-
-  $("btnReset").addEventListener("click", () => {
+  function sendState(){
     if (!ws || ws.readyState !== 1) return;
-    ws.send(JSON.stringify({ type:"reset" }));
-  });
+    ws.send(JSON.stringify({ type:"state", room: currentRoom(), payload: game }));
+  }
 
-  $("btnCopyUrl").addEventListener("click", async () => {
-    try{
-      await navigator.clipboard.writeText(location.href);
-      appendChat("system", "部屋URLをコピーしました", Date.now());
-    }catch{
-      appendChat("system", "コピーできませんでした（手動でURLをコピーしてください）", Date.now());
+  boardEl.addEventListener("click", (e) => {
+    ensureAudioUnlocked();
+    const cell = e.target.closest(".cell");
+    if (!cell) return;
+    if (!ws || ws.readyState !== 1) return;
+
+    const meta0 = ensureMeta();
+    if (meta0.gameOver){
+      // After game over, only handle rematch prompt on any click
+      maybePromptRematch();
+      return;
+    }
+
+    const r = Number(cell.dataset.r);
+    const c = Number(cell.dataset.c);
+
+    // 打ち優先
+    if (selectedDrop){
+      const side = selectedDrop.side;
+      const type = selectedDrop.type;
+
+      if (game.turn !== side){ appendSystem("手番ではありません"); return; }
+
+      if (!dropPiece(side, type, r, c)) return;
+
+      selectedDrop = null;
+      selected = null;
+      if (!mySide) mySide = game.turn;
+      game.turn = (game.turn === "S") ? "G" : "S";
+      draw();
+      sendState();
+      sfx.drop();
+      return;
+    }
+
+    // 通常の選択/移動
+    if (!selected){
+      const p = game.board[r][c];
+      if (!p) return;
+
+      const isS = (game.turn === "S");
+      if (isS && !isSente(p)) return;
+      if (!isS && !isGote(p)) return;
+
+      selected = {r,c};
+      draw();
+      return;
+    }
+
+    const from = selected;
+    let piece = game.board[from.r][from.c];
+    if (!piece){ selected=null; draw(); return; }
+
+    const dest = game.board[r][c];
+    if (dest && toSide(dest) === game.turn){ selected=null; draw(); return; }
+
+    let didCapture = false;
+    if (dest){
+      if (isKingPiece(dest)){
+        // Capture king -> game over
+        setGameOver(game.turn);
+        // Do not add king to hand
+      } else {
+        addToHand(game.turn, dest);
+      }
+      didCapture = true;
+    }
+
+    game.board[from.r][from.c] = null;
+
+    const promote = decidePromotion(game.turn, piece, from.r, r);
+    if (promote) piece = applyPromotion(piece);
+
+    game.board[r][c] = piece;
+
+    selected = null;
+    if (!mySide) mySide = game.turn;
+      game.turn = (game.turn === "S") ? "G" : "S";
+    draw();
+    sendState();
+
+    if (didCapture) sfx.capture(); else sfx.move();
+    if (promote) sfx.promote();
+
+    // If the move ended the game, ask for rematch
+    if (ensureMeta().gameOver) {
+      maybePromptRematch();
     }
   });
 
-  // init
-  $("name").value = localStorage.getItem("shogi_name") || "You";
-  $("name").addEventListener("change", () => localStorage.setItem("shogi_name", $("name").value));
-  roomId(); // ensure hash exists
+  // UI
+  btnConnect.addEventListener("click", connect);
+  btnCopyUrl.addEventListener("click", async () => {
+    const room = currentRoom();
+    const url = `${location.origin}${location.pathname}#room=${room}`;
+    try{ await navigator.clipboard.writeText(url); appendSystem("部屋URLをコピーしました"); }
+    catch{ appendSystem("コピーに失敗（ブラウザ権限）"); }
+  });
+  btnReset.addEventListener("click", () => {
+    ensureAudioUnlocked();
+    game = initialGame();
+    selected = null;
+    selectedDrop = null;
+    draw();
+    sendState();
+    sfx.move();
+  });
+
+  btnSend.addEventListener("click", sendChat);
+  chatInput.addEventListener("keydown", (e) => { if (e.key === "Enter") sendChat(); });
+
+  draw();
 })();
 </script>
 </body>
