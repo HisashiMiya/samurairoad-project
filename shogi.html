@@ -1563,7 +1563,9 @@ function renderAiResult(data) {
 }
 
 async function callGemini(prompt, model="gemini-2.5-flash") {
-  const res = await fetch("/ai/gemini", {
+  const base = (window.AI_HTTP || location.origin).replace(/\/$/, "");
+  const endpoint = `${base}/ai/gemini`;
+  const res = await fetch(endpoint , {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ prompt, model }),
