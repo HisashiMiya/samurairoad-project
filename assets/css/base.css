@@ -1,0 +1,117 @@
+:root{--bg:#0b1020;--card:#111a33;--line:rgba(255,255,255,.12);--text:#e8eefc;--muted:#b9c6ea;--accent:#7aa2ff;}
+    body{margin:0;background:linear-gradient(180deg,#070b18,var(--bg));color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,"Noto Sans JP",sans-serif;}
+    .wrap{max-width:1100px;margin:0 auto;padding:16px;display:grid;gap:14px}
+    
+    .card{background:rgba(17,26,51,.55);border:1px solid var(--line);border-radius:16px;padding:14px}
+    h1{font-size:1.2rem;margin:0 0 8px}
+    .muted{color:var(--muted);font-size:.92rem;line-height:1.6}
+    .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+    .btn{min-height:44px;padding:10px 14px;border-radius:999px;border:1px solid var(--line);background:#0f1730;color:var(--text);cursor:pointer;font-weight:700}
+    .btn.primary{background:#1c2a55;border-color:rgba(122,162,255,.45)}
+    .btn.ghost{background:rgba(255,255,255,.04)}
+    .btn[disabled]{opacity:.45;cursor:not-allowed}
+    .input{min-height:44px;border-radius:12px;border:1px solid var(--line);background:#0f1730;color:var(--text);padding:10px 12px;width:100%}
+    .status{padding:10px;border-radius:12px;background:rgba(0,0,0,.25);border:1px solid var(--line);font-size:.92rem}
+    .badge{display:inline-flex;align-items:center;gap:8px;padding:6px 10px;border-radius:999px;border:1px solid var(--line);background:rgba(0,0,0,.18);font-weight:800}
+    .dot{width:10px;height:10px;border-radius:999px;background:rgba(122,162,255,.7)}
+
+    /* 将棋盤 */
+    #board{
+      display:grid;
+      grid-template-columns:repeat(9,1fr);
+      grid-template-rows:repeat(9,1fr);
+      aspect-ratio:1/1;
+      width:min(96vw,680px);
+      margin:0 auto;
+      background:#f1d79a;
+      border:6px solid #b58a45;
+      border-radius:14px;
+      overflow:hidden;
+      box-shadow:0 10px 30px rgba(0,0,0,.35);
+    }
+    .cell{-webkit-tap-highlight-color:transparent;touch-action:manipulation;
+      border:1px solid rgba(0,0,0,.35);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-weight:800;
+      cursor:pointer;
+      user-select:none;
+      position:relative;
+      font-size:clamp(16px,2.4vw,26px);
+      color:#102040;
+    }
+    .cell:hover{background:rgba(122,162,255,.08)}
+    .cell.sel{
+      outline:3px solid rgba(122,162,255,.9);
+      outline-offset:-3px;
+      background:rgba(122,162,255,.12);
+    }
+    .cell.rev{ color:#3a2a12; transform:rotate(180deg); }
+    .piece.promoted{ color:#c81e1e; } /* ✅ 成駒を赤文字 */
+    .coord{
+      position:absolute;
+      right:4px;
+      bottom:3px;
+      font-size:10px;
+      color:rgba(0,0,0,.35);
+      font-weight:600;
+      transform:none;
+      pointer-events:none;
+    }
+    .hint{margin-top:10px;color:var(--muted);font-size:.9rem;line-height:1.5}
+
+    /* 持ち駒 */
+    .hands{display:grid;gap:10px;margin-top:10px}
+    .hand{border:1px solid var(--line);border-radius:12px;padding:10px;background:rgba(0,0,0,.18)}
+    .handTitle{display:flex;justify-content:space-between;align-items:center;font-weight:900;margin-bottom:8px}
+    .handPieces{display:flex;gap:8px;flex-wrap:wrap}
+    .chip{border:1px solid rgba(0,0,0,.25);border-radius:999px;padding:6px 10px;font-weight:900;cursor:pointer;background:#f1d79a;display:inline-flex;gap:6px;align-items:center;color:#102040}
+    .chip.sel{outline:2px solid var(--accent)}
+    .chip.disabled{opacity:.4;cursor:not-allowed}
+    .chip .cnt{font-size:.85rem;color:var(--muted);font-weight:800}
+
+    /* チャット */
+    .chatLog{height:320px;overflow:auto;border:1px solid var(--line);border-radius:12px;padding:10px;background:rgba(0,0,0,.22)}
+    .msg{margin:0 0 8px}
+    .msg b{color:var(--accent)}
+    .small{font-size:.85rem;color:var(--muted)}
+    code{background:rgba(255,255,255,.08);padding:2px 6px;border-radius:6px}
+  
+    .badge.turnBig{
+      font-size:1.05rem;
+      padding:10px 14px;
+      border-color:rgba(122,162,255,.65);
+      box-shadow:0 6px 18px rgba(0,0,0,.25);
+      background:rgba(122,162,255,.10);
+    }
+    .badge.turnBig .dot{
+      width:12px;height:12px;
+      box-shadow:0 0 0 4px rgba(122,162,255,.15);
+    }
+
+  
+    .badge.turnBig.turnMine{
+      border-color:rgba(80,220,150,.85);
+      background:rgba(80,220,150,.12);
+      box-shadow:0 8px 22px rgba(0,0,0,.28);
+    }
+    .badge.turnBig.turnMine .dot{
+      background:rgba(80,220,150,.95);
+      box-shadow:0 0 0 5px rgba(80,220,150,.18);
+    }
+    .badge.turnBig.turnOther{
+      border-color:rgba(255,190,90,.75);
+      background:rgba(255,190,90,.10);
+    }
+    .badge.turnBig.turnOther .dot{
+      background:rgba(255,190,90,.9);
+      box-shadow:0 0 0 5px rgba(255,190,90,.16);
+    }
+
+  
+    .cell.lastFrom{background:rgba(255,255,255,.18)}
+    .cell.lastTo{background:rgba(122,162,255,.18)}
+    .cell.lastTo{box-shadow:inset 0 0 0 3px rgba(122,162,255,.55)}
+    .chatComposer{position:sticky;bottom:0;background:rgba(17,26,51,.92);backdrop-filter:blur(6px);padding-top:10px;margin-top:10px;border-top:1px solid var(--line)}
+    .chatToggle{display:none}
