@@ -6,6 +6,9 @@
   <title>the Shogi(極み将棋) H.M.C</title>
   <link rel="stylesheet" href="./assets/css/shogi.css?v=20260117-2">
 
+  <script>
+    window.AI_HTTP = "https://samurairoad-ws.korokorokororintyo.workers.dev";
+  </script>
   <style>
     /* --- Mobile menu (minimal) --- */
     #mobileMenuBtn{display:none;position:fixed;right:12px;bottom:12px;z-index:9999}
@@ -18,10 +21,24 @@
     #mobileDrawer .drawerSection{display:none}
     #mobileDrawer .drawerSection.active{display:block}
     #settingsPanel .row{margin-top:8px}
-    @media (max-width: 980px){
+    /*
+      Mobile detection:
+      - width based (<=1100px) for small tablets
+      - pointer based for smartphones even if CSS px is large (DPR issues)
+    */
+    @media (max-width: 1100px){
       #mobileMenuBtn{display:block}
     }
-  </style>
+    @media (hover: none) and (pointer: coarse){
+      #mobileMenuBtn{display:block}
+    }
+  
+
+    /* ensure kifu panel is visible inside drawer on mobile */
+    #mobileDrawer #kifuPanel{display:block !important;margin:0 !important;width:100% !important;max-width:none !important;}
+    #mobileDrawer #kifuPanel .row{flex-wrap:wrap}
+    #mobileDrawer #kifuPanel textarea{min-height:180px;}
+</style>
 
 
   <style>
@@ -157,19 +174,17 @@
     <aside class="card" id="kifuPanel">
       <h1>棋譜</h1>
       <div class="muted" style="margin-bottom:8px">
-        JSON形式でインポートできます（ローカル保存も可）。<br>
-        「戻る/次へ」で手順再生（レビュー）できます。
+        「前へ/次へ」で手順再生（レビュー）できます。
       </div>
 
       <div class="row" style="margin-top:6px">
-        <button class="btn" id="btnKifuAutoOn">自動取得: 開始</button>
-        <button class="btn ghost" id="btnKifuAutoOff">自動取得: 停止</button>
         <button class="btn" id="btnKifuDelete">棋譜ファイル削除</button>
-        <button class="btn ghost" id="btnKifuImport">インポート</button>
+        <button class="btn ghost" id="btnKifuImport">棋譜ファイル読込</button>
+        <button class="btn primary" id="btnAiReview">🤖 AI対局評価</button>
       </div>
 
       <div class="row" style="margin-top:10px">
-        <button class="btn" id="btnKifuPrev">戻る</button>
+        <button class="btn" id="btnKifuPrev">前へ</button>
         <button class="btn" id="btnKifuNext">次へ</button>
         <span class="small" id="kifuStep">手数 0 / 0</span>
       </div>
@@ -213,6 +228,16 @@
 <div class="small" style="margin-top:14px;text-align:right;opacity:.85">
         © hisa.miya
       </div>
+</div>
+
+
+<div id="aiResultModal" style="display:none;position:fixed;inset:0;z-index:10001;background:rgba(0,0,0,.65);padding:8px">
+  <div class="ai-content" style="max-width:860px;margin:6vh auto 0;background:rgba(17,26,51,.98);border:1px solid rgba(255,255,255,.14);border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,.45);padding:16px;max-height:86vh;overflow:auto">
+    <div id="aiResultBody"></div>
+    <div class="row" style="justify-content:flex-end; margin-top:20px;">
+      <button class="btn" onclick="document.getElementById('aiResultModal').style.display='none'">閉じる</button>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -277,6 +302,10 @@
     });
   }
 
+  // expose modal helpers globally (used by later scripts)
+  window.uiAlert = uiAlert;
+  window.uiConfirm = uiConfirm;
+
   const btnChatToggle = document.getElementById("btnChatToggle");
   const chatLog = document.getElementById("chatLog");
   const chatInput = document.getElementById("chatInput");
@@ -289,8 +318,6 @@
   const handHintG = document.getElementById("handHintG");
 
   // KIFU control buttons
-  const btnKifuAutoOn  = document.getElementById("btnKifuAutoOn");
-  const btnKifuAutoOff = document.getElementById("btnKifuAutoOff");
   const btnKifuDelete  = document.getElementById("btnKifuDelete");
 
   // Client ID cache (for role assignment)
@@ -368,7 +395,9 @@
 
   let ws = null;
   let gotState = false;
-  let game = ensureKifu(normalizeRoles(initialGame()));
+  let game = ensureGameId(ensureKifu(normalizeRoles(initialGame())));
+  // expose for other script blocks (module scope isolation)
+  window.__KIWAMI_GAME = game;
   let selected = null;         // {r,c}
   let selectedDrop = null;     // {side,type}
   let lastMove = null;         // {from:{r,c}, to:{r,c}}
@@ -386,8 +415,73 @@
   let suppressAutoLoadOnce = false; // reset等でローカル自動読込を一度だけ抑止
   let didAutoLoadKifu = false; // 接続時の自動読込は一度だけ
 
+    // ---- 対局ID（試合ごとに棋譜を分けて保存） ----
+  function ensureGameId(g){
+    if (!g.gameId){
+      g.gameId = `g_${Date.now()}_${Math.random().toString(16).slice(2)}`;
+      g.startedAt = new Date().toISOString();
+      g.finishedAt = null;
+      g.result = null;
+    }
+    return g;
+  }
+
+  function kifuIndexKey(){
+    return `kiwami_kifu_index_v1:${currentRoom()}`;
+  }
+
+  function upsertGameIndex(meta){
+    try{
+      const key = kifuIndexKey();
+      const arr = JSON.parse(localStorage.getItem(key) || "[]");
+      const i = arr.findIndex(x => x.gameId === meta.gameId);
+      if (i >= 0) arr[i] = { ...arr[i], ...meta };
+      else arr.unshift(meta);
+      localStorage.setItem(key, JSON.stringify(arr.slice(0, 50))); // 50試合まで
+    }catch{}
+  }
+
+  function finalizeCurrentGame(reason){
+    try{
+      ensureKifu(game);
+      ensureGameId(game);
+      // 0手の対局は保存しない（誤リセット等のノイズ防止）
+      if (!game.kifu.moves || game.kifu.moves.length === 0) return;
+
+      if (!game.finishedAt) game.finishedAt = new Date().toISOString();
+      if (!game.result) game.result = reason || "finished";
+
+      // 確実に保存
+      saveKifuToLocal();
+
+      upsertGameIndex({
+        gameId: game.gameId,
+        room: currentRoom(),
+        gameId: game.gameId || null,
+        startedAt: game.startedAt || null,
+        finishedAt: game.finishedAt || null,
+        result: game.result || null,
+        startedAt: game.startedAt || null,
+        finishedAt: game.finishedAt,
+        result: game.result,
+        moves: game.kifu.moves.length,
+        savedAt: new Date().toISOString()
+      });
+    }catch{}
+  }
+
+  function startNewGame(){
+    // 現在の対局を確定（リセット前）
+    finalizeCurrentGame("reset");
+    game = ensureKifu(normalizeRoles(initialGame()));
+    game = ensureGameId(game);
+    window.__KIWAMI_GAME = game;
+    saveKifuToLocal(); // 初期状態も保存しておく（復元用）
+  }
+
   function kifuStorageKey(){
-    return `kiwami_kifu_v1:${currentRoom()}`;
+    ensureGameId(game);
+    return `kiwami_kifu_v1:${currentRoom()}:${game.gameId}`;
   }
 
   function saveKifuToLocal(){
@@ -408,7 +502,26 @@
   function loadKifuFromLocal(){
     try{
       const raw = localStorage.getItem(kifuStorageKey());
-      if (!raw) return { ok:false, msg:"保存済み棋譜がありません" };
+      if (!raw){
+        // 旧形式（部屋単位）からの互換読込
+        const legacyKey = `kiwami_kifu_v1:${currentRoom()}`;
+        const legacy = localStorage.getItem(legacyKey);
+        if (!legacy) return { ok:false, msg:"保存済み棋譜がありません" };
+        // 旧データを現在の対局IDへ取り込み
+        const legacyObj = JSON.parse(legacy);
+        ensureGameId(game);
+        const migrated = {
+          moves: legacyObj.moves || [],
+          cursor: (legacyObj.moves || []).length
+        };
+        ensureKifu(game);
+        game.kifu.moves = migrated.moves;
+        game.kifu.cursor = migrated.cursor;
+        rebuildToCursor(game.kifu.cursor);
+        // 新キーで保存（以後は試合単位）
+        saveKifuToLocal();
+        return { ok:true, msg:`旧形式棋譜を移行読込（手数 ${migrated.moves.length}）` };
+      }
       const obj = JSON.parse(raw);
       if (!obj || !Array.isArray(obj.moves)) return { ok:false, msg:"保存棋譜が壊れています（movesがありません）" };
       ensureKifu(game);
@@ -650,6 +763,8 @@ selected = null;
     if (audioCtx.state === "suspended") audioCtx.resume().catch(()=>{});
   }
 
+  window.ensureAudioUnlocked = ensureAudioUnlocked;
+
   // ---- Audio unlock on first user gesture (mobile autoplay restriction) ----
   (function(){
     const once = () => { try{ ensureAudioUnlocked(); }catch{}; window.removeEventListener("pointerdown", once, true); window.removeEventListener("touchstart", once, true); };
@@ -673,7 +788,7 @@ selected = null;
   }
   const sfx = {
     move(side){ 
-      // 先手/後手で音程を変える（スマホでも聴き分けやすい範囲）
+      // 先手/後手で音程を変える
       const f = (side === "G") ? 460 : 520;
       beep(f, 0.05, "square", 0.05); 
       buzz(8);
@@ -712,14 +827,14 @@ selected = null;
   function appendChat(user, text){
     const div = document.createElement("div");
     div.className = "msg";
-    div.innerHTML = `<b>${escapeHtml(user)}</b> <span class="small" style="opacity:.7;margin-left:.35rem">${fmtDT()}</span><div style="margin-top:2px">${escapeHtml(text)}</div>`;
+    div.innerHTML = `<b>${esc(user)}</b> <span class="small" style="opacity:.7;margin-left:.35rem">${fmtDT()}</span><div style="margin-top:2px">${esc(text)}</div>`;
     chatLog.appendChild(div);
     chatLog.scrollTop = chatLog.scrollHeight;
   }
   function appendSystem(text){
     const div = document.createElement("div");
     div.className = "msg";
-    div.innerHTML = `<span class="small" style="opacity:.7;margin-right:.35rem">${fmtDT()}</span><span class="small">${escapeHtml(text)}</span>`;
+    div.innerHTML = `<span class="small" style="opacity:.7;margin-right:.35rem">${fmtDT()}</span><span class="small">${esc(text)}</span>`;
     chatLog.appendChild(div);
     chatLog.scrollTop = chatLog.scrollHeight;
   }
@@ -729,7 +844,7 @@ selected = null;
     return `${d.getFullYear()}/${pad(d.getMonth()+1)}/${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
   }
 
-  function escapeHtml(s){
+  function esc(s){
     return String(s)
       .replaceAll("&","&amp;")
       .replaceAll("<","&lt;")
@@ -737,6 +852,10 @@ selected = null;
       .replaceAll('"',"&quot;")
       .replaceAll("'","&#39;");
   }
+const escapeHtml = esc;
+  window.escapeHtml = esc;
+  window.fmtDT = fmtDT;
+
 
   function drawHands(){
     const s = game.hands.S || {};
@@ -933,7 +1052,7 @@ selected = null;
     else mySide = null;
   }
 
-  function claimRoleIfNeeded(){
+  async function claimRoleIfNeeded(){
     normalizeRoles(game);
     updateMySideFromRoles();
 
@@ -951,7 +1070,7 @@ selected = null;
 
     // First entrant (none taken): choose
     if (!sTaken && !gTaken){
-      const ok = window.confirm("先手で入りますか？\nOK=先手 / キャンセル=後手");
+      const ok = await uiConfirm("先手で入りますか？", "先手", "後手");
       const side = ok ? "S" : "G";
       game.roles[side] = { id: clientId, name: myName };
       updateMySideFromRoles();
@@ -1009,7 +1128,34 @@ selected = null;
 
       if (m.type === "state" && m.payload && m.payload.board){
         gotState = true;
+
+        // ★重要：サーバのstateは盤面同期用（棋譜はクライアント管理）
+        // 自分の送信したstateも戻ってくるため、そのたびに game を作り直すと棋譜が消える。
+        // → 受信前の棋譜を退避し、受信後に復元する（payloadに棋譜が無い前提）
+        const prevKifu = (window.__KIWAMI_GAME && window.__KIWAMI_GAME.kifu)
+          ? JSON.parse(JSON.stringify(window.__KIWAMI_GAME.kifu))
+          : null;
+        const prevGameId = (window.__KIWAMI_GAME && window.__KIWAMI_GAME.gameId) ? window.__KIWAMI_GAME.gameId : null;
+        const prevStartedAt = (window.__KIWAMI_GAME && window.__KIWAMI_GAME.startedAt) ? window.__KIWAMI_GAME.startedAt : null;
+        const prevFinishedAt = (window.__KIWAMI_GAME && window.__KIWAMI_GAME.finishedAt) ? window.__KIWAMI_GAME.finishedAt : null;
+        const prevResult = (window.__KIWAMI_GAME && window.__KIWAMI_GAME.result) ? window.__KIWAMI_GAME.result : null;
+
         game = ensureKifu(normalizeRoles(normalizeHands(m.payload)));
+
+        // 対局IDもクライアント側で保持（受信stateに無い場合がある）
+        if (prevGameId && !game.gameId) game.gameId = prevGameId;
+        if (prevStartedAt && !game.startedAt) game.startedAt = prevStartedAt;
+        if (prevFinishedAt && !game.finishedAt) game.finishedAt = prevFinishedAt;
+        if (prevResult && !game.result) game.result = prevResult;
+
+        // 受信stateに棋譜が無い/空なら、退避した棋譜を復元
+        try{
+          if (prevKifu && (!game.kifu || !Array.isArray(game.kifu.moves) || game.kifu.moves.length === 0)){
+            game.kifu = prevKifu;
+          }
+        }catch{}
+
+        window.__KIWAMI_GAME = game;
         // ローカル棋譜があり、サーバ側が空なら自動読込（MVP）
         try{
           if (didAutoLoadKifu){
@@ -1029,6 +1175,7 @@ selected = null;
         updateMySideFromRoles();
         selected = null;
         selectedDrop = null;
+        updateKifuUI();
         draw();
         // Role is decided on first join (choose/auto) and persisted in state
         claimRoleIfNeeded();
@@ -1125,6 +1272,8 @@ selected = null;
       if (isKingPiece(dest)){
         // Capture king -> game over (show only)
         showWinPopup(game.turn);
+        // 対局終了として棋譜を確定保存
+        finalizeCurrentGame("win");
         // Do not add king to hand
       } else {
         addToHand(game.turn, dest);
@@ -1171,17 +1320,6 @@ selected = null;
   btnChatToggle.addEventListener("click", () => {
     document.body.classList.toggle("chatOpen");
   });
-  // KIFU: 自動取得（開始/停止/削除）
-  btnKifuAutoOn.addEventListener("click", () => {
-    kifuAutoEnabled = true;
-    saveKifuToLocal();
-    appendSystem("棋譜の自動取得を開始しました（この端末に保存）");
-  });
-
-  btnKifuAutoOff.addEventListener("click", () => {
-    kifuAutoEnabled = false;
-    appendSystem("棋譜の自動取得を停止しました");
-  });
 
   btnKifuDelete.addEventListener("click", async () => {
     if (!(await uiConfirm("ローカルの棋譜ファイルを削除しますか？", "削除", "やめる"))) return;
@@ -1226,7 +1364,7 @@ btnReset.addEventListener("click", () => {
   suppressAutoLoadOnce = true;
   didAutoLoadKifu = true;
 
-  resetGame();
+  startNewGame();
   draw();
   sendState();
 });
@@ -1263,7 +1401,9 @@ btnReset.addEventListener("click", () => {
     drawerSettings.classList.toggle("active", section==="settings");
     drawerKifu.classList.toggle("active", section==="kifu");
 
-    if (window.matchMedia("(max-width: 980px)").matches){
+    const isMobile = window.matchMedia("(max-width: 1100px)").matches ||
+                     window.matchMedia("(hover: none) and (pointer: coarse)").matches;
+    if (isMobile){
       if (kifuPanel && drawerKifuHost && kifuPanel.parentElement !== drawerKifuHost){
         drawerKifuHost.appendChild(kifuPanel);
       }
@@ -1310,6 +1450,153 @@ btnReset.addEventListener("click", () => {
     saveSettings();
   });
 
+
+// --- AI Review Logic ---
+const btnAiReview = document.getElementById("btnAiReview");
+const aiResultModal = document.getElementById("aiResultModal");
+const aiResultBody = document.getElementById("aiResultBody");
+const esc = window.escapeHtml || function(s){
+  const map = { "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" };
+  return String(s).replace(/[&<>"']/g, (c)=>map[c]||c);
+};
+
+
+// Close AI modal when clicking backdrop
+(function(){
+  const m = document.getElementById("aiResultModal");
+  if (m){
+    m.addEventListener("click", (e)=>{ if(e.target===m) m.style.display="none"; });
+  }
+})();
+
+if (btnAiReview) {
+  btnAiReview.addEventListener("click", async () => {
+    // 棋譜が空なら止める
+    const g = window.__KIWAMI_GAME;
+
+    // モーダル要素はDOM構築後に存在する前提だが、環境によって null になることがあるため毎回取得
+    const modal = document.getElementById("aiResultModal");
+    const body = document.getElementById("aiResultBody");
+    if (!modal || !body) {
+      // モーダルが無い場合は最低限の通知で継続
+      if (window.uiAlert) await window.uiAlert("AI結果表示エリアが見つかりません（aiResultModal/aiResultBody）");
+      else alert("AI結果表示エリアが見つかりません（aiResultModal/aiResultBody）");
+      return;
+    }
+    if (!g || !g.kifu || !Array.isArray(g.kifu.moves) || g.kifu.moves.length === 0) {
+      if (window.uiAlert) await window.uiAlert("棋譜がありません。少し指してから実行してください。");
+      else alert("棋譜がありません。少し指してから実行してください。");
+      return;
+    }
+
+    // UI表示
+    modal.style.display = "block";
+    body.innerHTML = `<div class="ai-loading">🤖 AIが思考中...<br><span class="small">※30秒ほどかかる場合があります</span></div>`;
+
+    try {
+      // 1. 棋譜データの整形（AIが読みやすいように軽量化）
+      const kifuExport = {
+        moves: g.kifu.moves.map(m => {
+          if (m.type === "move") return { s:m.side, f:m.from, t:m.to, p:m.pieceAfter };
+          if (m.type === "drop") return { s:m.side, d:m.piece, t:m.to };
+          return m;
+        })
+      };
+
+      // 2. Gemini呼び出し（既存の関数を利用）
+      const result = await reviewGameWithGemini(kifuExport);
+
+      // 3. 結果のレンダリング
+      renderAiResult(result);
+
+    } catch (e) {
+      console.error(e);
+      body.innerHTML = `<div style="color:#ff8888">エラーが発生しました。<br>${e.message}</div>`;
+    }
+  });
+}
+
+// AI結果をHTMLに変換して表示
+function renderAiResult(data) {
+  let html = "";
+
+  // 総評
+  if (data.summary) {
+    html += `<div class="ai-section"><h2>総評</h2><p>${esc(data.summary)}</p></div>`;
+  }
+
+  // 勝負の分かれ目
+  if (data.turningPoints && data.turningPoints.length > 0) {
+    html += `<div class="ai-section"><h3>⚡ 勝負の分かれ目</h3>`;
+    data.turningPoints.forEach(tp => {
+      html += `<div style="margin-bottom:10px;">
+        <b>${tp.ply}手目</b>: ${esc(tp.comment)}<br>
+        <span class="small muted">推奨手: ${tp.betterIdeas ? esc(tp.betterIdeas.join(", ")) : "特になし"}</span>
+      </div>`;
+    });
+    html += `</div>`;
+  }
+
+  // 良かった手
+  if (data.goodMoves && data.goodMoves.length > 0) {
+    html += `<div class="ai-section"><h3>👍 ナイス一手</h3>`;
+    data.goodMoves.forEach(gm => {
+      html += `<div><b>${gm.ply}手目</b>: <span class="ai-good">${esc(gm.comment)}</span></div>`;
+    });
+    html += `</div>`;
+  }
+
+  // 悪手・改善点
+  if (data.badMoves && data.badMoves.length > 0) {
+    html += `<div class="ai-section"><h3>🤔 改善ポイント</h3>`;
+    data.badMoves.forEach(bm => {
+      html += `<div style="margin-bottom:8px;">
+        <b>${bm.ply}手目</b>: ${esc(bm.comment)}<br>
+        <span class="ai-bad">改善案: ${esc(bm.fix)}</span>
+      </div>`;
+    });
+    html += `</div>`;
+  }
+
+  const body = document.getElementById("aiResultBody") || aiResultBody;
+  if (body) body.innerHTML = html;
+}
+
+async function callGemini(prompt, model="gemini-2.5-flash") {
+  const res = await fetch("/ai/gemini", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ prompt, model }),
+  });
+  const json = await res.json();
+  if (!json.ok) throw new Error(json?.data ? JSON.stringify(json.data) : "Gemini error");
+  return json.text;
+}
+
+async function reviewGameWithGemini(kifuJson) {
+  const prompt = `
+あなたは将棋の検討役です。次の棋譜をレビューしてください。
+エンジンのような数値評価は不要。代わりに「形勢が動いた局面」と理由を説明してください。
+出力は必ずJSONのみ。
+
+出力形式:
+{
+  "summary": "総評（200字以内）",
+  "turningPoints": [
+    {"ply": 12, "comment": "ここで形勢が動いた理由", "betterIdeas": ["候補1","候補2"] }
+  ],
+  "goodMoves": [{"ply": 20, "comment": "良い手の理由"}],
+  "badMoves": [{"ply": 34, "comment": "疑問手の理由", "fix": "改善案"}],
+  "endgame": "終盤のポイント（200字以内）"
+}
+
+棋譜(JSON):
+${JSON.stringify(kifuJson)}
+`;
+  const text = await callGemini(prompt);
+  return JSON.parse(text); // 返答がJSON前提
+}
 </script>
+
 </body>
 </html>
