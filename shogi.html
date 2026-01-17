@@ -5,10 +5,96 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>the Shogi(極み将棋) H.M.C</title>
   <link rel="stylesheet" href="./assets/css/shogi.css?v=20260117-2">
+
+  <style>
+    /* --- Mobile menu (minimal) --- */
+    #mobileMenuBtn{display:none;position:fixed;right:12px;bottom:12px;z-index:9999}
+    #mobileMenuBtn .btn{padding:.8rem 1rem;border-radius:999px;box-shadow:0 10px 30px rgba(0,0,0,.35)}
+    #mobileDrawer{display:none;position:fixed;inset:0;z-index:9998;background:rgba(0,0,0,.55)}
+    #mobileDrawer .panel{position:absolute;right:0;top:0;height:100%;width:min(92vw,420px);background:rgba(17,26,51,.98);border-left:1px solid rgba(255,255,255,.12);padding:12px;overflow:auto}
+    #mobileDrawer .tabs{display:flex;gap:8px;align-items:center;margin-bottom:10px}
+    #mobileDrawer .tabs .btn{flex:1}
+    #mobileDrawer .closeBtn{flex:0 0 auto}
+    #mobileDrawer .drawerSection{display:none}
+    #mobileDrawer .drawerSection.active{display:block}
+    #settingsPanel .row{margin-top:8px}
+    @media (max-width: 980px){
+      #mobileMenuBtn{display:block}
+    }
+  </style>
+
+
+  <style>
+    /* --- UX: larger board on mobile + last move highlight --- */
+    .cell.lastFrom{ box-shadow: inset 0 0 0 3px rgba(255,255,255,.55); }
+    .cell.lastTo{ box-shadow: inset 0 0 0 3px rgba(122,162,255,.95); }
+    /* If both match, prioritize 'to' */
+    .cell.lastFrom.lastTo{ box-shadow: inset 0 0 0 3px rgba(122,162,255,.95), inset 0 0 0 6px rgba(255,255,255,.35); }
+
+    @media (max-width: 980px){
+      /* reduce card padding a bit to give the board more real estate */
+      #gamePanel{ padding:10px !important; }
+      /* force the board to use viewport width */
+      #board{
+        width: min(96vw, 560px);
+        aspect-ratio: 1 / 1;
+        margin: 0 auto;
+        display: grid;
+        grid-template-columns: repeat(9, 1fr);
+        grid-template-rows: repeat(9, 1fr);
+      }
+      /* make cells stretch with the board */
+      #board .cell{
+        width: auto !important;
+        height: auto !important;
+      }
+      #board .piece{
+        font-size: clamp(18px, 4.8vw, 28px);
+      }
+      #board .coord{
+        font-size: clamp(9px, 2.2vw, 12px);
+      }
+    }
+  </style>
+
 </head>
 <body>
+
+  <!-- Mobile Menu -->
+  <div id="mobileMenuBtn"><button class="btn primary" type="button">メニュー</button></div>
+  <div id="mobileDrawer" aria-hidden="true">
+    <div class="panel">
+      <div class="tabs">
+        <button class="btn" id="tabSettings" type="button">設定</button>
+        <button class="btn" id="tabKifu" type="button">棋譜</button>
+        <button class="btn ghost closeBtn" id="btnDrawerClose" type="button">×</button>
+      </div>
+
+      <div id="drawerSettings" class="drawerSection">
+        <div class="card" id="settingsPanel">
+          <h1>設定</h1>
+          <div class="muted" style="margin-bottom:8px">スマホの制限により、音は最初のタップ後に有効になります。</div>
+          <div class="row">
+            <label class="small" style="display:flex;align-items:center;gap:8px">
+              <input type="checkbox" id="chkAudio" checked> 音：ON
+            </label>
+          </div>
+          <div class="row">
+            <label class="small" style="display:flex;align-items:center;gap:8px">
+              <input type="checkbox" id="chkVibe" checked> 振動：ON
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div id="drawerKifu" class="drawerSection">
+        <div id="drawerKifuHost"></div>
+      </div>
+    </div>
+  </div>
+
   <div class="wrap">
-    <section class="card">
+    <section class="card" id="gamePanel">
       <h1>極み将棋</h1>
       <p class="muted">
         URLの <code>#room=xxxx</code> を共有すると同じ部屋に入れます。<br>
@@ -54,6 +140,7 @@
     </section>
 
     
+    <div id="kifuDock"></div>
     <aside class="card" id="kifuPanel">
       <h1>棋譜</h1>
       <div class="muted" style="margin-bottom:8px">
@@ -75,7 +162,7 @@
       </div>
 
       <div class="row" style="margin-top:10px">
-        <textarea id="kifuText" class="input" style="min-height:140px;resize:vertical" placeholder="ここに棋譜JSONを貼り付け / エクスポート結果が出ます"></textarea>
+        <textarea id="kifuText" class="input" style="min-height:140px;resize:vertical" placeholder="ここに棋譜JSONを貼り付け（インポート用）"></textarea>
       </div>
       <p class="small"></p>
     </aside>
@@ -95,8 +182,8 @@
       <p class="small">※観戦者もチャット可能。対局は先着2人がプレイヤーになります（MVPのため強制は未実装）。</p>
     </aside>
   </div>
-      <div class="card" style="margin-top:14px;background:rgba(0,0,0,.18)">
-        <h1 style="font-size:1.05rem;margin:0 0 8px">開発者メモ</h1>
+      <aside class="card" id="devMemo">
+      <h1>開発者メモ</h1>
         <div class="muted" style="font-size:.92rem;line-height:1.65">
           <div>MVP：合法手・王手判定・打ち歩詰め等は未対応（ただし「二歩」「行き所のない駒の打ち」は最低限ガード）。</div>
           <div>成りは実装済み（成れる場合は確認、強制成りも対応）。</div>
@@ -106,7 +193,7 @@
           <div>・通信基盤は変更なし（Worker/DOは中継・同期・保存のみ）。
           <div>・AIによる次の最善手解析（設計案）：まずは「現局面をテキスト化→解析用プロンプト生成→コピーしてAIに貼る」方式（超安全）。次段階でWorkers経由のAPI連携、さらに将棋エンジン/WASM化へ拡張。</div>
           <div>・棋譜の自動取得</div>
-      </div>
+      </aside>
 
       <div class="small" style="margin-top:14px;text-align:right;opacity:.85">
         © hisa.miya
@@ -339,7 +426,17 @@
     game.roles = rebuilt.roles;
     game.kifu  = rebuilt.kifu;
 
-    selected = null;
+    
+    // set lastMove for review highlight
+    lastMove = null;
+    if (c > 0){
+      const rec = moves[c-1];
+      if (rec){
+        if (rec.type === "move") lastMove = { from: rec.from, to: rec.to };
+        else if (rec.type === "drop") lastMove = { from: {r:-1,c:-1}, to: rec.to };
+      }
+    }
+selected = null;
     selectedDrop = null;
     draw();
     updateKifuUI();
@@ -446,16 +543,25 @@
 
   // ---- 音（WebAudio） ----
   function buzz(ms=10){
+    if(!vibrationEnabled) return;
     try{ if (navigator.vibrate) navigator.vibrate(ms); }catch{}
   }
 
   let audioEnabled = true;
+  let vibrationEnabled = true;
   let audioCtx = null;
   function ensureAudioUnlocked(){
     if (!audioEnabled) return;
     if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     if (audioCtx.state === "suspended") audioCtx.resume().catch(()=>{});
   }
+
+  // ---- Audio unlock on first user gesture (mobile autoplay restriction) ----
+  (function(){
+    const once = () => { try{ ensureAudioUnlocked(); }catch{}; window.removeEventListener("pointerdown", once, true); window.removeEventListener("touchstart", once, true); };
+    window.addEventListener("pointerdown", once, true);
+    window.addEventListener("touchstart", once, true);
+  })();
   function beep(freq=440, dur=0.06, type="sine", gain=0.06){
     if (!audioEnabled) return;
     ensureAudioUnlocked();
@@ -599,7 +705,11 @@
         d.className =
           "cell" +
           (p && ((mySide === "G") ? isSente(p) : isGote(p)) ? " rev" : "") +
-          (selected && selected.r===r && selected.c===c ? " sel" : "");
+          (selected && selected.r===r && selected.c===c ? " sel" : "") +
+          (lastMove && lastMove.from && lastMove.from.r===r && lastMove.from.c===c ? " lastFrom" : "") +
+          (lastMove && lastMove.to   && lastMove.to.r===r   && lastMove.to.c===c   ? " lastTo"   : "")
+          ;
+
         d.dataset.r = r;
         d.dataset.c = c;
 
@@ -1008,6 +1118,79 @@
 
   draw();
 })();
+
+  // ---- Mobile Menu (Settings / Kifu) ----
+  const mobileDrawer = document.getElementById("mobileDrawer");
+  const mobileMenuBtn = document.getElementById("mobileMenuBtn");
+  const tabSettings = document.getElementById("tabSettings");
+  const tabKifu = document.getElementById("tabKifu");
+  const btnDrawerClose = document.getElementById("btnDrawerClose");
+  const drawerSettings = document.getElementById("drawerSettings");
+  const drawerKifu = document.getElementById("drawerKifu");
+  const drawerKifuHost = document.getElementById("drawerKifuHost");
+  const kifuDock = document.getElementById("kifuDock");
+  const kifuPanel = document.getElementById("kifuPanel");
+
+  function drawerOpen(section){
+    mobileDrawer.style.display = "block";
+    mobileDrawer.setAttribute("aria-hidden","false");
+    drawerSwitch(section);
+  }
+  function drawerClose(){
+    mobileDrawer.style.display = "none";
+    mobileDrawer.setAttribute("aria-hidden","true");
+  }
+  function drawerSwitch(section){
+    drawerSettings.classList.toggle("active", section==="settings");
+    drawerKifu.classList.toggle("active", section==="kifu");
+
+    if (window.matchMedia("(max-width: 980px)").matches){
+      if (kifuPanel && drawerKifuHost && kifuPanel.parentElement !== drawerKifuHost){
+        drawerKifuHost.appendChild(kifuPanel);
+      }
+    } else {
+      if (kifuPanel && kifuDock){
+        // restore right after placeholder (desktop layout)
+        kifuDock.insertAdjacentElement("afterend", kifuPanel);
+      }
+      drawerClose();
+    }
+  }
+
+  if (mobileMenuBtn) mobileMenuBtn.addEventListener("click", ()=>drawerOpen("settings"));
+  if (btnDrawerClose) btnDrawerClose.addEventListener("click", drawerClose);
+  if (mobileDrawer) mobileDrawer.addEventListener("click", (e)=>{ if(e.target===mobileDrawer) drawerClose(); });
+  if (tabSettings) tabSettings.addEventListener("click", ()=>drawerSwitch("settings"));
+  if (tabKifu) tabKifu.addEventListener("click", ()=>drawerSwitch("kifu"));
+  window.addEventListener("resize", ()=>drawerSwitch(drawerSettings.classList.contains("active")?"settings":"kifu"));
+
+  // ---- Settings (sound/vibration) ----
+  const LS_SETTINGS_KEY = "kiwami_settings_v1";
+  function loadSettings(){
+    try{ return JSON.parse(localStorage.getItem(LS_SETTINGS_KEY) || "{}"); }catch{ return {}; }
+  }
+  function saveSettings(){
+    try{ localStorage.setItem(LS_SETTINGS_KEY, JSON.stringify({audioEnabled, vibrationEnabled})); }catch{}
+  }
+
+  const chkAudio = document.getElementById("chkAudio");
+  const chkVibe  = document.getElementById("chkVibe");
+  const s0 = loadSettings();
+  if (typeof s0.audioEnabled === "boolean") audioEnabled = s0.audioEnabled;
+  if (typeof s0.vibrationEnabled === "boolean") vibrationEnabled = s0.vibrationEnabled;
+  if (chkAudio) chkAudio.checked = !!audioEnabled;
+  if (chkVibe)  chkVibe.checked  = !!vibrationEnabled;
+
+  if (chkAudio) chkAudio.addEventListener("change", ()=>{
+    audioEnabled = chkAudio.checked;
+    if (audioEnabled) ensureAudioUnlocked();
+    saveSettings();
+  });
+  if (chkVibe) chkVibe.addEventListener("change", ()=>{
+    vibrationEnabled = chkVibe.checked;
+    saveSettings();
+  });
+
 </script>
 </body>
 </html>
