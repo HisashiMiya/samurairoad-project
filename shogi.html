@@ -384,6 +384,7 @@
   // ---- 棋譜 自動取得（ローカル保存） ----
   let kifuAutoEnabled = false;
   let suppressAutoLoadOnce = false; // reset等でローカル自動読込を一度だけ抑止
+  let didAutoLoadKifu = false; // 接続時の自動読込は一度だけ
 
   function kifuStorageKey(){
     return `kiwami_kifu_v1:${currentRoom()}`;
@@ -640,9 +641,8 @@ selected = null;
     if(!vibrationEnabled) return;
     try{ if (navigator.vibrate) navigator.vibrate(ms); }catch{}
   }
-
-  let audioEnabled = true;
-  let vibrationEnabled = true;
+  audioEnabled = (typeof audioEnabled === "boolean") ? audioEnabled : true;
+  vibrationEnabled = (typeof vibrationEnabled === "boolean") ? vibrationEnabled : true;
   let audioCtx = null;
   function ensureAudioUnlocked(){
     if (!audioEnabled) return;
@@ -836,6 +836,17 @@ selected = null;
   function canPromote(pieceBase){
     return !["K","G","k","g"].includes(pieceBase);
   }
+
+  async function decidePromotionAsync(turn, piece, fromR, toR){
+    if (!piece) return false;
+    const base = basePiece(piece);
+    if (!canPromote(base)) return false;
+    if (!isPromotableMove(turn, piece, fromR, toR)) return false;
+    if (isForcedPromotion(turn, piece, toR)) return true;
+    // use in-page modal (no browser confirm)
+    return await uiConfirm("成りますか？", "成る", "成らない");
+  }
+
   function isPromotableMove(turn, piece, fromR, toR){
     if (!piece) return false;
     if (isPromoted(piece)) return false;
@@ -1001,14 +1012,18 @@ selected = null;
         game = ensureKifu(normalizeRoles(normalizeHands(m.payload)));
         // ローカル棋譜があり、サーバ側が空なら自動読込（MVP）
         try{
-          if (suppressAutoLoadOnce){
+          if (didAutoLoadKifu){
+            // already attempted once
+          } else if (suppressAutoLoadOnce){
             suppressAutoLoadOnce = false;
+            didAutoLoadKifu = true;
           } else {
             ensureKifu(game);
             if ((game.kifu.moves||[]).length === 0){
               const r = loadKifuFromLocal();
               if (r.ok) appendSystem(r.msg);
             }
+            didAutoLoadKifu = true;
           }
         }catch{} 
         updateMySideFromRoles();
@@ -1201,19 +1216,21 @@ selected = null;
     rebuildToCursor(game.kifu.cursor + 1);
   });
 
-  btnReset.addEventListener("click", () => {
-    ensureAudioUnlocked();
-    suppressAutoLoadOnce = true;
-    game = ensureKifu(normalizeRoles(normalizeHands(initialGame())));
-    game.hands = {S:{}, G:{}};
-    game.kifu.moves = [];
-    game.kifu.cursor = 0;
-    selected = null;
-    selectedDrop = null;
-    draw();
-    sendState();
-    sfx.move();
-  });
+btnReset.addEventListener("click", () => {
+  ensureAudioUnlocked();
+  // --- reset UI state ---
+  lastMove = null;        // ★ 強調表示を消す
+  selected = null;        // ★ 選択中の駒を解除
+  selectedDrop = null;    // ★ 持ち駒選択を解除
+
+  suppressAutoLoadOnce = true;
+  didAutoLoadKifu = true;
+
+  resetGame();
+  draw();
+  sendState();
+});
+
 
   btnSend.addEventListener("click", sendChat);
   chatInput.addEventListener("keydown", (e) => { if (e.key === "Enter") sendChat(); });
