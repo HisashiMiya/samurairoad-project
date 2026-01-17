@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>極み将棋 ヘルプ</title>
+  <link rel="stylesheet" href="./assets/css/shogi.css" />
+  <style>
+    .wrap{max-width:900px;margin:0 auto;padding:14px}
+    .toc a{text-decoration:none}
+    .kbd{display:inline-block;padding:.1rem .45rem;border:1px solid rgba(255,255,255,.18);border-bottom-width:2px;border-radius:.45rem;font-size:.9em}
+    .note{opacity:.9;line-height:1.7}
+    .steps li{margin:.35rem 0}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <section class="card">
+      <h1>極み将棋：ヘルプ</h1>
+      <div class="row" style="margin-top:10px">
+        <a class="btn primary" href="./">対局画面へ戻る</a>
+        <a class="btn ghost" href="./#room=lobby">ロビーへ</a>
+      </div>
+      <p class="muted note" style="margin-top:12px">
+        このページは「操作順」のヘルプです<br>
+      </p>
+    </section>
+
+    <aside class="card">
+      <h1>目次</h1>
+      <div class="toc note">
+        <div>1. <a href="#start">対局を始める</a></div>
+        <div>2. <a href="#move">駒を動かす</a></div>
+        <div>3. <a href="#drop">持ち駒を打つ</a></div>
+        <div>4. <a href="#promote">成り（確認／強制成り）</a></div>
+        <div>5. <a href="#kifu">棋譜（自動取得／停止／削除／インポート／レビュー）</a></div>
+        <div>6. <a href="#settings">設定（音／振動）</a></div>
+        <div>7. <a href="#tips">スマホ操作のコツ</a></div>
+      </div>
+    </aside>
+
+    <section class="card" id="start">
+      <h1>1. 対局を始める</h1>
+      <ol class="steps note">
+        <li>名前を入力します。</li>
+        <li>部屋名（例：lobby）を指定し、<span class="kbd">接続</span> を押します。</li>
+        <li>同じ部屋に入った先着2人がプレイヤー（先手／後手）になります。以降は観戦者として入れます。</li>
+        <li>必要なら <span class="kbd">部屋URLコピー</span> で共有します。</li>
+      </ol>
+    </section>
+
+    <section class="card" id="move">
+      <h1>2. 駒を動かす</h1>
+      <ol class="steps note">
+        <li>盤上の駒をタップ（クリック）して選択します。</li>
+        <li>移動先マスをタップすると移動します。</li>
+        <li>自分の手番でのみ操作できます。</li>
+      </ol>
+    </section>
+
+    <section class="card" id="drop">
+      <h1>3. 持ち駒を打つ</h1>
+      <ol class="steps note">
+        <li>「持ち駒」エリアで駒を選びます（自分の手番のみ選択可）。</li>
+        <li>盤の空マスをタップすると打てます。</li>
+        <li>二歩・行き所のない駒の打ちは最低限ガードされています。</li>
+        <li>駒の移動先は自由です。ルール違反もできます。</li>
+      </ol>
+    </section>
+
+    <section class="card" id="promote">
+      <h1>4. 成り（確認／強制成り）</h1>
+      <div class="note">
+        <div>・成れる手は確認が出ます。</div>
+        <div>・行き所のない駒は強制成りになります。</div>
+      </div>
+    </section>
+
+    <section class="card" id="kifu">
+      <h1>5. 棋譜</h1>
+      <div class="note">
+        <div><b>自動取得</b></div>
+        <ol class="steps">
+          <li><span class="kbd">自動取得: 開始</span> を押す</li>
+          <li>以後、指し手ごとに棋譜がローカル保存されます（ブラウザ内）</li>
+          <li>止めるときは <span class="kbd">自動取得: 停止</span></li>
+        </ol>
+        <div style="margin-top:10px"><b>削除</b></div>
+        <ol class="steps">
+          <li><span class="kbd">棋譜ファイル削除</span> でローカル保存分を削除します</li>
+        </ol>
+        <div style="margin-top:10px"><b>インポート（読み込み）</b></div>
+        <ol class="steps">
+          <li>棋譜JSONをテキスト欄に貼る</li>
+          <li><span class="kbd">インポート</span> を押す</li>
+        </ol>
+        <div style="margin-top:10px"><b>レビュー（戻る／次へ）</b></div>
+        <ol class="steps">
+          <li><span class="kbd">戻る</span>：1手前へ</li>
+          <li><span class="kbd">次へ</span>：1手次へ</li>
+          <li>レビュー中に指すと、以降の棋譜は切り捨てて続行します（分岐）。</li>
+        </ol>
+      </div>
+    </section>
+
+    <section class="card" id="settings">
+      <h1>6. 設定（音／振動）</h1>
+      <div class="note">
+        <div>スマホの制限により、音は「最初のタップ」以降で有効になります。</div>
+        <div>メニュー → 設定 から、音ON/OFF・振動ON/OFF を切り替えできます（保存されます）。</div>
+      </div>
+    </section>
+
+    <section class="card" id="tips">
+      <h1>7. スマホ操作のコツ</h1>
+      <ul class="steps note">
+        <li>右下の <span class="kbd">メニュー</span> から「設定」「棋譜」を開けます（盤面を広く使えます）。</li>
+        <li>最後の手は盤面で強調表示されます（移動元／移動先）。</li>
+        <li>誤タップが多い場合は、盤面を少し拡大（ブラウザの拡大）すると安定します。</li>
+      </ul>
+    </section>
+
+    <div class="small" style="margin-top:14px;text-align:right;opacity:.85">
+      © hisa.miya / updated 2026-01-17
+    </div>
+  </div>
+</body>
+</html>

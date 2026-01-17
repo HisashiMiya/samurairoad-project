@@ -181,21 +181,23 @@
       </div>
       <p class="small">※観戦者もチャット可能。対局は先着2人がプレイヤーになります（MVPのため強制は未実装）。</p>
     </aside>
-  </div>
-      <aside class="card" id="devMemo">
-      <h1>開発者メモ</h1>
-        <div class="muted" style="font-size:.92rem;line-height:1.65">
-          <div>MVP：合法手・王手判定・打ち歩詰め等は未対応（ただし「二歩」「行き所のない駒の打ち」は最低限ガード）。</div>
-          <div>成りは実装済み（成れる場合は確認、強制成りも対応）。</div>
-          <div>・持ち駒は <b>自分の手番</b>のときだけ選べます（選択→盤の空マスをクリックで打つ）。</div>
-          <div>・盤の駒を選択→移動先クリックで動かします。</div>
-          <div>・王が取られたら勝敗表示（ポップアップ表示）。</div>
-          <div>・通信基盤は変更なし（Worker/DOは中継・同期・保存のみ）。
-          <div>・AIによる次の最善手解析（設計案）：まずは「現局面をテキスト化→解析用プロンプト生成→コピーしてAIに貼る」方式（超安全）。次段階でWorkers経由のAPI連携、さらに将棋エンジン/WASM化へ拡張。</div>
-          <div>・棋譜の自動取得</div>
-      </aside>
 
-      <div class="small" style="margin-top:14px;text-align:right;opacity:.85">
+    <aside class="card" id="devMemo">
+      <h1>開発者メモ</h1>
+      <div class="muted" style="font-size:.92rem;line-height:1.65">
+        <div>MVP：合法手・王手判定・打ち歩詰め等は未対応（ただし「二歩」「行き所のない駒の打ち」は最低限ガード）。</div>
+        <div>成りは実装済み（成れる場合は確認、強制成りも対応）。</div>
+        <div>・持ち駒は <b>自分の手番</b>のときだけ選べます（選択→盤の空マスをクリックで打つ）。</div>
+        <div>・盤の駒を選択→移動先クリックで動かします。</div>
+        <div>・王が取られたら勝敗表示（ポップアップ表示）。</div>
+        <div>・通信基盤は変更なし（Worker/DOは中継・同期・保存のみ）。</div>
+        <div>・AIによる次の最善手解析（設計案）：まずは「現局面をテキスト化→解析用プロンプト生成→コピーしてAIに貼る」方式（超安全）。次段階でWorkers経由のAPI連携、さらに将棋エンジン/WASM化へ拡張。</div>
+        <div>・棋譜：自動取得ONのとき、指し手ごとにローカル保存（localStorage）します。</div>
+      </div>
+    </aside>
+
+  </div>
+<div class="small" style="margin-top:14px;text-align:right;opacity:.85">
         © hisa.miya
       </div>
 </div>
