@@ -164,6 +164,19 @@
           ・王が取られたら勝敗表示→「続けますか？」を出します（双方Yesでリセット）。<br>・通信基盤は変更なし（Worker/DOは中継・同期・保存のみ）。
         </div>
       
+
+      <div class="card" style="margin-top:14px;background:rgba(0,0,0,.18)">
+        <h1 style="font-size:1.05rem;margin:0 0 8px">開発者メモ</h1>
+        <div class="muted" style="font-size:.92rem;line-height:1.65">
+          <div>MVP：合法手・王手判定・打ち歩詰め等は未対応（ただし「二歩」「行き所のない駒の打ち」は最低限ガード）。</div>
+          <div>成りは実装済み（成れる場合は確認、強制成りも対応）。</div>
+          <div>・持ち駒は <b>自分の手番</b>のときだけ選べます（選択→盤の空マスをクリックで打つ）。</div>
+          <div>・盤の駒を選択→移動先クリックで動かします。</div>
+          <div>・王が取られたら勝敗表示（ポップアップ表示）。</div>
+          <div>・通信基盤は変更なし（Worker/DOは中継・同期・保存のみ）。</div>
+        </div>
+      </div>
+
       <div class="small" style="margin-top:14px;text-align:right;opacity:.85">
         © hisa.miya
       </div>
@@ -255,8 +268,7 @@
         ["L","N","S","G","K","G","S","N","L"],
       ],
       hands: { S: {}, G: {} },
-      meta: { gameOver: false, winner: null, rematch: { S: null, G: null } }
-    });
+          });
   }
 
   let ws = null;
@@ -265,17 +277,22 @@
   let selectedDrop = null;     // {side,type}
   let myName = "guest";
   let mySide = null; // "S" or "G" is learned from your first move/drop
-  let rematchPrompted = false;
+
 
   function setStatus(t){ statusEl.textContent = t; }
-  function setTurnUI(){
-    const meta = (game.meta || {});
+    function setTurnUI(){
+    const t = game.turn === "S" ? "先手" : "後手";
+    turnText.textContent = `手番: ${t}`;
+    handHintS.textContent = (game.turn === "S") ? "（手番なら選択できます）" : "";
+    handHintG.textContent = (game.turn === "G") ? "（手番なら選択できます）" : "";
     const badge = document.getElementById("turnBadge");
     if (badge){
       badge.classList.remove("turnMine","turnOther");
-      if (!meta.gameOver && mySide){
+      if (mySide){
         badge.classList.add((game.turn === mySide) ? "turnMine" : "turnOther");
       }
+    }
+  }
     }
     const t = game.turn === "S" ? "先手" : "後手";
     if (meta.gameOver && meta.winner){
@@ -286,8 +303,6 @@
     handHintS.textContent = (game.turn === "S") ? "（手番なら選択できます）" : "";
     handHintG.textContent = (game.turn === "G") ? "（手番なら選択できます）" : "";
   }
-
-
   function sideLabel(side){ return side === "S" ? "先手" : "後手"; }
 
   function isKingPiece(p){
@@ -295,63 +310,9 @@
     return b === "K" || b === "k";
   }
 
-  function ensureMeta(){
-    if (!game.meta) game.meta = { gameOver:false, winner:null, rematch:{S:null, G:null} };
-    if (!game.meta.rematch) game.meta.rematch = { S:null, G:null };
-    return game.meta;
-  }
-
-  function setGameOver(winnerSide){
-    const meta = ensureMeta();
-    meta.gameOver = true;
-    meta.winner = winnerSide;
-    meta.rematch = { S: null, G: null };
-    rematchPrompted = false;
-
-    appendSystem(`終局：${sideLabel(winnerSide)}の勝ち（王が取られました）`);
-  }
-
-  function checkAndMaybeReset(){
-    const meta = ensureMeta();
-    if (!meta.gameOver) return;
-    if (meta.rematch.S === true && meta.rematch.G === true){
-      appendSystem("双方Yes：リセットして再開します");
-      game = initialGame();
-      selected = null;
-      selectedDrop = null;
-      // Keep name/side; side stays as-is (players stay same)
-      draw();
-      sendState();
-      sfx.move();
-    }
-  }
-
-  function sendRematchVote(vote){
-    if (!ws || ws.readyState !== 1) return;
-    if (!mySide) return;
-
-    ws.send(JSON.stringify({
-      type:"rematch",
-      room: currentRoom(),
-      user: myName,
-      payload: { side: mySide, vote: !!vote }
-    }));
-    // Local reflect
-    const meta = ensureMeta();
-    meta.rematch[mySide] = !!vote;
-    draw();
-    appendSystem(`${sideLabel(mySide)}：${vote ? "再戦する" : "再戦しない"} を選択`);
-    checkAndMaybeReset();
-  }
-
-  function maybePromptRematch(){
-    const meta = ensureMeta();
-    if (!meta.gameOver) return;
-    if (rematchPrompted) return;
-    if (!mySide) return; // spectator or unidentified
-    rematchPrompted = true;
-    const yes = window.confirm("続けますか？（双方がYesならリセットします）");
-    sendRematchVote(yes);
+  function showWinPopup(winnerSide){
+    // 要望：王が取られた後は「XXXの勝ち」だけポップアップ表示
+    window.alert(`${sideLabel(winnerSide)}の勝ち`);
   }
 
 
@@ -612,8 +573,6 @@
         selected = null;
         selectedDrop = null;
         draw();
-        // If this state indicates game over, prompt rematch (players only)
-        if (ensureMeta().gameOver) maybePromptRematch();
         return;
       }
 
@@ -624,19 +583,6 @@
         sfx.chat();
         return;
       }
-
-      
-      if (m.type === "rematch" && m.payload && m.payload.side){
-        const meta = ensureMeta();
-        const side = m.payload.side;
-        const vote = !!m.payload.vote;
-        meta.rematch[side] = vote;
-        appendSystem(`${sideLabel(side)}：${vote ? "再戦する" : "再戦しない"} を選択`);
-        draw();
-        checkAndMaybeReset();
-        return;
-      }
-
       if (m.type === "join"){ appendSystem(`${m.user || "anon"} が入室`); return; }
       if (m.type === "system"){ appendSystem(String(m.payload ?? "")); return; }
     };
@@ -663,13 +609,6 @@
     const cell = e.target.closest(".cell");
     if (!cell) return;
     if (!ws || ws.readyState !== 1) return;
-
-    const meta0 = ensureMeta();
-    if (meta0.gameOver){
-      // After game over, only handle rematch prompt on any click
-      maybePromptRematch();
-      return;
-    }
 
     const r = Number(cell.dataset.r);
     const c = Number(cell.dataset.c);
@@ -718,7 +657,8 @@
     if (dest){
       if (isKingPiece(dest)){
         // Capture king -> game over
-        setGameOver(game.turn);
+        // Winner is the side who captured
+        showWinPopup(game.turn);
         // Do not add king to hand
       } else {
         addToHand(game.turn, dest);
@@ -741,11 +681,6 @@
 
     if (didCapture) sfx.capture(); else sfx.move();
     if (promote) sfx.promote();
-
-    // If the move ended the game, ask for rematch
-    if (ensureMeta().gameOver) {
-      maybePromptRematch();
-    }
   });
 
   // UI
