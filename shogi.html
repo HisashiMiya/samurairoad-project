@@ -267,8 +267,8 @@
         [null,"B",null,null,null,null,null,"R",null],
         ["L","N","S","G","K","G","S","N","L"],
       ],
-      hands: { S: {}, G: {} },
-          });
+      hands: { S: {}, G: {} }
+    });
   }
 
   let ws = null;
@@ -280,7 +280,8 @@
 
 
   function setStatus(t){ statusEl.textContent = t; }
-    function setTurnUI(){
+
+  function setTurnUI(){
     const t = game.turn === "S" ? "先手" : "後手";
     turnText.textContent = `手番: ${t}`;
     handHintS.textContent = (game.turn === "S") ? "（手番なら選択できます）" : "";
@@ -293,16 +294,7 @@
       }
     }
   }
-    }
-    const t = game.turn === "S" ? "先手" : "後手";
-    if (meta.gameOver && meta.winner){
-      turnText.textContent = `終局: ${sideLabel(meta.winner)}の勝ち`;
-    } else {
-      turnText.textContent = `手番: ${t}`;
-    }
-    handHintS.textContent = (game.turn === "S") ? "（手番なら選択できます）" : "";
-    handHintG.textContent = (game.turn === "G") ? "（手番なら選択できます）" : "";
-  }
+
   function sideLabel(side){ return side === "S" ? "先手" : "後手"; }
 
   function isKingPiece(p){
