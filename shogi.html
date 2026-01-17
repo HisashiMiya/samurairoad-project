@@ -3,120 +3,8 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Online Shogi + Chat (CF Workers/DO)</title>
-  <style>
-    :root{--bg:#0b1020;--card:#111a33;--line:rgba(255,255,255,.12);--text:#e8eefc;--muted:#b9c6ea;--accent:#7aa2ff;}
-    body{margin:0;background:linear-gradient(180deg,#070b18,var(--bg));color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,"Noto Sans JP",sans-serif;}
-    .wrap{max-width:1100px;margin:0 auto;padding:16px;display:grid;gap:14px}
-    @media(min-width:980px){.wrap{grid-template-columns: 1fr 360px;align-items:start}}
-    .card{background:rgba(17,26,51,.55);border:1px solid var(--line);border-radius:16px;padding:14px}
-    h1{font-size:1.2rem;margin:0 0 8px}
-    .muted{color:var(--muted);font-size:.92rem;line-height:1.6}
-    .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-    .btn{min-height:44px;padding:10px 14px;border-radius:999px;border:1px solid var(--line);background:#0f1730;color:var(--text);cursor:pointer;font-weight:700}
-    .btn.primary{background:#1c2a55;border-color:rgba(122,162,255,.45)}
-    .btn.ghost{background:rgba(255,255,255,.04)}
-    .btn[disabled]{opacity:.45;cursor:not-allowed}
-    .input{min-height:44px;border-radius:12px;border:1px solid var(--line);background:#0f1730;color:var(--text);padding:10px 12px;width:100%}
-    .status{padding:10px;border-radius:12px;background:rgba(0,0,0,.25);border:1px solid var(--line);font-size:.92rem}
-    .badge{display:inline-flex;align-items:center;gap:8px;padding:6px 10px;border-radius:999px;border:1px solid var(--line);background:rgba(0,0,0,.18);font-weight:800}
-    .dot{width:10px;height:10px;border-radius:999px;background:rgba(122,162,255,.7)}
-
-    /* 将棋盤 */
-    #board{
-      display:grid;
-      grid-template-columns:repeat(9,1fr);
-      grid-template-rows:repeat(9,1fr);
-      aspect-ratio:1/1;
-      width:min(92vw,640px);
-      margin:0 auto;
-      background:#f1d79a;
-      border:6px solid #b58a45;
-      border-radius:14px;
-      overflow:hidden;
-      box-shadow:0 10px 30px rgba(0,0,0,.35);
-    }
-    .cell{
-      border:1px solid rgba(0,0,0,.35);
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      font-weight:800;
-      cursor:pointer;
-      user-select:none;
-      position:relative;
-      font-size:clamp(16px,2.4vw,26px);
-      color:#102040;
-    }
-    .cell:hover{background:rgba(122,162,255,.08)}
-    .cell.sel{
-      outline:3px solid rgba(122,162,255,.9);
-      outline-offset:-3px;
-      background:rgba(122,162,255,.12);
-    }
-    .cell.rev{ color:#3a2a12; transform:rotate(180deg); }
-    .piece.promoted{ color:#c81e1e; } /* ✅ 成駒を赤文字 */
-    .coord{
-      position:absolute;
-      right:4px;
-      bottom:3px;
-      font-size:10px;
-      color:rgba(0,0,0,.35);
-      font-weight:600;
-      transform:none;
-      pointer-events:none;
-    }
-    .hint{margin-top:10px;color:var(--muted);font-size:.9rem;line-height:1.5}
-
-    /* 持ち駒 */
-    .hands{display:grid;gap:10px;margin-top:10px}
-    .hand{border:1px solid var(--line);border-radius:12px;padding:10px;background:rgba(0,0,0,.18)}
-    .handTitle{display:flex;justify-content:space-between;align-items:center;font-weight:900;margin-bottom:8px}
-    .handPieces{display:flex;gap:8px;flex-wrap:wrap}
-    .chip{border:1px solid rgba(0,0,0,.25);border-radius:999px;padding:6px 10px;font-weight:900;cursor:pointer;background:#f1d79a;display:inline-flex;gap:6px;align-items:center;color:#102040}
-    .chip.sel{outline:2px solid var(--accent)}
-    .chip.disabled{opacity:.4;cursor:not-allowed}
-    .chip .cnt{font-size:.85rem;color:var(--muted);font-weight:800}
-
-    /* チャット */
-    .chatLog{height:320px;overflow:auto;border:1px solid var(--line);border-radius:12px;padding:10px;background:rgba(0,0,0,.22)}
-    .msg{margin:0 0 8px}
-    .msg b{color:var(--accent)}
-    .small{font-size:.85rem;color:var(--muted)}
-    code{background:rgba(255,255,255,.08);padding:2px 6px;border-radius:6px}
-  
-    .badge.turnBig{
-      font-size:1.05rem;
-      padding:10px 14px;
-      border-color:rgba(122,162,255,.65);
-      box-shadow:0 6px 18px rgba(0,0,0,.25);
-      background:rgba(122,162,255,.10);
-    }
-    .badge.turnBig .dot{
-      width:12px;height:12px;
-      box-shadow:0 0 0 4px rgba(122,162,255,.15);
-    }
-
-  
-    .badge.turnBig.turnMine{
-      border-color:rgba(80,220,150,.85);
-      background:rgba(80,220,150,.12);
-      box-shadow:0 8px 22px rgba(0,0,0,.28);
-    }
-    .badge.turnBig.turnMine .dot{
-      background:rgba(80,220,150,.95);
-      box-shadow:0 0 0 5px rgba(80,220,150,.18);
-    }
-    .badge.turnBig.turnOther{
-      border-color:rgba(255,190,90,.75);
-      background:rgba(255,190,90,.10);
-    }
-    .badge.turnBig.turnOther .dot{
-      background:rgba(255,190,90,.9);
-      box-shadow:0 0 0 5px rgba(255,190,90,.16);
-    }
-
-  </style>
+  <title>the Shogi(極み将棋) H.M.C</title>
+  <link rel="stylesheet" href="./assets/css/shogi.css?v=20260117-2">
 </head>
 <body>
   <div class="wrap">
@@ -124,8 +12,6 @@
       <h1>極み将棋</h1>
       <p class="muted">
         URLの <code>#room=xxxx</code> を共有すると同じ部屋に入れます。<br>
-        MVP：合法手・王手判定・打ち歩詰め等は未対応（ただし「二歩」「行き所のない駒の打ち」は最低限ガード）。<br>
-        <b>成り</b>は実装済み（成れる場合は確認、強制成りも対応）。
       </p>
 
       <div class="row" style="margin:10px 0">
@@ -133,6 +19,8 @@
         <button class="btn primary" id="btnConnect">接続</button>
         <button class="btn" id="btnCopyUrl">部屋URLコピー</button>
         <button class="btn" id="btnReset">リセット</button>
+        <button class="btn" id="btnFull">⛶ 全画面</button>
+        <button class="btn chatToggle" id="btnChatToggle">💬 チャット</button>
         <button class="btn ghost" id="btnSound">🔊 音: ON</button>
       </div>
 <div class="status" id="status">未接続</div>
@@ -161,10 +49,52 @@
         <div class="hint">
           ・持ち駒は <b>自分の手番</b>のときだけ選べます（選択→盤の空マスをクリックで打つ）。<br>
           ・盤の駒を選択→移動先クリックで動かします。<br>
-          ・王が取られたら勝敗表示→「続けますか？」を出します（双方Yesでリセット）。<br>・通信基盤は変更なし（Worker/DOは中継・同期・保存のみ）。
         </div>
-      
+      </div>
+    </section>
 
+    
+    <aside class="card" id="kifuPanel">
+      <h1>棋譜</h1>
+      <div class="muted" style="margin-bottom:8px">
+        JSON形式でインポートできます（ローカル保存も可）。<br>
+        「戻る/次へ」で手順再生（レビュー）できます。
+      </div>
+
+      <div class="row" style="margin-top:6px">
+        <button class="btn" id="btnKifuAutoOn">自動取得: 開始</button>
+        <button class="btn ghost" id="btnKifuAutoOff">自動取得: 停止</button>
+        <button class="btn" id="btnKifuDelete">棋譜ファイル削除</button>
+        <button class="btn ghost" id="btnKifuImport">インポート</button>
+      </div>
+
+      <div class="row" style="margin-top:10px">
+        <button class="btn" id="btnKifuPrev">戻る</button>
+        <button class="btn" id="btnKifuNext">次へ</button>
+        <span class="small" id="kifuStep">手数 0 / 0</span>
+      </div>
+
+      <div class="row" style="margin-top:10px">
+        <textarea id="kifuText" class="input" style="min-height:140px;resize:vertical" placeholder="ここに棋譜JSONを貼り付け / エクスポート結果が出ます"></textarea>
+      </div>
+      <p class="small"></p>
+    </aside>
+
+
+    <aside class="card">
+      <h1>チャット</h1>
+      <div class="chatLog" id="chatLog"></div>
+      <div class="chatComposer">
+      <div class="row" style="margin-top:0">
+        <input id="chatInput" class="input" placeholder="メッセージ…" />
+      </div>
+      <div class="row" style="margin-top:10px">
+        <button class="btn primary" id="btnSend">送信</button>
+      </div>
+      </div>
+      <p class="small">※観戦者もチャット可能。対局は先着2人がプレイヤーになります（MVPのため強制は未実装）。</p>
+    </aside>
+  </div>
       <div class="card" style="margin-top:14px;background:rgba(0,0,0,.18)">
         <h1 style="font-size:1.05rem;margin:0 0 8px">開発者メモ</h1>
         <div class="muted" style="font-size:.92rem;line-height:1.65">
@@ -173,28 +103,15 @@
           <div>・持ち駒は <b>自分の手番</b>のときだけ選べます（選択→盤の空マスをクリックで打つ）。</div>
           <div>・盤の駒を選択→移動先クリックで動かします。</div>
           <div>・王が取られたら勝敗表示（ポップアップ表示）。</div>
-          <div>・通信基盤は変更なし（Worker/DOは中継・同期・保存のみ）。</div>
-        </div>
+          <div>・通信基盤は変更なし（Worker/DOは中継・同期・保存のみ）。
+          <div>・AIによる次の最善手解析（設計案）：まずは「現局面をテキスト化→解析用プロンプト生成→コピーしてAIに貼る」方式（超安全）。次段階でWorkers経由のAPI連携、さらに将棋エンジン/WASM化へ拡張。</div>
+          <div>・棋譜の自動取得</div>
       </div>
 
       <div class="small" style="margin-top:14px;text-align:right;opacity:.85">
         © hisa.miya
       </div>
 </div>
-    </section>
-
-    <aside class="card">
-      <h1>チャット</h1>
-      <div class="chatLog" id="chatLog"></div>
-      <div class="row" style="margin-top:10px">
-        <input id="chatInput" class="input" placeholder="メッセージ…" />
-      </div>
-      <div class="row" style="margin-top:10px">
-        <button class="btn primary" id="btnSend">送信</button>
-      </div>
-      <p class="small">※観戦者もチャット可能。対局は先着2人がプレイヤーになります（MVPのため強制は未実装）。</p>
-    </aside>
-  </div>
 
 <script>
 (() => {
@@ -208,6 +125,8 @@
   const btnConnect = document.getElementById("btnConnect");
   const btnCopyUrl = document.getElementById("btnCopyUrl");
   const btnReset = document.getElementById("btnReset");
+  const btnFull = document.getElementById("btnFull");
+  const btnChatToggle = document.getElementById("btnChatToggle");
   const chatLog = document.getElementById("chatLog");
   const chatInput = document.getElementById("chatInput");
   const btnSend = document.getElementById("btnSend");
@@ -218,6 +137,23 @@
   const handHintS = document.getElementById("handHintS");
   const handHintG = document.getElementById("handHintG");
 
+  // KIFU control buttons
+  const btnKifuAutoOn  = document.getElementById("btnKifuAutoOn");
+  const btnKifuAutoOff = document.getElementById("btnKifuAutoOff");
+  const btnKifuDelete  = document.getElementById("btnKifuDelete");
+
+  // Client ID cache (for role assignment)
+  let clientId = null;
+  try{
+    clientId = localStorage.getItem("shogi_client_id");
+    if (!clientId){
+      clientId = (crypto && crypto.randomUUID) ? crypto.randomUUID() : ("cid_" + Math.random().toString(16).slice(2) + Date.now());
+      localStorage.setItem("shogi_client_id", clientId);
+    }
+  }catch{
+    clientId = "cid_" + Math.random().toString(16).slice(2) + Date.now();
+  }
+
   // Name cache
   try{
     const cached = localStorage.getItem("shogi_name");
@@ -227,7 +163,7 @@
 
   // 駒表記（大文字=先手 / 小文字=後手 / "+X"=成り）
   const PIECE = {
-    L:"香",N:"桂",S:"銀",G:"金",K:"王",R:"飛",B:"角",P:"歩",
+    L:"香",N:"桂",S:"銀",G:"金",K:"玉",R:"飛",B:"角",P:"歩",
     l:"香",n:"桂",s:"銀",g:"金",k:"王",r:"飛",b:"角",p:"歩",
     "+P":"と","+p":"と",
     "+L":"成香","+l":"成香",
@@ -253,6 +189,13 @@
     return g;
   }
 
+  function normalizeRoles(g){
+    if (!g.roles) g.roles = { S: null, G: null };
+    if (!("S" in g.roles)) g.roles.S = null;
+    if (!("G" in g.roles)) g.roles.G = null;
+    return g;
+  }
+
   function initialGame(){
     return normalizeHands({
       turn:"S",
@@ -267,19 +210,212 @@
         [null,"B",null,null,null,null,null,"R",null],
         ["L","N","S","G","K","G","S","N","L"],
       ],
-      hands: { S: {}, G: {} }
+      hands: { S: {}, G: {} },
+      roles: { S: null, G: null }
     });
   }
 
   let ws = null;
-  let game = initialGame();
+  let gotState = false;
+  let game = ensureKifu(normalizeRoles(initialGame()));
   let selected = null;         // {r,c}
   let selectedDrop = null;     // {side,type}
+  let lastMove = null;         // {from:{r,c}, to:{r,c}}
+  let moverSide = null;         // 手を指した側（多重宣言防止）
+  // ---- 棋譜（JSON） ----
+  function ensureKifu(g){
+    if (!g.kifu) g.kifu = { version: 1, initial: "standard", moves: [], cursor: 0 };
+    if (!Array.isArray(g.kifu.moves)) g.kifu.moves = [];
+    if (typeof g.kifu.cursor !== "number") g.kifu.cursor = g.kifu.moves.length;
+    return g;
+  }
+
+  // ---- 棋譜 自動取得（ローカル保存） ----
+  let kifuAutoEnabled = false;
+
+  function kifuStorageKey(){
+    return `kiwami_kifu_v1:${currentRoom()}`;
+  }
+
+  function saveKifuToLocal(){
+    try{
+      ensureKifu(game);
+      const payload = {
+        format: "KiwamiShogiKifu",
+        version: 1,
+        room: currentRoom(),
+        savedAt: new Date().toISOString(),
+        initial: "standard",
+        moves: game.kifu.moves || []
+      };
+      localStorage.setItem(kifuStorageKey(), JSON.stringify(payload));
+    }catch{}
+  }
+
+  function loadKifuFromLocal(){
+    try{
+      const raw = localStorage.getItem(kifuStorageKey());
+      if (!raw) return { ok:false, msg:"保存済み棋譜がありません" };
+      const obj = JSON.parse(raw);
+      if (!obj || !Array.isArray(obj.moves)) return { ok:false, msg:"保存棋譜が壊れています（movesがありません）" };
+      ensureKifu(game);
+      game.kifu.moves = obj.moves;
+      game.kifu.cursor = obj.moves.length;
+      rebuildToCursor(game.kifu.cursor);
+      return { ok:true, msg:`ローカル棋譜を読込（手数 ${obj.moves.length}）` };
+    }catch{
+      return { ok:false, msg:"保存棋譜の読み込みに失敗しました" };
+    }
+  }
+
+  function deleteKifuLocal(){
+    try{ localStorage.removeItem(kifuStorageKey()); }catch{}
+  }
+
+  function basePieceForHand(p){
+    if (!p) return null;
+    const up = p.toUpperCase();
+    const map = { "+P":"P", "+L":"L", "+N":"N", "+S":"S", "+B":"B", "+R":"R" };
+    if (map[up]) return (p === up) ? map[up] : map[up].toLowerCase();
+    return p;
+  }
+
+  function applyKifuRecord(g, rec){
+    normalizeHands(g);
+    normalizeRoles(g);
+
+    if (rec.type === "move"){
+      // remove from
+      g.board[rec.from.r][rec.from.c] = null;
+
+      // capture -> hand
+      if (rec.capture){
+        const bp = basePieceForHand(rec.capture);
+        const key = bp.toUpperCase();
+        g.hands[rec.side][key] = (g.hands[rec.side][key] || 0) + 1;
+      }
+
+      // place pieceAfter
+      g.board[rec.to.r][rec.to.c] = rec.pieceAfter;
+
+      g.turn = (rec.side === "S") ? "G" : "S";
+      return;
+    }
+
+    if (rec.type === "drop"){
+      const key = rec.piece.toUpperCase();
+      const cur = (g.hands[rec.side][key] || 0);
+      if (cur > 0){
+        if (cur === 1) delete g.hands[rec.side][key];
+        else g.hands[rec.side][key] = cur - 1;
+      }
+      const p = (rec.side === "S") ? key : key.toLowerCase();
+      g.board[rec.to.r][rec.to.c] = p;
+      g.turn = (rec.side === "S") ? "G" : "S";
+      return;
+    }
+  }
+
+  function rebuildToCursor(cursor){
+    ensureKifu(game);
+    const moves = game.kifu.moves || [];
+    const c = Math.max(0, Math.min(cursor, moves.length));
+
+    const rebuilt = normalizeRoles(normalizeHands(initialGame()));
+    rebuilt.roles = game.roles ? JSON.parse(JSON.stringify(game.roles)) : {S:null,G:null};
+    rebuilt.hands = { S:{}, G:{} };
+    rebuilt.turn = "S";
+    ensureKifu(rebuilt);
+    rebuilt.kifu.moves = JSON.parse(JSON.stringify(moves));
+    rebuilt.kifu.cursor = c;
+
+    for (let i=0; i<c; i++){
+      applyKifuRecord(rebuilt, moves[i]);
+    }
+
+    game.board = rebuilt.board;
+    game.turn  = rebuilt.turn;
+    game.hands = rebuilt.hands;
+    game.roles = rebuilt.roles;
+    game.kifu  = rebuilt.kifu;
+
+    selected = null;
+    selectedDrop = null;
+    draw();
+    updateKifuUI();
+  }
+
+  function recordMove(side, from, to, pieceAfter, capture){
+    ensureKifu(game);
+    if (game.kifu.cursor !== game.kifu.moves.length){
+      game.kifu.moves = game.kifu.moves.slice(0, game.kifu.cursor);
+    }
+    game.kifu.moves.push({
+      type:"move",
+      side,
+      from:{r:from.r, c:from.c},
+      to:{r:to.r, c:to.c},
+      pieceAfter,
+      capture: capture || null
+    });
+    game.kifu.cursor = game.kifu.moves.length;
+    updateKifuUI();
+    if (kifuAutoEnabled) saveKifuToLocal();
+  }
+
+  function recordDrop(side, pieceKey, to){
+    ensureKifu(game);
+    if (game.kifu.cursor !== game.kifu.moves.length){
+      game.kifu.moves = game.kifu.moves.slice(0, game.kifu.cursor);
+    }
+    game.kifu.moves.push({
+      type:"drop",
+      side,
+      piece: pieceKey.toUpperCase(),
+      to:{r:to.r, c:to.c}
+    });
+    game.kifu.cursor = game.kifu.moves.length;
+    updateKifuUI();
+    if (kifuAutoEnabled) saveKifuToLocal();
+  }
+
+  function exportKifuJSON(){
+    ensureKifu(game);
+    return JSON.stringify({
+      format: "KiwamiShogiKifu",
+      version: 1,
+      room: currentRoom(),
+      createdAt: new Date().toISOString(),
+      initial: "standard",
+      moves: game.kifu.moves || []
+    }, null, 2);
+  }
+
+  function importKifuJSON(text){
+    let obj = null;
+    try{ obj = JSON.parse(text); }catch{ return { ok:false, msg:"JSONとして解析できません" }; }
+    if (!obj || !Array.isArray(obj.moves)) return { ok:false, msg:"moves配列が見つかりません" };
+    ensureKifu(game);
+    game.kifu.moves = obj.moves;
+    game.kifu.cursor = obj.moves.length;
+    rebuildToCursor(game.kifu.cursor);
+    return { ok:true, msg:`インポートOK（手数 ${obj.moves.length}）` };
+  }
+
   let myName = "guest";
   let mySide = null; // "S" or "G" is learned from your first move/drop
 
 
   function setStatus(t){ statusEl.textContent = t; }
+
+  function updateKifuUI(){
+    ensureKifu(game);
+    const total = game.kifu.moves.length;
+    const cur = game.kifu.cursor;
+    if (kifuStep) kifuStep.textContent = `手数 ${cur} / ${total}`;
+    if (btnKifuPrev) btnKifuPrev.disabled = (cur <= 0);
+    if (btnKifuNext) btnKifuNext.disabled = (cur >= total);
+  }
 
   function setTurnUI(){
     const t = game.turn === "S" ? "先手" : "後手";
@@ -309,6 +445,10 @@
 
 
   // ---- 音（WebAudio） ----
+  function buzz(ms=10){
+    try{ if (navigator.vibrate) navigator.vibrate(ms); }catch{}
+  }
+
   let audioEnabled = true;
   let audioCtx = null;
   function ensureAudioUnlocked(){
@@ -332,11 +472,35 @@
     o.start(t0); o.stop(t0+dur+0.02);
   }
   const sfx = {
-    move(){ beep(520, 0.05, "square", 0.05); },
-    capture(){ beep(220, 0.07, "triangle", 0.06); beep(180, 0.05, "triangle", 0.05); },
-    promote(){ beep(740, 0.05, "sine", 0.05); beep(980, 0.06, "sine", 0.05); },
-    drop(){ beep(430, 0.06, "square", 0.05); },
-    chat(){ beep(660, 0.04, "sine", 0.04); }
+    move(side){ 
+      // 先手/後手で音程を変える（スマホでも聴き分けやすい範囲）
+      const f = (side === "G") ? 460 : 520;
+      beep(f, 0.05, "square", 0.05); 
+      buzz(8);
+    },
+    capture(side){ 
+      const f1 = (side === "G") ? 210 : 220;
+      const f2 = (side === "G") ? 170 : 180;
+      beep(f1, 0.07, "triangle", 0.06); 
+      beep(f2, 0.05, "triangle", 0.05); 
+      buzz(15);
+    },
+    promote(side){ 
+      const f1 = (side === "G") ? 700 : 740;
+      const f2 = (side === "G") ? 930 : 980;
+      beep(f1, 0.05, "sine", 0.05); 
+      beep(f2, 0.06, "sine", 0.05); 
+      buzz(10);
+    },
+    drop(side){ 
+      const f = (side === "G") ? 390 : 430;
+      beep(f, 0.06, "square", 0.05); 
+      buzz(10);
+    },
+    chat(){ 
+      beep(660, 0.04, "sine", 0.04); 
+      buzz(6);
+    }
   };
 
   btnSound.addEventListener("click", () => {
@@ -420,17 +584,21 @@
 
   function draw(){
     normalizeHands(game);
+    normalizeRoles(game);
     setTurnUI();
     drawHands();
 
     boardEl.innerHTML = "";
-    for (let r=0; r<9; r++){
-      for (let c=0; c<9; c++){
+    for (let vr=0; vr<9; vr++){
+      for (let vc=0; vc<9; vc++){
+        const povFlip = (mySide === "G");
+        const r = povFlip ? (8 - vr) : vr;
+        const c = povFlip ? (8 - vc) : vc;
         const p = game.board[r][c];
         const d = document.createElement("div");
         d.className =
           "cell" +
-          (p && isGote(p) ? " rev" : "") +
+          (p && ((mySide === "G") ? isSente(p) : isGote(p)) ? " rev" : "") +
           (selected && selected.r===r && selected.c===c ? " sel" : "");
         d.dataset.r = r;
         d.dataset.c = c;
@@ -532,6 +700,56 @@
     return true;
   }
 
+  
+  function roleLabel(){ return mySide ? (mySide === "S" ? "（先手）" : "（後手）") : "（観戦）"; }
+
+  function updateMySideFromRoles(){
+    normalizeRoles(game);
+    const rs = game.roles.S;
+    const rg = game.roles.G;
+    if (rs && rs.id === clientId) mySide = "S";
+    else if (rg && rg.id === clientId) mySide = "G";
+    else mySide = null;
+  }
+
+  function claimRoleIfNeeded(){
+    normalizeRoles(game);
+    updateMySideFromRoles();
+
+    // If already assigned, nothing to do
+    if (mySide) { appendSystem(`あなたは${mySide==="S"?"先手":"後手"}です`); return; }
+
+    const sTaken = !!game.roles.S;
+    const gTaken = !!game.roles.G;
+
+    // Both taken -> spectator
+    if (sTaken && gTaken){
+      appendSystem("この部屋は対局者が揃っています（観戦モード）");
+      return;
+    }
+
+    // First entrant (none taken): choose
+    if (!sTaken && !gTaken){
+      const ok = window.confirm("先手で入りますか？\nOK=先手 / キャンセル=後手");
+      const side = ok ? "S" : "G";
+      game.roles[side] = { id: clientId, name: myName };
+      updateMySideFromRoles();
+      appendSystem(`役割を確定：${side==="S"?"先手":"後手"}`);
+      sendState();
+      draw();
+      return;
+    }
+
+    // One remaining: auto assign
+    const side = sTaken ? "G" : "S";
+    game.roles[side] = { id: clientId, name: myName };
+    updateMySideFromRoles();
+    appendSystem(`役割を確定：${side==="S"?"先手":"後手"}`);
+    sendState();
+    draw();
+  }
+
+
   // ---- WS ----
   function currentRoom(){
     return (location.hash.match(/room=([a-zA-Z0-9_-]+)/)?.[1]) || "lobby";
@@ -546,12 +764,20 @@
 
     if (ws) { try{ ws.close(); }catch{} ws=null; }
     ws = new WebSocket(`${WORKER_WS}/?room=${encodeURIComponent(room)}`);
+    gotState = false;
 
     ws.onopen = () => {
       setStatus(`接続中… room=${room}`);
       appendSystem(`接続しました（room=${room}）`);
       ws.send(JSON.stringify({ type:"join", user:myName, room, payload:"" }));
-      ws.send(JSON.stringify({ type:"state", room, payload: game }));
+      // State restore is expected from server (途中参加で復元).
+      // If not received shortly, publish our initial state (first entrant).
+      setTimeout(() => {
+        if (!gotState){
+          sendState();
+        }
+      }, 250);
+
     };
 
     ws.onclose = () => { setStatus("切断されました"); appendSystem("切断されました"); };
@@ -561,10 +787,22 @@
       let m; try{ m = JSON.parse(ev.data); }catch{ return; }
 
       if (m.type === "state" && m.payload && m.payload.board){
-        game = normalizeHands(m.payload);
+        gotState = true;
+        game = ensureKifu(normalizeRoles(normalizeHands(m.payload)));
+        // ローカル棋譜があり、サーバ側が空なら自動読込（MVP）
+        try{
+          ensureKifu(game);
+          if ((game.kifu.moves||[]).length === 0){
+            const r = loadKifuFromLocal();
+            if (r.ok) appendSystem(r.msg);
+          }
+        }catch{}
+        updateMySideFromRoles();
         selected = null;
         selectedDrop = null;
         draw();
+        // Role is decided on first join (choose/auto) and persisted in state
+        claimRoleIfNeeded();
         return;
       }
 
@@ -614,13 +852,17 @@
 
       if (!dropPiece(side, type, r, c)) return;
 
+      // 棋譜に記録（自動取得ONならローカル保存も走る）
+      recordDrop(side, type, { r, c });
+
+      lastMove = { from: { r: -1, c: -1 }, to: { r, c } };
       selectedDrop = null;
       selected = null;
-      if (!mySide) mySide = game.turn;
+      moverSide = game.turn;
       game.turn = (game.turn === "S") ? "G" : "S";
       draw();
       sendState();
-      sfx.drop();
+      sfx.drop(moverSide);
       return;
     }
 
@@ -665,14 +907,19 @@
 
     game.board[r][c] = piece;
 
+    // 棋譜に記録（自動取得ONならローカル保存も走る）
+    const captureForKifu = (dest && !isKingPiece(dest)) ? dest : null;
+    recordMove(game.turn, from, { r, c }, piece, captureForKifu);
+
+    lastMove = { from: { r: from.r, c: from.c }, to: { r, c } };
     selected = null;
-    if (!mySide) mySide = game.turn;
-      game.turn = (game.turn === "S") ? "G" : "S";
+    moverSide = game.turn;
+    game.turn = (game.turn === "S") ? "G" : "S";
     draw();
     sendState();
 
-    if (didCapture) sfx.capture(); else sfx.move();
-    if (promote) sfx.promote();
+    if (didCapture) sfx.capture(moverSide); else sfx.move(moverSide);
+    if (promote) sfx.promote(moverSide);
   });
 
   // UI
@@ -683,9 +930,72 @@
     try{ await navigator.clipboard.writeText(url); appendSystem("部屋URLをコピーしました"); }
     catch{ appendSystem("コピーに失敗（ブラウザ権限）"); }
   });
+  btnFull.addEventListener("click", async () => {
+    try{
+      ensureAudioUnlocked();
+      const el = document.documentElement;
+      if (!document.fullscreenElement){
+        if (el.requestFullscreen) await el.requestFullscreen();
+      } else {
+        if (document.exitFullscreen) await document.exitFullscreen();
+      }
+    }catch{}
+  });
+
+  btnChatToggle.addEventListener("click", () => {
+    document.body.classList.toggle("chatOpen");
+  });
+  // KIFU: 自動取得（開始/停止/削除）
+  btnKifuAutoOn.addEventListener("click", () => {
+    kifuAutoEnabled = true;
+    saveKifuToLocal();
+    appendSystem("棋譜の自動取得を開始しました（この端末に保存）");
+  });
+
+  btnKifuAutoOff.addEventListener("click", () => {
+    kifuAutoEnabled = false;
+    appendSystem("棋譜の自動取得を停止しました");
+  });
+
+  btnKifuDelete.addEventListener("click", () => {
+    if (!window.confirm("ローカルの棋譜ファイルを削除しますか？")) return;
+    deleteKifuLocal();
+    ensureKifu(game);
+    game.kifu.moves = [];
+    game.kifu.cursor = 0;
+    rebuildToCursor(0);
+    if (ws && ws.readyState === 1){
+      ws.send(JSON.stringify({ type:"state", room: currentRoom(), payload: game }));
+    }
+    appendSystem("棋譜ファイルを削除しました");
+  });
+
+  btnKifuImport.addEventListener("click", () => {
+    const res = importKifuJSON(kifuText.value || "");
+    appendSystem(res.msg);
+    if (res.ok){
+      // インポートした棋譜はローカルにも保存（以後のレビューに利用）
+      saveKifuToLocal();
+    }
+    if (ws && ws.readyState === 1){
+      ws.send(JSON.stringify({ type:"state", room: currentRoom(), payload: game }));
+    }
+  });
+  btnKifuPrev.addEventListener("click", () => {
+    ensureKifu(game);
+    rebuildToCursor(game.kifu.cursor - 1);
+  });
+  btnKifuNext.addEventListener("click", () => {
+    ensureKifu(game);
+    rebuildToCursor(game.kifu.cursor + 1);
+  });
+
   btnReset.addEventListener("click", () => {
     ensureAudioUnlocked();
-    game = initialGame();
+    game = ensureKifu(normalizeRoles(normalizeHands(initialGame())));
+    game.hands = {S:{}, G:{}};
+    game.kifu.moves = [];
+    game.kifu.cursor = 0;
     selected = null;
     selectedDrop = null;
     draw();
