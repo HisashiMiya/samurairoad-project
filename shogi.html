@@ -1503,7 +1503,11 @@ if (btnAiReview) {
 
       // 2. AI呼び出し（既存の関数を利用）
       const result = await reviewWithAI(kifuExport);
+// TODOデバック
 console.log("[AI] result typeof=", typeof result, "value=", result);
+console.log("[AI] typeof=", typeof result);
+console.log("[AI] length=", (result || "").length);
+console.log("[AI] tail=", (result || "").slice(-200));
       // 3. 結果のレンダリング
       renderAiResult(result);
 
@@ -1660,39 +1664,40 @@ async function reviewWithAI(kifuJson) {
 次の棋譜をレビューしてください。
 
 【重要な指示】
-・出力は日本語の文章のみ。
-・JSONやコードブロックは使わない。
+・出力は日本語の文章のみ。JSONやコードブロックは使わない。
 ・見出しを使って、読みやすく整理する。
 ・各項目は簡潔に。
+
+【表現ルール（必ず守る）】
+・「白」「黒」という表現は禁止。必ず「先手」「後手」と書く。
+・「あなた」「相手」も避け、先手/後手で統一する。
 
 【出力フォーマット（必ず守る）】
 
 ■ 総評
-（全体の流れと形勢のポイントを3〜5行）
+（全体の流れと形勢のポイントを3〜6行）
 
 ■ 良い手（最大3つ）
-・○手目：どんな意図で、なぜ良かったか
+・○手目：どんな意図で、なぜ良かったか（先手/後手を明記）
 
 ■ 疑問手・改善点（最大3つ）
-・○手目：何が問題だったか
-　→ 改善案：どう指せば良かったか（1案でよい）
+・○手目：何が問題だったか（先手/後手を明記）
+　→ 改善案：どう指せば良かったか（1案）
 
 ■ 終盤のポイント
 （終盤で大事だった考え方や勝敗を分けた要素）
 
-※各項目は短く、全体で600文字以内。
+■ 感想
+（ひとこと）
 
+※全体で1000文字以内（途中で切れないように短く）。
 【棋譜（JSON）】
 ${JSON.stringify(kifuJson)}
 `.trim();
 
-  // Hermes（Workers AI）に投げる
   const text = await callHermes(prompt);
-
-  // 文章として返す（JSON.parseしない）
   return String(text || "").trim();
 }
-
 </script>
 
 </body>
