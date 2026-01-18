@@ -1502,7 +1502,7 @@ if (btnAiReview) {
       };
 
       // 2. AI呼び出し（既存の関数を利用）
-      const result = await reviewGameWithAIi(kifuExport);
+      const result = await reviewWithAI(kifuExport);
 
       // 3. 結果のレンダリング
       renderAiResult(result);
@@ -1515,50 +1515,92 @@ if (btnAiReview) {
 }
 
 // AI結果をHTMLに変換して表示
-function renderAiResult(data) {
-  let html = "";
-
-  // 総評
-  if (data.summary) {
-    html += `<div class="ai-section"><h2>総評</h2><p>${esc(data.summary)}</p></div>`;
-  }
-
-  // 勝負の分かれ目
-  if (data.turningPoints && data.turningPoints.length > 0) {
-    html += `<div class="ai-section"><h3>⚡ 勝負の分かれ目</h3>`;
-    data.turningPoints.forEach(tp => {
-      html += `<div style="margin-bottom:10px;">
-        <b>${tp.ply}手目</b>: ${esc(tp.comment)}<br>
-        <span class="small muted">推奨手: ${tp.betterIdeas ? esc(tp.betterIdeas.join(", ")) : "特になし"}</span>
-      </div>`;
-    });
-    html += `</div>`;
-  }
-
-  // 良かった手
-  if (data.goodMoves && data.goodMoves.length > 0) {
-    html += `<div class="ai-section"><h3>👍 ナイス一手</h3>`;
-    data.goodMoves.forEach(gm => {
-      html += `<div><b>${gm.ply}手目</b>: <span class="ai-good">${esc(gm.comment)}</span></div>`;
-    });
-    html += `</div>`;
-  }
-
-  // 悪手・改善点
-  if (data.badMoves && data.badMoves.length > 0) {
-    html += `<div class="ai-section"><h3>🤔 改善ポイント</h3>`;
-    data.badMoves.forEach(bm => {
-      html += `<div style="margin-bottom:8px;">
-        <b>${bm.ply}手目</b>: ${esc(bm.comment)}<br>
-        <span class="ai-bad">改善案: ${esc(bm.fix)}</span>
-      </div>`;
-    });
-    html += `</div>`;
-  }
-
+function renderAiResult(resultText) {
   const body = document.getElementById("aiResultBody") || aiResultBody;
-  if (body) body.innerHTML = html;
+  if (!body) return;
+
+  const text = String(resultText || "").trim();
+  if (!text) {
+    body.innerHTML = `<div style="color:#ff8888">AI結果が空でした。</div>`;
+    return;
+  }
+
+  // ■ 見出しで分割して、見やすくHTML化
+  const sections = parseAiSections(text);
+
+  const html = `
+    ${sections.summary ? `
+      <div class="ai-section">
+        <h2>総評</h2>
+        <div class="ai-text">${esc(sections.summary)}</div>
+      </div>` : ``}
+
+    ${sections.good ? `
+      <div class="ai-section">
+        <h3>👍 良い手</h3>
+        <div class="ai-text">${esc(sections.good)}</div>
+      </div>` : ``}
+
+    ${sections.bad ? `
+      <div class="ai-section">
+        <h3>🤔 疑問手・改善点</h3>
+        <div class="ai-text">${esc(sections.bad)}</div>
+      </div>` : ``}
+
+    ${sections.endgame ? `
+      <div class="ai-section">
+        <h3>🏁 終盤のポイント</h3>
+        <div class="ai-text">${esc(sections.endgame)}</div>
+      </div>` : ``}
+
+    ${(!sections.summary && !sections.good && !sections.bad && !sections.endgame) ? `
+      <div class="ai-section">
+        <h2>🤖 AI検討結果</h2>
+        <pre class="ai-pre">${esc(text)}</pre>
+      </div>` : ``}
+  `.trim();
+
+  body.innerHTML = html;
 }
+
+function parseAiSections(text) {
+  // 見出し候補（多少ブレても拾う）
+  const keys = [
+    { key: "summary",  labels: ["■ 総評"] },
+    { key: "good",     labels: ["■ 良い手", "■ 良い手（最大3つ）"] },
+    { key: "bad",      labels: ["■ 疑問手・改善点", "■ 疑問手", "■ 改善点"] },
+    { key: "endgame",  labels: ["■ 終盤のポイント", "■ 終盤"] },
+  ];
+
+  // まず行単位にして、見出し行でスプリット
+  const lines = String(text || "").split(/\r?\n/);
+
+  let cur = null;
+  const buf = { summary: [], good: [], bad: [], endgame: [] };
+
+  for (const line of lines) {
+    const trimmed = line.trim();
+
+    // 見出し判定
+    const hit = keys.find(k => k.labels.some(l => trimmed.startsWith(l)));
+    if (hit) {
+      cur = hit.key;
+      continue;
+    }
+
+    if (cur && trimmed.length) buf[cur].push(line);
+  }
+
+  const join = (arr) => arr.join("\n").trim();
+
+  return {
+    summary: join(buf.summary),
+    good: join(buf.good),
+    bad: join(buf.bad),
+    endgame: join(buf.endgame),
+  };
+}
+
 
 async function callHermes(prompt, model="hermes-2-pro-mistral-7b") {
   return  await callAI(prompt, model);
@@ -1612,37 +1654,44 @@ function extractJsonObject(s) {
   return str.slice(i, j + 1);
 }
 
-async function reviewGameWithAIi(kifuJson) {
+async function reviewWithAI(kifuJson) {
   const prompt = `
-あなたは将棋の検討役です。次の棋譜をレビューしてください。
-エンジンのような数値評価は不要。代わりに「形勢が動いた局面」と理由を説明してください。
-出力は必ずJSONのみ。
+あなたは将棋の検討役です。
+次の棋譜をレビューしてください。
 
-出力形式:
-{
-  "summary": "総評（200字以内）",
-  "turningPoints": [
-    {"ply": 12, "comment": "ここで形勢が動いた理由", "betterIdeas": ["候補1","候補2"] }
-  ],
-  "goodMoves": [{"ply": 20, "comment": "良い手の理由"}],
-  "badMoves": [{"ply": 34, "comment": "疑問手の理由", "fix": "改善案"}],
-  "endgame": "終盤のポイント（200字以内）"
-}
+【重要な指示】
+・出力は日本語の文章のみ。
+・JSONやコードブロックは使わない。
+・見出しを使って、読みやすく整理する。
+・各項目は簡潔に。
 
-棋譜(JSON):
+【出力フォーマット（必ず守る）】
+
+■ 総評
+（全体の流れと形勢のポイントを3〜5行）
+
+■ 良い手（最大3つ）
+・○手目：どんな意図で、なぜ良かったか
+
+■ 疑問手・改善点（最大3つ）
+・○手目：何が問題だったか
+　→ 改善案：どう指せば良かったか（1案でよい）
+
+■ 終盤のポイント
+（終盤で大事だった考え方や勝敗を分けた要素）
+
+※各項目は短く、全体で600文字以内。
+
+【棋譜（JSON）】
 ${JSON.stringify(kifuJson)}
-`;
+`.trim();
 
+  // Hermes（Workers AI）に投げる
   const text = await callHermes(prompt);
 
-  // ★AIがコードフェンスや前置きを混ぜても耐える
-  const jsonStr = extractJsonObject(text);
-
-  try {
-    return JSON.parse(jsonStr);
-  } catch (e) {
-    throw new Error(`[AI] JSON parse failed: ${e?.message || e}\n---\n${jsonStr.slice(0, 600)}`);
-  }
+  // 文章として返す（JSON.parseしない）
+  return String(text || "").trim();
+}
 }
 
 </script>
