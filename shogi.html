@@ -209,8 +209,8 @@
       </div>
       <p class="small">※観戦者もチャット可能。対局は先着2人がプレイヤーになります（MVPのため強制は未実装）。</p>
     </aside>
-
-    <aside class="card" id="devMemo">
+  </div>
+      <aside class="card" id="devMemo">
       <h1>開発者メモ</h1>
       <div class="muted" style="font-size:.92rem;line-height:1.65">
         <div>MVP：合法手・王手判定・打ち歩詰め等は未対応（ただし「二歩」「行き所のない駒の打ち」は最低限ガード）。</div>
@@ -223,8 +223,6 @@
         <div>・棋譜：自動取得ONのとき、指し手ごとにローカル保存（localStorage）します。</div>
       </div>
     </aside>
-
-  </div>
 <div class="small" style="margin-top:14px;text-align:right;opacity:.85">
         © hisa.miya
       </div>
@@ -1562,7 +1560,13 @@ function renderAiResult(data) {
   if (body) body.innerHTML = html;
 }
 
+async function callHermes(prompt, model="hermes-2-pro-mistral-7b") {
+  return  await callHermes(prompt, model);
+}
 async function callGemini(prompt, model="gemini-2.5-flash") {
+  return  await callHermes(prompt, model);
+}
+async function callAI(prompt, model) {
   const base = (window.AI_HTTP || location.origin).replace(/\/$/, "");
   // const endpoint = `${base}/ai/gemini`;
   const endpoint = `${base}/ai/cf`;
@@ -1611,7 +1615,7 @@ async function reviewGameWithGemini(kifuJson) {
 棋譜(JSON):
 ${JSON.stringify(kifuJson)}
 `;
-  const text = await callGemini(prompt);
+  const text = await callHermes(prompt);
   return JSON.parse(text); // 返答がJSON前提
 }
 </script>
