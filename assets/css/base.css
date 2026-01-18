@@ -115,3 +115,14 @@
     .cell.lastTo{box-shadow:inset 0 0 0 3px rgba(122,162,255,.55)}
     .chatComposer{position:sticky;bottom:0;background:rgba(17,26,51,.92);backdrop-filter:blur(6px);padding-top:10px;margin-top:10px;border-top:1px solid var(--line)}
     .chatToggle{display:none}
+
+/* 開発者メモが入力欄の上に乗ってしまう対策 */
+#devMemo, .dev-memo{
+  pointer-events: none; /* ←これで入力を邪魔しない */
+}
+
+/* チャット入力を最前面に */
+#chatInputArea, .chat-input-area{
+  position: relative;
+  z-index: 10;
+}
