@@ -181,3 +181,30 @@ footer{
   border-radius: 8px;
   color: var(--text);
 }
+/* 文字を少しだけ読みやすく */
+body{ font-size: 15px; }
+
+/* 本文幅を少しだけ狭めて読みやすく */
+:root{ --max: 980px; }
+
+/* 見出し・本文の間隔を気持ち広く */
+.section{ margin-top: 24px; }
+.section h3{ margin: 0 0 12px; }
+
+/* カードの内側余白を少し増やす */
+.heroMain{ padding: 22px 18px; }
+.heroSide{ padding: 18px; }
+.feature{ padding: 16px; }
+
+/* PCでも3列は詰まりがち → 2列寄りに（大型画面のみ3列） */
+.grid{ grid-template-columns: repeat(2, 1fr); }
+@media (min-width: 1200px){
+  .grid{ grid-template-columns: repeat(3, 1fr); }
+}
+
+/* Quick Accessの各項目の押しやすさ */
+.li{ padding: 14px; }
+.btn{ padding: 11px 14px; }
+
+/* 長文が多いページ向け：段落の読みやすさ */
+p{ max-width: 72ch; }
