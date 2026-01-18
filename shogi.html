@@ -1571,8 +1571,12 @@ async function callGemini(prompt, model="gemini-2.5-flash") {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ prompt, model }),
   });
+  if (!res.ok) {
+    throw new Error(`[AI] HTTP ${res.status}: ${raw}`);
+  }
   const json = await res.json();
-  if (!json.ok) throw new Error(json?.data ? JSON.stringify(json.data) : "Gemini error");
+  if (!json.ok) throw new Error(json?.data ? JSON.stringify(json.data) :${raw});
+
   return json.text;
 }
 
