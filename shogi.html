@@ -1571,12 +1571,23 @@ async function callGemini(prompt, model="gemini-2.5-flash") {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ prompt, model }),
   });
-  if (!res.ok) {
-    throw new Error(`[AI] HTTP ${res.status}: ${raw}`);
+  const raw = await res.text();
+  // JSONパース
+  let json;
+  try {
+    json = JSON.parse(raw);
+  } catch (e) {
+    throw new Error(`[AI] Invalid JSON response: ${raw}`);
   }
-  const json = await res.json();
-  if (!json.ok) throw new Error(json?.data ? JSON.stringify(json.data) :${raw});
 
+  // AI側エラー
+  if (!json.ok) {
+    throw new Error(
+      json?.error
+        ? `[AI] ${json.error}`
+        : `[AI] Unknown error: ${raw}`
+    );
+  }
   return json.text;
 }
 
