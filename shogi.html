@@ -1561,10 +1561,10 @@ function renderAiResult(data) {
 }
 
 async function callHermes(prompt, model="hermes-2-pro-mistral-7b") {
-  return  await callHermes(prompt, model);
+  return  await callAI(prompt, model);
 }
 async function callGemini(prompt, model="gemini-2.5-flash") {
-  return  await callHermes(prompt, model);
+  return  await callAI(prompt, model);
 }
 async function callAI(prompt, model) {
   const base = (window.AI_HTTP || location.origin).replace(/\/$/, "");
