@@ -1503,7 +1503,7 @@ if (btnAiReview) {
 
       // 2. AI呼び出し（既存の関数を利用）
       const result = await reviewWithAI(kifuExport);
-
+console.log("[AI] result typeof=", typeof result, "value=", result);
       // 3. 結果のレンダリング
       renderAiResult(result);
 
