@@ -1501,8 +1501,8 @@ if (btnAiReview) {
         })
       };
 
-      // 2. Gemini呼び出し（既存の関数を利用）
-      const result = await reviewGameWithGemini(kifuExport);
+      // 2. AI呼び出し（既存の関数を利用）
+      const result = await reviewGameWithAIi(kifuExport);
 
       // 3. 結果のレンダリング
       renderAiResult(result);
@@ -1568,34 +1568,51 @@ async function callGemini(prompt, model="gemini-2.5-flash") {
 }
 async function callAI(prompt, model) {
   const base = (window.AI_HTTP || location.origin).replace(/\/$/, "");
-  // const endpoint = `${base}/ai/gemini`;
   const endpoint = `${base}/ai/cf`;
-  const res = await fetch(endpoint , {
+
+  const res = await fetch(endpoint, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ prompt, model }),
+    // ★ worker側でmodel使わない.セキュリティ面考慮
+    body: JSON.stringify({ prompt }),
   });
+
   const raw = await res.text();
-  // JSONパース
+  if (!res.ok) {
+    throw new Error(`[AI] HTTP ${res.status}: ${raw || "(empty body)"}`);
+  }
+  if (!raw || !raw.trim()) {
+    throw new Error(`[AI] Empty response body (HTTP ${res.status})`);
+  }
   let json;
   try {
     json = JSON.parse(raw);
-  } catch (e) {
-    throw new Error(`[AI] Invalid JSON response: ${raw}`);
+  } catch {
+    throw new Error(`[AI] Invalid JSON response: ${raw.slice(0, 400)}`);
+  }
+  if (!json.ok) {
+    throw new Error(json?.error ? `[AI] ${json.error}` : `[AI] Unknown error: ${raw.slice(0,400)}`);
+  }
+  // ok:true の text が空のときも検知
+  if (!json.text || !String(json.text).trim()) {
+    throw new Error(`[AI] Empty 'text' in JSON response: ${raw.slice(0,400)}`);
   }
 
-  // AI側エラー
-  if (!json.ok) {
-    throw new Error(
-      json?.error
-        ? `[AI] ${json.error}`
-        : `[AI] Unknown error: ${raw}`
-    );
-  }
   return json.text;
 }
 
-async function reviewGameWithGemini(kifuJson) {
+
+function extractJsonObject(s) {
+  const str = String(s || "");
+  const i = str.indexOf("{");
+  const j = str.lastIndexOf("}");
+  if (i === -1 || j === -1 || j <= i) {
+    throw new Error(`[AI] JSON object not found in response: ${str.slice(0, 400)}`);
+  }
+  return str.slice(i, j + 1);
+}
+
+async function reviewGameWithAIi(kifuJson) {
   const prompt = `
 あなたは将棋の検討役です。次の棋譜をレビューしてください。
 エンジンのような数値評価は不要。代わりに「形勢が動いた局面」と理由を説明してください。
@@ -1615,9 +1632,19 @@ async function reviewGameWithGemini(kifuJson) {
 棋譜(JSON):
 ${JSON.stringify(kifuJson)}
 `;
+
   const text = await callHermes(prompt);
-  return JSON.parse(text); // 返答がJSON前提
+
+  // ★AIがコードフェンスや前置きを混ぜても耐える
+  const jsonStr = extractJsonObject(text);
+
+  try {
+    return JSON.parse(jsonStr);
+  } catch (e) {
+    throw new Error(`[AI] JSON parse failed: ${e?.message || e}\n---\n${jsonStr.slice(0, 600)}`);
+  }
 }
+
 </script>
 
 </body>
