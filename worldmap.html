@@ -1,0 +1,621 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <title>Global Kaido Map</title>
+
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <style>
+    /* --- Styles --- */
+    :root { --primary: #0066cc; --danger: #cc0000; --bg: #ffffff; --text: #333333; }
+    body { margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; overflow: hidden; height: 100vh; width: 100vw; color: var(--text); background: var(--bg); }
+    
+    /* bodyタグに余白を追加して、コンテンツ全体を押し上げる（広告対策） */
+    body { padding-bottom: 80px; box-sizing: border-box; }
+
+    #map { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; }
+    
+    /* Top Bar */
+    .top-bar {
+      position: absolute; top: 10px; left: 68px; right: 10px; z-index: 1000;
+      background: rgba(255,255,255,0.95); backdrop-filter: blur(4px);
+      padding: 10px 14px; border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      display: flex; flex-direction: column; gap: 4px; pointer-events: none;
+    }
+    .top-bar * { pointer-events: auto; }
+    .status-title { font-weight: 800; font-size: 16px; color: var(--primary); pointer-events: auto; }
+    .status-info { font-size: 12px; color: #666; pointer-events: auto; }
+
+    /* Bottom Bar */
+    .bottom-bar {
+      position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 1000;
+      display: flex; gap: 12px;
+      background: rgba(255,255,255,0.95); backdrop-filter: blur(4px);
+      padding: 10px 16px; border-radius: 50px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+    }
+    .action-btn {
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      background: none; border: none; cursor: pointer; color: #555; gap: 2px; min-width: 55px;
+    }
+    .action-btn svg { width: 24px; height: 24px; fill: currentColor; }
+    .action-btn span { font-size: 10px; font-weight: bold; }
+    .action-btn:active { transform: scale(0.95); }
+
+    /* FAB Locate */
+    .fab-locate {
+      position: absolute; bottom: 100px; right: 20px; z-index: 1000;
+      width: 50px; height: 50px; border-radius: 50%;
+      background: white; border: none; box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      font-size: 24px; cursor: pointer; color: #333; display: flex; align-items: center; justify-content: center;
+    }
+
+    /* Modal */
+    .modal-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 2000;
+      display: none; align-items: center; justify-content: center; backdrop-filter: blur(2px);
+    }
+    .modal-overlay.open { display: flex; }
+    .modal-content {
+      background: white; width: 90%; max-width: 400px; max-height: 80vh;
+      border-radius: 16px; padding: 20px; overflow-y: auto;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    }
+    h2 { margin: 0 0 15px; font-size: 18px; border-bottom: 2px solid #eee; padding-bottom: 8px; }
+    .list-group { display: flex; flex-direction: column; gap: 8px; }
+    .list-item {
+      padding: 12px; background: #f8f9fa; border-radius: 8px; border: 1px solid #eee;
+      cursor: pointer; font-weight: 600; display: flex; justify-content: space-between;
+    }
+    .list-item:hover { background: #eef4ff; border-color: var(--primary); color: var(--primary); }
+    .btn-block { width: 100%; padding: 12px; margin-top: 10px; background: #333; color: white; border: none; border-radius: 8px; font-weight: bold; font-size: 14px; cursor: pointer; }
+    .btn-danger { background: var(--danger); }
+    .btn-secondary { background: #555; }
+    
+    /* Settings Row */
+    .settings-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; font-size: 14px; font-weight: bold; }
+    
+    /* Toast */
+    .toast {
+      position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+      background: rgba(0,0,0,0.85); color: white; padding: 10px 20px;
+      border-radius: 30px; font-size: 14px; opacity: 0; pointer-events: none; transition: opacity 0.3s; z-index: 3000;
+    }
+    .toast.show { opacity: 1; }
+    
+
+  /* Hamburger */
+  .hamburger {
+    position: absolute;
+    top: 14px;
+    left: 14px;
+    z-index: 1100;
+    width: 44px;
+    height: 44px;
+    border: none;
+    border-radius: 12px;
+    background: rgba(255,255,255,0.95);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+  }
+  .hamburger .bars {
+    width: 18px;
+    height: 12px;
+    display: grid;
+    gap: 3px;
+  }
+  .hamburger .bars span {
+    display: block;
+    height: 2px;
+    background: #333;
+    border-radius: 2px;
+  }
+
+  /* Bottom bar を使わないなら非表示 */
+/* .bottom-bar { display: none; } */
+  </style>
+</head>
+<body>
+
+  <div id="map"></div>
+ <!-- Hamburger -->
+<button class="hamburger" id="btnHamburger" aria-label="menu">
+  <div class="bars"><span></span><span></span><span></span></div>
+</button>
+  <div class="modal-overlay" id="modalMainMenu">
+    <div class="modal-content">
+      <h2>Menu</h2>
+
+      <div class="list-group">
+        <div class="list-item" id="menuItemRoutes">🗺️ <span data-lang="menu_routes">探す</span></div>
+        <div class="list-item" id="menuItemRecord">⏺️ <span data-lang="menu_record">記録</span></div>
+        <div class="list-item" id="menuItemReport">📝 <span data-lang="menu_report">報告</span></div>
+        <div class="list-item" id="menuItemSettings">⚙️ <span data-lang="menu_settings">設定</span></div>
+      </div>
+
+      <button class="btn-block" style="background:#888;" onclick="closeModals()" data-lang="btn_close">閉じる</button>
+    </div>
+  </div>
+  <div class="top-bar">
+    <div class="status-title" id="lblCurrentRoute">--</div>
+    <div class="status-info" id="lblNavInfo">--</div>
+  </div>
+
+  <button class="fab-locate" id="btnLocate">◎</button>
+<button onclick="addDummyPoint()" style="position:fixed; top:50px; right:10px; z-index:9999;">＋点追加</button>
+  <div class="bottom-bar">
+    <button class="action-btn" id="btnMenuRoutes">
+      <svg viewBox="0 0 24 24"><path d="M20.5 3l-.16.03L15 5.1 9 3 3.36 4.9c-.21.07-.36.25-.36.48V20.5c0 .28.22.5.5.5l.16-.03L9 18.9l6 2.1 5.64-1.9c.21-.07.36-.25.36-.48V3.5c0-.28-.22-.5-.5-.5zM15 19l-6-2.11V5l6 2.11V19z"/></svg>
+      <span data-lang="menu_routes">探す</span>
+    </button>
+    <button class="action-btn" id="btnMenuRecord">
+      <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9V8h2v8zm4 0h-2V8h2v8z"/></svg>
+      <span id="lblRecordBtn" data-lang="menu_record">記録</span>
+    </button>
+    <button class="action-btn" id="btnMenuReport">
+      <svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-7 12h-2v-2h2v2zm0-4h-2V6h2v4z"/></svg>
+      <span data-lang="menu_report">報告</span>
+    </button>
+    <button class="action-btn" id="btnMenuSettings">
+      <svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.488.488 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 0 0-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96a.488.488 0 0 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.58 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32a.49.49 0 0 0-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
+      <span data-lang="menu_settings">設定</span>
+    </button>
+  </div>
+
+  <div class="modal-overlay" id="modalRoutes">
+    <div class="modal-content">
+      <h2 data-lang="title_select">街道を選択</h2>
+      <div id="routeListContainer" class="list-group"></div>
+      <button class="btn-block" style="background:#888;" onclick="closeModals()" data-lang="btn_close">閉じる</button>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="modalRecord">
+    <div class="modal-content">
+      <h2 data-lang="title_record">記録 (GPSログ)</h2>
+      <div id="recordStats" style="margin-bottom:15px; font-size:14px; line-height:1.6;">
+        <span data-lang="lbl_status">状態</span>: <span id="valRecStatus" style="font-weight:bold;">--</span><br>
+        <span data-lang="lbl_points">点数</span>: <span id="valRecPoints">0</span>
+      </div>
+      <button class="btn-block" id="btnStartStopRecord" style="background:var(--primary);" data-lang="btn_start">記録開始</button>
+      
+      <div style="margin-top:16px; border-top:1px solid #eee; padding-top:10px;">
+        <input type="file" id="inpGpxFile" accept=".gpx" style="display:none;">
+        <button class="btn-block btn-secondary" onclick="document.getElementById('inpGpxFile').click()" data-lang="btn_import">GPX読込</button>
+      </div>
+
+      <button class="btn-block btn-secondary" id="btnDownloadGpx" style="margin-top:10px;" data-lang="btn_gpx">GPXダウンロード</button>
+      <button class="btn-block btn-danger" id="btnClearRecord" style="margin-top:10px;" data-lang="btn_clear">クリア</button>
+      <button class="btn-block" style="background:#888; margin-top:20px;" onclick="closeModals()" data-lang="btn_close">閉じる</button>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="modalSettings">
+    <div class="modal-content">
+      <h2 data-lang="title_settings">設定</h2>
+      
+      <div class="settings-row">
+        <span data-lang="lbl_lang">言語 / Language</span>
+        <button id="btnToggleLang" style="padding:6px 12px; border-radius:6px; border:1px solid #ccc; background:#eee; cursor:pointer;">日本語</button>
+      </div>
+
+      <div class="settings-row">
+        <span data-lang="lbl_wakelock">画面常時点灯</span>
+        <input type="checkbox" id="chkWakeLock" style="transform:scale(1.5);">
+      </div>
+
+      <button class="btn-block" style="background:#888; margin-top:20px;" onclick="closeModals()" data-lang="btn_close">閉じる</button>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+<script>
+(() => {
+  // =========================================
+  // 0. 辞書データ (Dictionary)
+  // =========================================
+  const DICT = {
+    ja: {
+      menu_routes: "探す", menu_record: "記録", menu_report: "報告", menu_settings: "設定",
+      title_select: "街道を選択", btn_close: "閉じる",
+      title_record: "記録 / GPX", lbl_status: "状態", lbl_points: "点数",
+      btn_start: "記録開始", btn_stop: "記録停止", btn_gpx: "保存(DL)", btn_clear: "クリア", btn_import: "GPX読込",
+      title_settings: "設定", lbl_lang: "言語 / Language", lbl_wakelock: "画面常時点灯",
+      status_recording: "記録中...", status_stopped: "停止中",
+      msg_start: "記録を開始しました", msg_stop: "記録を停止しました", msg_clear: "ログを消去しました",
+      msg_no_data: "データがありません", msg_loaded: "読み込み完了", msg_error: "エラーが発生しました",
+      route_no_select: "街道未選択", nav_info_init: "「探す」から街道を選んでください",
+      route_loading: "読込中...", region_jp: "日本 (五街道・巡礼)", region_world: "海外 / その他"
+    },
+    en: {
+      menu_routes: "Routes", menu_record: "Record", menu_report: "Report", menu_settings: "Config",
+      title_select: "Select Route", btn_close: "Close",
+      title_record: "GPS & GPX", lbl_status: "Status", lbl_points: "Points",
+      btn_start: "Start", btn_stop: "Stop", btn_gpx: "Download", btn_clear: "Clear", btn_import: "Import GPX",
+      title_settings: "Settings", lbl_lang: "Language", lbl_wakelock: "Keep Screen On",
+      status_recording: "Recording...", status_stopped: "Stopped",
+      msg_start: "Recording started", msg_stop: "Recording stopped", msg_clear: "Log cleared",
+      msg_no_data: "No data found", msg_loaded: "Route loaded", msg_error: "Error occurred",
+      route_no_select: "No Route", nav_info_init: "Select a route from menu",
+      route_loading: "Loading...", region_jp: "Japan", region_world: "World / Other"
+    }
+  };
+
+  // =========================================
+  // 1. データ定義 (日英対応)
+  // =========================================
+  const WORLD_ROUTES = [
+  { 
+    region_ja: "日本 (五街道・巡礼)", region_en: "Japan", 
+    routes: [
+      { id: "tokaido", name_ja: "東海道", name_en: "Tokaido", file: "data/tokaido_strict.geojson" },
+      { id: "nakasendo", name_ja: "中山道", name_en: "Nakasendo", file: "data/nakaendo_route.geojson" },
+      { id: "koshu", name_ja: "甲州街道", name_en: "Koshu Kaido", file: "data/koshu_route.geojson" },
+      { id: "nikko", name_ja: "日光街道", name_en: "Nikko Kaido", file: "data/nikko_route.geojson" },
+      { id: "oshu", name_ja: "奥州街道", name_en: "Oshu Kaido", file: "data/oshu_route.geojson" },
+      { id: "kumano", name_ja: "熊野古道（中辺路）", name_en: "Kumano Kodo", file: "data/kumano.geojson" },
+      // ...他の中山道などは省略...
+    ]
+  },
+  { 
+    region_ja: "アジア / ユーラシア", region_en: "Asia / Eurasia", 
+      routes: [
+        { id: "silkroad_uz", name_ja: "シルクロード（ウズベキスタン）", name_en: "Silk Road (Uzbekistan)", file: "data/silkroad_uz.geojson" }
+      ]
+    },
+    { 
+      region_ja: "ヨーロッパ", region_en: "Europe", 
+      routes: [
+        { id: "appia", name_ja: "アッピア街道", name_en: "Appian Way", file: "data/appia.geojson" },
+        { id: "tmb", name_ja: "ツール・ド・モンブラン", name_en: "Tour du Mont Blanc", file: "data/tmb.geojson" },
+        { id: "camino", name_ja: "サンティアゴ巡礼（フランス人の道）", name_en: "Camino de Santiago (Francés)", file: "data/camino_frances.geojson" }
+      ]
+    },
+    { 
+      region_ja: "アメリカ大陸", region_en: "Americas", 
+      routes: [
+        { id: "appalachian", name_ja: "アパラチアン・トレイル", name_en: "Appalachian Trail", file: "data/appalachian.geojson" },
+        { id: "route66", name_ja: "ルート66", name_en: "Route 66", file: "data/route66.geojson" },
+        { id: "inca", name_ja: "インカ道", name_en: "Inca Trail", file: "data/inca.geojson" }
+      ]
+    }
+  ];
+
+  // =========================================
+  // 2. アプリの状態管理
+  // =========================================
+  const AppState = {
+    lang: localStorage.getItem('kaido_lang') || 'ja',
+    currentRouteId: localStorage.getItem('kaido_active_route') || null,
+    trackPoints: JSON.parse(localStorage.getItem('kaido_track_points') || '[]'),
+    isRecording: false,
+    watchId: null,
+    currentPos: null,
+    layers: {}
+  };
+
+  // マップ初期化
+  const map = L.map('map', { zoomControl: false }).setView([35.681, 139.767], 6);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19, attribution: '&copy; OpenStreetMap'
+  }).addTo(map);
+
+  // =========================================
+  // 3. 基本機能 & 翻訳システム
+  // =========================================
+  
+  function t(key) { return DICT[AppState.lang][key] || key; }
+
+  function updateLanguage() {
+    document.querySelectorAll('[data-lang]').forEach(el => {
+      el.textContent = t(el.dataset.lang);
+    });
+    renderRouteMenu();
+    updateRecordStats();
+    renderRecordButtonState();
+    updateTopBarText();
+    document.getElementById('btnToggleLang').textContent = (AppState.lang === 'ja') ? "日本語" : "English";
+  }
+
+  function toggleLanguage() {
+    AppState.lang = (AppState.lang === 'ja') ? 'en' : 'ja';
+    localStorage.setItem('kaido_lang', AppState.lang);
+    updateLanguage();
+  }
+
+  function updateTopBarText() {
+    if (!AppState.currentRouteId) {
+      document.getElementById('lblCurrentRoute').textContent = t('route_no_select');
+      document.getElementById('lblNavInfo').textContent = t('nav_info_init');
+      return;
+    }
+    let name = "Unknown";
+    for (const group of WORLD_ROUTES) {
+      const found = group.routes.find(r => r.id === AppState.currentRouteId);
+      if (found) { name = (AppState.lang === 'ja') ? found.name_ja : found.name_en; break; }
+    }
+    document.getElementById('lblCurrentRoute').textContent = name;
+  }
+
+  // --- 記録トラックの描画 ---
+  function drawTrack() {
+    if (AppState.layers.trackLine) AppState.layers.trackLine.remove();
+    if (AppState.trackPoints.length < 1) return;
+
+    // ポリライン（線）を作成：青色
+    const latlngs = AppState.trackPoints.map(p => [p.lat, p.lng]);
+    AppState.layers.trackLine = L.polyline(latlngs, { color: 'blue', weight: 4, opacity: 0.8 }).addTo(map);
+    
+    // 現在位置にマーカー
+    const last = AppState.trackPoints[AppState.trackPoints.length - 1];
+    /* recording marker managed in toggleRecord, but we can center map here if needed */
+  }
+
+  function loadActiveRoute() {
+    if (!AppState.currentRouteId) { updateTopBarText(); return; }
+
+    let targetRoute = null;
+    for (const group of WORLD_ROUTES) {
+      const found = group.routes.find(r => r.id === AppState.currentRouteId);
+      if (found) { targetRoute = found; break; }
+    }
+    if (!targetRoute) return;
+
+    updateTopBarText();
+    document.getElementById('lblNavInfo').textContent = t('route_loading');
+
+    if (AppState.layers.route) AppState.layers.route.remove();
+
+    fetch(targetRoute.file)
+      .then(res => {
+        if (!res.ok) throw new Error("File not found");
+        return res.json();
+      })
+      .then(geoJson => {
+        AppState.layers.route = L.geoJSON(geoJson, {
+          style: { color: '#cc0000', weight: 5, opacity: 0.7 }
+        }).addTo(map);
+        
+        map.fitBounds(AppState.layers.route.getBounds(), { padding: [50, 50] });
+        document.getElementById('lblNavInfo').textContent = t('msg_loaded');
+      })
+      .catch(err => {
+        console.error(err);
+        document.getElementById('lblNavInfo').textContent = "Error";
+        showToast(t('msg_error'));
+      });
+  }
+
+  // --- 記録機能 ---
+  function updateRecordStats() {
+    const pts = AppState.trackPoints;
+    document.getElementById('valRecStatus').textContent = AppState.isRecording ? t('status_recording') : t('status_stopped');
+    document.getElementById('valRecStatus').style.color = AppState.isRecording ? "#cc0000" : "#333";
+    document.getElementById('valRecPoints').textContent = pts.length;
+    
+    const btnText = document.getElementById('lblRecordBtn');
+    btnText.textContent = AppState.isRecording ? "STOP" : t('menu_record');
+    btnText.style.color = AppState.isRecording ? "#cc0000" : "";
+  }
+
+  function renderRecordButtonState(){
+    const btn = document.getElementById('btnStartStopRecord');
+    btn.textContent = AppState.isRecording ? t('btn_stop') : t('btn_start');
+    btn.className = AppState.isRecording ? "btn-block btn-danger" : "btn-block";
+  }
+
+  function toggleRecord() {
+    AppState.isRecording = !AppState.isRecording;
+    if (AppState.isRecording) {
+      if (!navigator.geolocation) { alert("GPS Not Supported"); AppState.isRecording=false; return; }
+      AppState.watchId = navigator.geolocation.watchPosition(
+        pos => {
+          const p = { lat: pos.coords.latitude, lng: pos.coords.longitude, t: Date.now() };
+          AppState.trackPoints.push(p);
+          localStorage.setItem('kaido_track_points', JSON.stringify(AppState.trackPoints));
+          updateRecordStats();
+          drawTrack(); // 線を更新
+        },
+        err => { console.error(err); },
+        { enableHighAccuracy: true }
+      );
+      showToast(t('msg_start'));
+    } else {
+      if (AppState.watchId) navigator.geolocation.clearWatch(AppState.watchId);
+      showToast(t('msg_stop'));
+    }
+    updateRecordStats();
+    renderRecordButtonState();
+  }
+
+  function clearRecord() {
+    if(!confirm("Clear log?")) return;
+    AppState.trackPoints = [];
+    localStorage.setItem('kaido_track_points', '[]');
+    if(AppState.layers.trackLine) AppState.layers.trackLine.remove();
+    updateRecordStats();
+    showToast(t('msg_clear'));
+  }
+
+  // --- GPX Import & Export ---
+  function downloadGpx() {
+    const pts = AppState.trackPoints;
+    if (pts.length === 0) { alert(t('msg_no_data')); return; }
+    
+    let gpx = `<?xml version="1.0"?><gpx version="1.1"><trk><trkseg>`;
+    pts.forEach(p => {
+      gpx += `<trkpt lat="${p.lat}" lon="${p.lng}"><time>${new Date(p.t).toISOString()}</time></trkpt>`;
+    });
+    gpx += `</trkseg></trk></gpx>`;
+    
+    const blob = new Blob([gpx], {type: "application/gpx+xml"});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = `track_${Date.now()}.gpx`;
+    document.body.appendChild(a); a.click(); a.remove();
+  }
+
+  function importGpx(event) {
+    const file = event.target.files[0];
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      const text = e.target.result;
+      const parser = new DOMParser();
+      const xmlDoc = parser.parseFromString(text, "text/xml");
+      const trkpts = xmlDoc.getElementsByTagName("trkpt");
+      
+      AppState.trackPoints = []; // 既存をクリア（追記したい場合はここを変更）
+      for (let i = 0; i < trkpts.length; i++) {
+        const lat = parseFloat(trkpts[i].getAttribute("lat"));
+        const lon = parseFloat(trkpts[i].getAttribute("lon"));
+        const timeTag = trkpts[i].getElementsByTagName("time")[0];
+        const time = timeTag ? new Date(timeTag.textContent).getTime() : Date.now();
+        AppState.trackPoints.push({ lat: lat, lng: lon, t: time });
+      }
+      localStorage.setItem('kaido_track_points', JSON.stringify(AppState.trackPoints));
+      drawTrack();
+      updateRecordStats();
+      if(AppState.trackPoints.length > 0) {
+        map.fitBounds(AppState.layers.trackLine.getBounds());
+      }
+      showToast(t('msg_loaded'));
+      closeModals();
+    };
+    reader.readAsText(file);
+  }
+  document.getElementById('inpGpxFile').addEventListener('change', importGpx);
+
+  // --- 報告機能 ---
+  function openReportForm() {
+    const formUrl = "https://docs.google.com/forms/d/e/1FAIpQLSctfcD7qgXA3t7X1bWQnXiqyTSCdh2iy1uuM07otO4xGGoU_g/viewform";
+    const ID_LAT   = "entry.1725964949";
+    const ID_LNG   = "entry.1039750529";
+    const ID_ROUTE = "entry.2062767095";
+
+    let params = [];
+    if (AppState.currentPos) {
+      params.push(`${ID_LAT}=${AppState.currentPos.lat}`);
+      params.push(`${ID_LNG}=${AppState.currentPos.lng}`);
+    }
+    if (AppState.currentRouteId) {
+      // 街道名は日本語なのでエンコード
+      let name = AppState.currentRouteId;
+      for (const group of WORLD_ROUTES) {
+        const found = group.routes.find(r => r.id === AppState.currentRouteId);
+        if(found) name = found.name_ja;
+      }
+      params.push(`${ID_ROUTE}=${encodeURIComponent(name)}`);
+    }
+    
+    const fullUrl = `${formUrl}?${params.join('&')}`;
+    window.open(fullUrl, "_blank"); 
+    showToast("Open Report Form");
+  }
+
+  // --- UI操作 ---
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg; t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 3000);
+  }
+
+  window.closeModals = function() {
+    document.querySelectorAll('.modal-overlay').forEach(e => e.classList.remove('open'));
+  };
+  function openModal(id) {
+    closeModals();
+    document.getElementById(id).classList.add('open');
+  }
+
+  function renderRouteMenu() {
+    const container = document.getElementById('routeListContainer');
+    container.innerHTML = "";
+    
+    WORLD_ROUTES.forEach(group => {
+      const h3 = document.createElement('div');
+      h3.style.cssText = "font-size:12px; color:#666; margin-top:10px; margin-bottom:4px; font-weight:bold;";
+      h3.textContent = (AppState.lang === 'ja') ? group.region_ja : group.region_en;
+      container.appendChild(h3);
+
+      group.routes.forEach(route => {
+        const div = document.createElement('div');
+        div.className = 'list-item';
+        div.textContent = (AppState.lang === 'ja') ? route.name_ja : route.name_en;
+        div.onclick = () => {
+          AppState.currentRouteId = route.id;
+          localStorage.setItem('kaido_active_route', route.id);
+          loadActiveRoute();
+          closeModals();
+          showToast(div.textContent + " Selected");
+        };
+        container.appendChild(div);
+      });
+    });
+  }
+
+  // =========================================
+  // 4. イベントリスナー
+  // =========================================
+  document.getElementById('btnMenuRoutes').onclick = () => openModal('modalRoutes');
+  document.getElementById('btnMenuRecord').onclick = () => openModal('modalRecord');
+  document.getElementById('btnMenuSettings').onclick = () => openModal('modalSettings');
+  document.getElementById('btnMenuReport').onclick = openReportForm;
+  document.getElementById('btnStartStopRecord').onclick = () => toggleRecord();
+  document.getElementById('btnClearRecord').onclick = clearRecord;
+  document.getElementById('btnDownloadGpx').onclick = downloadGpx;
+  document.getElementById('btnToggleLang').onclick = toggleLanguage;
+// Hamburger open
+document.getElementById('btnHamburger').onclick = () => openModal('modalMainMenu');
+
+// Menu items
+document.getElementById('menuItemRoutes').onclick = () => { closeModals(); openModal('modalRoutes'); };
+document.getElementById('menuItemRecord').onclick = () => { closeModals(); openModal('modalRecord'); };
+document.getElementById('menuItemSettings').onclick = () => { closeModals(); openModal('modalSettings'); };
+document.getElementById('menuItemReport').onclick = () => { closeModals(); openReportForm(); };
+  document.getElementById('btnLocate').onclick = () => {
+    if(!navigator.geolocation) return;
+    showToast(t('route_loading'));
+    navigator.geolocation.getCurrentPosition(pos => {
+      const {latitude, longitude} = pos.coords;
+      AppState.currentPos = { lat: latitude, lng: longitude };
+      map.setView([latitude, longitude], 15);
+      if(AppState.layers.me) AppState.layers.me.remove();
+      AppState.layers.me = L.circleMarker([latitude, longitude], { radius:8, color:'white', fillColor:'#0066cc', fillOpacity:1 }).addTo(map);
+    }, err => alert("GPS Error: " + err.message));
+  };
+
+  // 初期化
+  updateLanguage();
+  if (AppState.currentRouteId) loadActiveRoute();
+  drawTrack(); // 保存されていた軌跡があれば描画
+
+})();
+// ★テスト用: ダミーデータを追加して描画する関数
+window.addDummyPoint = function() {
+  if (!AppState.isRecording) { alert("まずは「記録開始」してください"); return; }
+  
+  // 現在の地図の中心に点を打つ
+  const center = map.getCenter();
+  // 少しだけずらして「移動した感」を出す
+  const lat = center.lat + (Math.random() - 0.5) * 0.002;
+  const lng = center.lng + (Math.random() - 0.5) * 0.002;
+  
+  AppState.trackPoints.push({ lat, lng, t: Date.now() });
+  localStorage.setItem('kaido_track_points', JSON.stringify(AppState.trackPoints));
+  
+  drawTrack();       // 線を引く
+  updateRecordStats(); // 表示を更新
+  showToast("テスト点追加: " + lat.toFixed(4) + ", " + lng.toFixed(4));
+};
+</script>
+</body>
+</html>
