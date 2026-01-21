@@ -12,17 +12,23 @@
 <body>
 <header>
   <div class="nav">
-    <a class="brand" href="./index_en.html">
+    <!-- brand: 1ファイル化するので index_en.html には飛ばさない -->
+    <a class="brand" href="./index.html">
       <div class="logo"></div>
       <div>
-        <h1>SamuraiRoad</h1>
-        <p>Travel Edo with your thumb</p>
+        <h1 data-i18n="brand_title">SamuraiRoad</h1>
+        <p data-i18n="brand_tagline">Travel Edo with your thumb</p>
       </div>
     </a>
+
     <nav class="navlinks">
-      <a class="btn ghost" href="#tools">Tools</a>
-      <a class="btn ghost" href="#about">About</a>
-      <a class="btn primary" href="./index.html">JP</a>
+      <a class="btn ghost" href="#tools" data-i18n="nav_tools">Tools</a>
+      <a class="btn ghost" href="#about" data-i18n="nav_about">About</a>
+
+      <!-- 言語切替（JP/EN） -->
+      <button class="btn primary" type="button" id="langBtn" aria-label="Switch language">
+        <span id="langLabel">JP</span>
+      </button>
     </nav>
   </div>
 </header>
@@ -31,129 +37,132 @@
   <!-- HERO -->
   <section class="hero">
     <div class="card heroMain">
-      <div class="kicker">SAMURAIROAD PROJECT</div>
-      <h2 class="title">
+      <div class="kicker" data-i18n="kicker">SAMURAIROAD PROJECT</div>
+      <h2 class="title" data-i18n="hero_title">
         Open the map.<br>
         The road becomes a story.
       </h2>
-      <p class="subtitle">
+      <p class="subtitle" data-i18n="hero_subtitle">
         A mobile-first platform for historic road walking.
         Maps, POIs, and personal exploration — all connected.
       </p>
 
       <div class="ctaRow">
-        <a class="btn primary" href="./search_hub.html">Open Hub</a>
-        <a class="btn" href="./readme.html">Project Overview</a>
+        <a class="btn primary" data-link="hub" data-i18n="cta_hub">Open Hub</a>
+        <a class="btn" data-link="intro" data-i18n="cta_intro">Project Overview</a>
       </div>
 
       <div class="metaRow">
         <div class="pill">
-          <b>Mobile-first</b>
-          <span>Designed for outdoor walking</span>
+          <b data-i18n="pill1_t">Mobile-first</b>
+          <span data-i18n="pill1_d">Designed for outdoor walking</span>
         </div>
         <div class="pill">
-          <b>Layered Maps</b>
-          <span>Routes + historic POIs</span>
+          <b data-i18n="pill2_t">Layered Maps</b>
+          <span data-i18n="pill2_d">Routes + historic POIs</span>
         </div>
         <div class="pill">
-          <b>Expandable</b>
-          <span>Grows with pages and tools</span>
+          <b data-i18n="pill3_t">Expandable</b>
+          <span data-i18n="pill3_d">Grows with pages and tools</span>
         </div>
       </div>
     </div>
-    
+
     <div class="card feature">
-      <div class="tag">Map</div>
-      <h4>World Map</h4>
-      <p>Global Kaido map (Leaflet).</p>
+      <div class="tag" data-i18n="tag_map">Map</div>
+      <h4 data-i18n="worldmap_title">World Map</h4>
+      <p data-i18n="worldmap_desc">Global Kaido map (Leaflet).</p>
       <div class="actions">
-        <a class="btn primary" href="./worldmap.html">Open</a>
+        <a class="btn primary" data-link="worldmap" data-i18n="open">Open</a>
       </div>
     </div>
 
     <aside class="card heroSide">
-      <h2>Quick Access</h2>
+      <h2 data-i18n="quick_title">Quick Access</h2>
       <ul class="list">
         <li class="li">
-         <b>World Map</b>
-         <p>Global Kaido map</p>
-         <a class="btn" href="./worldmap.html">Open</a>
-       </li>
-        <li class="li">
-          <b>Search Hub</b>
-          <p>Main navigation hub</p>
-          <a class="btn" href="./search_hub.html">Open</a>
+          <b data-i18n="qa_world_t">World Map</b>
+          <p data-i18n="qa_world_d">Global Kaido map</p>
+          <a class="btn" data-link="worldmap" data-i18n="open">Open</a>
         </li>
+
         <li class="li">
-          <b>Search Engine</b>
-          <p>Direct search interface</p>
-          <a class="btn" href="./search_engine.html">Open</a>
+          <b data-i18n="qa_hub_t">Search Hub</b>
+          <p data-i18n="qa_hub_d">Main navigation hub</p>
+          <a class="btn" data-link="hub" data-i18n="open">Open</a>
         </li>
+
         <li class="li">
-          <b>Shogi</b>
-          <p>Real-time Shogi UI</p>
-          <a class="btn" href="./shogi.html">Open</a>
+          <b data-i18n="qa_engine_t">Search Engine</b>
+          <p data-i18n="qa_engine_d">Direct search interface</p>
+          <a class="btn" data-link="engine" data-i18n="open">Open</a>
+        </li>
+
+        <li class="li">
+          <b data-i18n="qa_shogi_t">Shogi</b>
+          <p data-i18n="qa_shogi_d">Real-time Shogi UI</p>
+          <a class="btn" data-link="shogi" data-i18n="open">Open</a>
         </li>
       </ul>
-      
     </aside>
   </section>
 
   <!-- TOOLS -->
   <section id="tools" class="section">
-    <h3>Tools & Pages</h3>
+    <h3 data-i18n="tools_title">Tools & Pages</h3>
+
     <div class="grid">
       <div class="card feature">
-        <div class="tag">Documentation</div>
-        <h4>README</h4>
-        <p>Project purpose and structure.</p>
+        <div class="tag" data-i18n="tag_doc">Documentation</div>
+        <h4 data-i18n="intro_title">Project Overview</h4>
+        <p data-i18n="intro_desc">Project purpose and structure.</p>
         <div class="actions">
-          <a class="btn primary" href="./readme.html">Open</a>
+          <a class="btn primary" data-link="intro" data-i18n="open">Open</a>
         </div>
       </div>
 
       <div class="card feature">
-        <div class="tag">Navigation</div>
-        <h4>Search Hub</h4>
-        <p>Central access point.</p>
+        <div class="tag" data-i18n="tag_nav">Navigation</div>
+        <h4 data-i18n="hub_title">Search Hub</h4>
+        <p data-i18n="hub_desc">Central access point.</p>
         <div class="actions">
-          <a class="btn primary" href="./search_hub.html">Open</a>
+          <a class="btn primary" data-link="hub" data-i18n="open">Open</a>
         </div>
       </div>
 
       <div class="card feature">
-        <div class="tag">Search</div>
-        <h4>Search Engine</h4>
-        <p>Search interface.</p>
+        <div class="tag" data-i18n="tag_search">Search</div>
+        <h4 data-i18n="engine_title">Search Engine</h4>
+        <p data-i18n="engine_desc">Search interface.</p>
         <div class="actions">
-          <a class="btn primary" href="./search_engine.html">Open</a>
+          <a class="btn primary" data-link="engine" data-i18n="open">Open</a>
         </div>
       </div>
 
       <div class="card feature">
         <div class="tag">AI</div>
-        <h4>Search AI</h4>
-        <p>AI-powered search page.</p>
+        <h4 data-i18n="ai_title">Search AI</h4>
+        <p data-i18n="ai_desc">AI-powered search page.</p>
         <div class="actions">
-          <a class="btn primary" href="./serchAI.html">Open</a>
+          <a class="btn primary" data-link="ai" data-i18n="open">Open</a>
         </div>
       </div>
 
       <div class="card feature">
-        <div class="tag">Real-time</div>
-        <h4>Shogi</h4>
-        <p>Online Shogi interface.</p>
+        <div class="tag" data-i18n="tag_rt">Real-time</div>
+        <h4 data-i18n="shogi_title">Shogi</h4>
+        <p data-i18n="shogi_desc">Online Shogi interface.</p>
         <div class="actions">
-          <a class="btn primary" href="./shogi.html">Open</a>
+          <a class="btn primary" data-link="shogi" data-i18n="open">Open</a>
         </div>
       </div>
 
       <div class="card feature">
-        <div class="tag">Legacy</div>
-        <h4>Original Index</h4>
-        <p>Previous top page.</p>
+        <div class="tag" data-i18n="tag_legacy">Legacy</div>
+        <h4 data-i18n="legacy_title">Original Index</h4>
+        <p data-i18n="legacy_desc">Previous top page.</p>
         <div class="actions">
-          <a class="btn" href="./index_original.html">Open</a>
+          <a class="btn" data-link="index_original" data-i18n="open">Open</a>
         </div>
       </div>
     </div>
@@ -161,9 +170,9 @@
 
   <!-- ABOUT -->
   <section id="about" class="section">
-    <h3>About</h3>
+    <h3 data-i18n="about_title">About</h3>
     <div class="card feature">
-      <p>
+      <p data-i18n="about_body">
         SamuraiRoad is designed as a personal exploration OS.
         Pages connect organically, and the platform evolves as content grows.
       </p>
@@ -173,23 +182,191 @@
   <footer>
     <div>© <span id="y"></span> SamuraiRoad Project</div>
     <div class="footlinks">
-      <a href="./index.html">Japanese</a>
-      <a href="./readme.html">README</a>
-      <a href="./search_hub.html">Search Hub</a>
+      <a href="./index.html" data-i18n="foot_home">Home</a>
+      <a data-link="intro" data-i18n="foot_overview">Project Overview</a>
+      <a data-link="hub" data-i18n="foot_hub">Search Hub</a>
+      <a data-link="worldmap" data-i18n="foot_map">World Map</a>
     </div>
   </footer>
 </main>
 
 <script>
-  document.getElementById("y").textContent = new Date().getFullYear();
+/* ====== 1) links: one place to manage (dedupe) ====== */
+const LINKS = {
+  // 最新：Cloudflareの/worldmap（グローバル視野）
+  worldmap: "https://samurairoad-project.pages.dev/worldmap",
+
+  // ローカルページ（repo内）
+  hub: "./search_hub.html",
+  engine: "./search_engine.html",
+  ai: "./serchAI.html",
+  shogi: "./shogi.html",
+  intro: "./samurairoad_intro.html",
+  index_original: "./index_original.html",
+};
+
+/* apply links */
+document.querySelectorAll("[data-link]").forEach(a => {
+  const key = a.getAttribute("data-link");
+  const url = LINKS[key];
+  if (url) {
+    a.setAttribute("href", url);
+    if (url.startsWith("http")) {
+      a.setAttribute("target", "_blank");
+      a.setAttribute("rel", "noopener noreferrer");
+    }
+  }
+});
+
+/* ====== 2) i18n: JP/EN toggle in same file ====== */
+const I18N = {
+  en: {
+    brand_title: "SamuraiRoad",
+    brand_tagline: "Travel Edo with your thumb",
+    nav_tools: "Tools",
+    nav_about: "About",
+    kicker: "SAMURAIROAD PROJECT",
+    hero_title: "Open the map.<br>The road becomes a story.",
+    hero_subtitle: "A mobile-first platform for historic road walking. Maps, POIs, and personal exploration — all connected.",
+    cta_hub: "Open Hub",
+    cta_intro: "Project Overview",
+    pill1_t: "Mobile-first",
+    pill1_d: "Designed for outdoor walking",
+    pill2_t: "Layered Maps",
+    pill2_d: "Routes + historic POIs",
+    pill3_t: "Expandable",
+    pill3_d: "Grows with pages and tools",
+    tag_map: "Map",
+    worldmap_title: "World Map",
+    worldmap_desc: "Global Kaido map (Leaflet).",
+    open: "Open",
+    quick_title: "Quick Access",
+    qa_world_t: "World Map",
+    qa_world_d: "Global Kaido map",
+    qa_hub_t: "Search Hub",
+    qa_hub_d: "Main navigation hub",
+    qa_engine_t: "Search Engine",
+    qa_engine_d: "Direct search interface",
+    qa_shogi_t: "Shogi",
+    qa_shogi_d: "Real-time Shogi UI",
+    tools_title: "Tools & Pages",
+    tag_doc: "Documentation",
+    intro_title: "Project Overview",
+    intro_desc: "Project purpose and structure.",
+    tag_nav: "Navigation",
+    hub_title: "Search Hub",
+    hub_desc: "Central access point.",
+    tag_search: "Search",
+    engine_title: "Search Engine",
+    engine_desc: "Search interface.",
+    ai_title: "Search AI",
+    ai_desc: "AI-powered search page.",
+    tag_rt: "Real-time",
+    shogi_title: "Shogi",
+    shogi_desc: "Online Shogi interface.",
+    tag_legacy: "Legacy",
+    legacy_title: "Original Index",
+    legacy_desc: "Previous top page.",
+    about_title: "About",
+    about_body: "SamuraiRoad is designed as a personal exploration OS. Pages connect organically, and the platform evolves as content grows.",
+    foot_home: "Home",
+    foot_overview: "Project Overview",
+    foot_hub: "Search Hub",
+    foot_map: "World Map",
+  },
+
+  ja: {
+    brand_title: "SamuraiRoad",
+    brand_tagline: "指先で旅する、江戸の道",
+    nav_tools: "ツール",
+    nav_about: "概要",
+    kicker: "SAMURAIROAD PROJECT",
+    hero_title: "地図を開く。<br>道が、物語になる。",
+    hero_subtitle: "街道歩きをスマホ中心に。地図・ポイント・探索を、ひとつにつなぐ。",
+    cta_hub: "ハブを開く",
+    cta_intro: "プロジェクト概要",
+    pill1_t: "スマホ中心",
+    pill1_d: "外歩きに最適化",
+    pill2_t: "レイヤー地図",
+    pill2_d: "ルート＋史跡POI",
+    pill3_t: "拡張可能",
+    pill3_d: "ページと機能で育つ",
+    tag_map: "地図",
+    worldmap_title: "世界マップ",
+    worldmap_desc: "世界の街道マップ（Leaflet）",
+    open: "開く",
+    quick_title: "クイック",
+    qa_world_t: "世界マップ",
+    qa_world_d: "世界の街道マップ",
+    qa_hub_t: "検索ハブ",
+    qa_hub_d: "主要ナビゲーション",
+    qa_engine_t: "検索エンジン",
+    qa_engine_d: "直接検索画面",
+    qa_shogi_t: "将棋",
+    qa_shogi_d: "リアルタイム将棋UI",
+    tools_title: "ツール & ページ",
+    tag_doc: "ドキュメント",
+    intro_title: "プロジェクト概要",
+    intro_desc: "目的と構造をまとめています。",
+    tag_nav: "ナビ",
+    hub_title: "検索ハブ",
+    hub_desc: "入口を集約したページ。",
+    tag_search: "検索",
+    engine_title: "検索エンジン",
+    engine_desc: "検索インターフェース。",
+    ai_title: "検索AI",
+    ai_desc: "AI検索ページ。",
+    tag_rt: "リアルタイム",
+    shogi_title: "将棋",
+    shogi_desc: "オンライン将棋UI。",
+    tag_legacy: "旧版",
+    legacy_title: "旧トップ",
+    legacy_desc: "以前のトップページ。",
+    about_title: "概要",
+    about_body: "SamuraiRoadは「個人探索OS」として設計しています。ページは有機的につながり、コンテンツが増えるほど進化します。",
+    foot_home: "ホーム",
+    foot_overview: "プロジェクト概要",
+    foot_hub: "検索ハブ",
+    foot_map: "世界マップ",
+  }
+};
+
+function applyLang(lang){
+  const dict = I18N[lang] || I18N.en;
+  document.documentElement.lang = lang;
+  document.querySelectorAll("[data-i18n]").forEach(el => {
+    const key = el.getAttribute("data-i18n");
+    if (dict[key] != null) el.innerHTML = dict[key];
+  });
+  localStorage.setItem("sr_lang", lang);
+  // ボタン表示：いま選べるのは「反対側」
+  document.getElementById("langLabel").textContent = (lang === "en") ? "JP" : "EN";
+}
+
+function initLang(){
+  const saved = localStorage.getItem("sr_lang");
+  const lang = saved || (navigator.language && navigator.language.startsWith("ja") ? "ja" : "en");
+  applyLang(lang);
+}
+
+document.getElementById("langBtn").addEventListener("click", () => {
+  const current = document.documentElement.lang || "en";
+  applyLang(current === "en" ? "ja" : "en");
+});
+
+/* year */
+document.getElementById("y").textContent = new Date().getFullYear();
+
+/* init */
+initLang();
 </script>
+
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-XPMXMPVEKV"></script>
 <script>
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
   gtag('js', new Date());
-
   gtag('config', 'G-XPMXMPVEKV');
 </script>
 </body>

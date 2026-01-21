@@ -1,0 +1,555 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="description" content="SamuraiRoad Project（サムライロード）— 五街道・旧街道の“歩く体験”を、みんなで育てる地図。" />
+  <title>SamuraiRoad Project｜みんなで作り上げる街道さんぽマップ</title>
+  <link rel="stylesheet" href="./samurairoad_common.css" />
+</head>
+
+<body>
+<header>
+  <div class="nav" aria-label="Global navigation">
+  <div class="brand">
+  <div class="logo"></div>
+  <div class="brandText">
+    <div>SamuraiRoad Project</div>
+    <span class="badge">
+        <span class="dot" aria-hidden="true"></span>
+        <span data-i18n="header_badge">みんなで育てる街道マップ</span>
+      </span>
+    </div>
+</div>
+    <nav class="navlinks" aria-label="On-page links">
+      <a href="#concept" data-i18n="nav_concept">コンセプト</a>
+      <a href="#features" data-i18n="nav_features">できること</a>
+      <a href="#join" data-i18n="nav_join">参加方法</a>
+      <a href="#future" data-i18n="nav_future">これから</a>
+      <a href="#faq" data-i18n="nav_faq">FAQ</a>
+    </nav>
+
+    <div style="display:flex; gap:10px; align-items:center;">
+      <div class="langSwitch" aria-label="Language switch">
+        <button type="button" id="btnJa" aria-pressed="true">日本語</button>
+        <button type="button" id="btnEn" aria-pressed="false">EN</button>
+      </div>
+
+      <a class="btn" href="https://samurairoad-project.pages.dev/worldmap" target="_blank" rel="noopener noreferrer" data-i18n="btn_open_map">地図を開く</a>
+
+      <!-- かんたん提案（一般向け：フォーム） -->
+      <a class="btn primary"
+         href="https://docs.google.com/forms/d/e/1FAIpQLSctfcD7qgXA3t7X1bWQnXiqyTSCdh2iy1uuM07otO4xGGoU_g/viewform"
+         target="_blank" rel="noopener noreferrer"
+         data-i18n="btn_suggest">
+        修正提案する
+      </a>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="hero">
+    <div class="heroGrid">
+      <div class="card">
+        <div class="cardInner">
+          <div class="badge">
+            <span class="dot" aria-hidden="true"></span>
+            <span data-i18n="hero_badge">五街道・旧街道を “歩く体験” に</span>
+          </div>
+
+          <h1 data-i18n="hero_title">
+            街道の「道」を、<br />
+            みんなでつないで、育てる。
+          </h1>
+
+          <p class="lead" data-i18n="hero_lead">
+            SamuraiRoad Project は、東海道・中山道などの街道を「歩いて楽しい」体験として可視化する、参加型マッププロジェクトです。<br />
+            ルート線・宿場・一里塚を地図で切り替え、歩きながら“次の宿場”へ向かう感覚をつくります。
+          </p>
+
+          <div class="ctaRow">
+            <a class="btn primary" href="https://samurairoad-project.pages.dev/worldmap" target="_blank" rel="noopener noreferrer" data-i18n="cta_map">今すぐ地図を見る</a>
+
+            <!-- 開発/詳細提案（上級者向け） -->
+            <a class="btn"
+               href="https://github.com/HisashiMiya/samurairoad-project/issues/new/choose"
+               target="_blank" rel="noopener noreferrer"
+               data-i18n="cta_github">
+              GitHubで参加する
+            </a>
+
+            <a class="btn" href="#join" data-i18n="cta_howto">参加のしかた</a>
+          </div>
+
+          <p class="fine" data-i18n="hero_fine">
+            ※ すべてを最初から完璧にするのではなく、現地の気づき・史料・看板情報などを持ち寄って、少しずつ精度と体験を高めていく方針です。
+          </p>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="cardInner">
+          <div class="statGrid">
+            <div class="stat">
+              <b data-i18n="stat_kaido_title">五街道</b>
+              <span data-i18n="stat_kaido_desc">東海道 / 中山道 / 甲州街道 / 日光街道 / 奥州街道</span>
+            </div>
+            <div class="stat">
+              <b data-i18n="stat_poi_title">POI表示</b>
+              <span data-i18n="stat_poi_desc">宿場・一里塚をON/OFF</span>
+            </div>
+            <div class="stat">
+              <b data-i18n="stat_policy_title">方針</b>
+              <span data-i18n="stat_policy_desc">外部ジオコーディング無し（事前座標）</span>
+            </div>
+            <div class="stat">
+              <b data-i18n="stat_comm_title">参加型</b>
+              <span data-i18n="stat_comm_desc">修正提案でマップを育てる</span>
+            </div>
+          </div>
+
+          <div style="margin-top:12px;" class="callout">
+            <h3 data-i18n="callout_title">“みんなで作り上げるMap” の意味</h3>
+            <p data-i18n="callout_body">
+              街道歩きの人は鋭い。だからこそ、その知見を「提案→反映」の流れにのせて、コミュニティの力で“正本”を育てていきます。
+            </p>
+          </div>
+
+          <div class="pillRow" aria-label="Keywords">
+            <span class="pill" data-i18n="pill_walk">街道さんぽ</span>
+            <span class="pill" data-i18n="pill_oldroad">旧道</span>
+            <span class="pill" data-i18n="pill_posttown">宿場町</span>
+            <span class="pill" data-i18n="pill_ichirizuka">一里塚</span>
+            <span class="pill" data-i18n="pill_progress">踏破・スタンプ</span>
+            <span class="pill" data-i18n="pill_pwa">PWA（予定）</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="concept" class="section">
+    <h2 data-i18n="concept_title">コンセプト</h2>
+    <div class="grid3">
+      <div class="mini">
+        <h3 data-i18n="concept_1_title">歩いて楽しい</h3>
+        <p data-i18n="concept_1_body">地図ツールではなく、「歩く体験」を主役に。次の宿場へ向かう、旅のテンポをつくります。</p>
+      </div>
+      <div class="mini">
+        <h3 data-i18n="concept_2_title">厳密さは“育てる”</h3>
+        <p data-i18n="concept_2_body">最初から完璧を目指しません。暫定・根拠付き・修正提案で、精度を上げていく設計です。</p>
+      </div>
+      <div class="mini">
+        <h3 data-i18n="concept_3_title">文化の正本へ</h3>
+        <p data-i18n="concept_3_body">点（スポット）ではなく道（連続性）。五街道を横断して見える、日本の旅の骨格を残します。</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="features" class="section">
+    <h2 data-i18n="features_title">できること</h2>
+    <p data-i18n="features_lead">現在の地図（Web）で提供するコア機能です。今後、体験機能（距離/進捗/音声/スタンプ）を段階的に追加します。</p>
+
+    <div class="steps">
+      <div class="step">
+        <div class="num">1</div>
+        <div>
+          <b data-i18n="features_1_title">街道ルート線の表示</b>
+          <small data-i18n="features_1_body">五街道のルートを切り替えて確認できます（GeoJSON）。</small>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="num">2</div>
+        <div>
+          <b data-i18n="features_2_title">宿場・一里塚の表示</b>
+          <small data-i18n="features_2_body">宿場・一里塚はONの時だけ表示。座標は事前データ方式です。</small>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="num">3</div>
+        <div>
+          <b data-i18n="features_3_title">歩行の記録（予定）</b>
+          <small data-i18n="features_3_body">踏破率・距離・時間など、歩くモチベーションにつながる可視化を拡充します。</small>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="num">4</div>
+        <div>
+          <b data-i18n="features_4_title">スタンプ/バッジ（予定）</b>
+          <small data-i18n="features_4_body">到達スタンプ、街道ごとの達成バッジで“旅のログ”を育てます。</small>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="join" class="section">
+    <h2 data-i18n="join_title">参加のしかた</h2>
+    <p data-i18n="join_lead">
+      SamuraiRoad は「指摘が怖いプロジェクト」ではなく、「指摘が資産になるプロジェクト」を目指します。<br />
+      ルートや代表地点の違和感があれば、ぜひ提案してください。
+    </p>
+
+    <div class="grid3">
+      <div class="mini">
+        <h3 data-i18n="join_1_title">1. 現地で気づく</h3>
+        <p data-i18n="join_1_body">看板・道標・枡形跡・本陣跡など、「ここが中心だ」と感じた地点をメモします。</p>
+      </div>
+      <div class="mini">
+        <h3 data-i18n="join_2_title">2. 根拠を添える</h3>
+        <p data-i18n="join_2_body">看板写真、史料、自治体ページ、地形図など、判断材料があると反映が速くなります。</p>
+      </div>
+      <div class="mini">
+        <h3 data-i18n="join_3_title">3. 修正提案する</h3>
+        <p data-i18n="join_3_body">フォーム（かんたん）またはGitHub Issue（詳細）で提案できます。コミュニティで育てます。</p>
+      </div>
+    </div>
+
+    <div style="margin-top:12px;" class="callout">
+      <h3 data-i18n="join_tpl_title">提案テンプレ（おすすめ）</h3>
+      <p data-i18n="join_tpl_body">
+        ①街道名 / ②区間（○○宿〜○○宿） / ③何が違う？ / ④根拠URL or 現地写真 / ⑤緯度経度
+      </p>
+    </div>
+
+    <div class="ctaRow" style="margin-top:12px;">
+      <a class="btn primary"
+         href="https://docs.google.com/forms/d/e/1FAIpQLSctfcD7qgXA3t7X1bWQnXiqyTSCdh2iy1uuM07otO4xGGoU_g/viewform"
+         target="_blank" rel="noopener noreferrer"
+         data-i18n="join_cta_form">
+        この地点を修正提案する（フォーム）
+      </a>
+
+      <a class="btn"
+         href="https://github.com/HisashiMiya/samurairoad-project/issues/new/choose"
+         target="_blank" rel="noopener noreferrer"
+         data-i18n="join_cta_github">
+        詳細はGitHubで提案（上級者）
+      </a>
+    </div>
+  </section>
+
+  <section id="future" class="section">
+    <h2 data-i18n="future_title">これから（ロードマップ）</h2>
+    <p data-i18n="future_lead">
+      “厳密さの追求”だけに寄らず、街道さんぽとしての体験価値を積み上げていきます。<br />
+      まずはWebでβを磨き、必要なら将来ネイティブ化も検討します。
+    </p>
+
+    <div class="steps">
+      <div class="step">
+        <div class="num">A</div>
+        <div>
+          <b data-i18n="future_a_title">体験の可視化</b>
+          <small data-i18n="future_a_body">次の宿場までの距離・踏破率・到達スタンプなど、“歩いている感”を強化。</small>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="num">B</div>
+        <div>
+          <b data-i18n="future_b_title">オフライン対応（予定）</b>
+          <small data-i18n="future_b_body">峠道や山間部の電波不安定に備えて、キャッシュ/オフラインで現在地確認を可能に。</small>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="num">C</div>
+        <div>
+          <b data-i18n="future_c_title">音声ガイド・写真</b>
+          <small data-i18n="future_c_body">宿場の解説・道の記憶を“耳と目”で。歩く楽しさを倍増させます。</small>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="num">D</div>
+        <div>
+          <b data-i18n="future_d_title">連携（自治体/観光）</b>
+          <small data-i18n="future_d_body">スタンプラリーやイベント基盤として、地域と協力できる形へ。</small>
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-top:12px;" class="callout">
+      <h3 data-i18n="future_callout_title">収益化は“体験”の外側に置く</h3>
+      <p data-i18n="future_callout_body">
+        基本地図は開き、オフライン・音声・高度なログ解析・クラウド同期などをプレミアム機能に。<br />
+        そして自治体・観光協会との連携で、街道文化の普及と維持を両立します。
+      </p>
+    </div>
+  </section>
+
+  <section id="faq" class="section">
+    <h2 data-i18n="faq_title">FAQ</h2>
+    <div class="faq">
+      <details>
+        <summary data-i18n="faq_1_q">ルートの精度が気になります</summary>
+        <p data-i18n="faq_1_a">完璧を前提にしない方針です。暫定の区間には“暫定”を示し、根拠のある提案を歓迎します。みんなの知見で精度を上げていく設計です。</p>
+      </details>
+
+      <details>
+        <summary data-i18n="faq_2_q">位置情報がブレたらどうしますか？</summary>
+        <p data-i18n="faq_2_a">精度（accuracy）を表示し、一定以上ブレる場合はスタンプ判定を行わないなど、誤判定を減らす工夫を入れていきます。</p>
+      </details>
+
+      <details>
+        <summary data-i18n="faq_3_q">スマホにアプリとして入れられますか？</summary>
+        <p data-i18n="faq_3_a">まずはWeb（PWA）で“ホーム画面追加”に対応し、必要性が高まればネイティブ化も検討します。</p>
+      </details>
+
+      <details>
+        <summary data-i18n="faq_4_q">データは自由に使えますか？</summary>
+        <p data-i18n="faq_4_a">リポジトリの LICENSE に従います。利用しやすい形（クレジットの明確化）を整備していきます。</p>
+      </details>
+    </div>
+  </section>
+
+  <!-- Footer include mount point -->
+  <div data-include="/includes/footer.html" aria-label="Footer"></div>
+</main>
+
+<script>
+(() => {
+  // ===== include footer (static include via fetch) =====
+  async function includeHTML() {
+    const nodes = document.querySelectorAll("[data-include]");
+    await Promise.all([...nodes].map(async (el) => {
+      const url = el.getAttribute("data-include");
+      try{
+        const res = await fetch(url, { cache: "no-cache" });
+        if(!res.ok) throw new Error(String(res.status));
+        el.innerHTML = await res.text();
+      }catch(e){
+        el.innerHTML = '<footer class="sr-footer"><p style="color:rgba(170,179,199,.9)">Footer load failed.</p></footer>';
+      }
+    }));
+  }
+
+  // ===== i18n dictionary =====
+  const I18N = {
+    ja: {
+      header_badge: "みんなで育てる街道マップ",
+      nav_concept: "コンセプト",
+      nav_features: "できること",
+      nav_join: "参加方法",
+      nav_future: "これから",
+      nav_faq: "FAQ",
+      btn_open_map: "地図を開く",
+      btn_suggest: "修正提案する",
+      hero_badge: "五街道・旧街道を “歩く体験” に",
+      hero_title: `街道の「道」を、<br />みんなでつないで、育てる。`,
+      hero_lead: `SamuraiRoad Project は、東海道・中山道などの街道を「歩いて楽しい」体験として可視化する、参加型マッププロジェクトです。<br />ルート線・宿場・一里塚を地図で切り替え、歩きながら“次の宿場”へ向かう感覚をつくります。`,
+      cta_map: "今すぐ地図を見る",
+      cta_github: "GitHubで参加する",
+      cta_howto: "参加のしかた",
+      hero_fine: "※ すべてを最初から完璧にするのではなく、現地の気づき・史料・看板情報などを持ち寄って、少しずつ精度と体験を高めていく方針です。",
+      stat_kaido_title: "五街道",
+      stat_kaido_desc: "東海道 / 中山道 / 甲州街道 / 日光街道 / 奥州街道",
+      stat_poi_title: "POI表示",
+      stat_poi_desc: "宿場・一里塚をON/OFF",
+      stat_policy_title: "方針",
+      stat_policy_desc: "外部ジオコーディング無し（事前座標）",
+      stat_comm_title: "参加型",
+      stat_comm_desc: "修正提案でマップを育てる",
+      callout_title: "“みんなで作り上げるMap” の意味",
+      callout_body: "街道歩きの人は鋭い。だからこそ、その知見を「提案→反映」の流れにのせて、コミュニティの力で“正本”を育てていきます。",
+      pill_walk: "街道さんぽ",
+      pill_oldroad: "旧道",
+      pill_posttown: "宿場町",
+      pill_ichirizuka: "一里塚",
+      pill_progress: "踏破・スタンプ",
+      pill_pwa: "PWA（予定）",
+      concept_title: "コンセプト",
+      concept_1_title: "歩いて楽しい",
+      concept_1_body: "地図ツールではなく、「歩く体験」を主役に。次の宿場へ向かう、旅のテンポをつくります。",
+      concept_2_title: "厳密さは“育てる”",
+      concept_2_body: "最初から完璧を目指しません。暫定・根拠付き・修正提案で、精度を上げていく設計です。",
+      concept_3_title: "文化の正本へ",
+      concept_3_body: "点（スポット）ではなく道（連続性）。五街道を横断して見える、日本の旅の骨格を残します。",
+      features_title: "できること",
+      features_lead: "現在の地図（Web）で提供するコア機能です。今後、体験機能（距離/進捗/音声/スタンプ）を段階的に追加します。",
+      features_1_title: "街道ルート線の表示",
+      features_1_body: "五街道のルートを切り替えて確認できます（GeoJSON）。",
+      features_2_title: "宿場・一里塚の表示",
+      features_2_body: "宿場・一里塚はONの時だけ表示。座標は事前データ方式です。",
+      features_3_title: "歩行の記録（予定）",
+      features_3_body: "踏破率・距離・時間など、歩くモチベーションにつながる可視化を拡充します。",
+      features_4_title: "スタンプ/バッジ（予定）",
+      features_4_body: "到達スタンプ、街道ごとの達成バッジで“旅のログ”を育てます。",
+      join_title: "参加のしかた",
+      join_lead: `SamuraiRoad は「指摘が怖いプロジェクト」ではなく、「指摘が資産になるプロジェクト」を目指します。<br />ルートや代表地点の違和感があれば、ぜひ提案してください。`,
+      join_1_title: "1. 現地で気づく",
+      join_1_body: "看板・道標・枡形跡・本陣跡など、「ここが中心だ」と感じた地点をメモします。",
+      join_2_title: "2. 根拠を添える",
+      join_2_body: "看板写真、史料、自治体ページ、地形図など、判断材料があると反映が速くなります。",
+      join_3_title: "3. 修正提案する",
+      join_3_body: "フォーム（かんたん）またはGitHub Issue（詳細）で提案できます。コミュニティで育てます。",
+      join_tpl_title: "提案テンプレ（おすすめ）",
+      join_tpl_body: "①街道名 / ②区間（○○宿〜○○宿） / ③何が違う？ / ④根拠URL or 現地写真 / ⑤緯度経度",
+      join_cta_form: "この地点を修正提案する（フォーム）",
+      join_cta_github: "詳細はGitHubで提案（上級者）",
+      future_title: "これから（ロードマップ）",
+      future_lead: `“厳密さの追求”だけに寄らず、街道さんぽとしての体験価値を積み上げていきます。<br />まずはWebでβを磨き、必要なら将来ネイティブ化も検討します。`,
+      future_a_title: "体験の可視化",
+      future_a_body: "次の宿場までの距離・踏破率・到達スタンプなど、“歩いている感”を強化。",
+      future_b_title: "オフライン対応（予定）",
+      future_b_body: "峠道や山間部の電波不安定に備えて、キャッシュ/オフラインで現在地確認を可能に。",
+      future_c_title: "音声ガイド・写真",
+      future_c_body: "宿場の解説・道の記憶を“耳と目”で。歩く楽しさを倍増させます。",
+      future_d_title: "連携（自治体/観光）",
+      future_d_body: "スタンプラリーやイベント基盤として、地域と協力できる形へ。",
+      future_callout_title: "収益化は“体験”の外側に置く",
+      future_callout_body: `基本地図は開き、オフライン・音声・高度なログ解析・クラウド同期などをプレミアム機能に。<br />そして自治体・観光協会との連携で、街道文化の普及と維持を両立します。`,
+      faq_title: "FAQ",
+      faq_1_q: "ルートの精度が気になります",
+      faq_1_a: "完璧を前提にしない方針です。暫定の区間には“暫定”を示し、根拠のある提案を歓迎します。みんなの知見で精度を上げていく設計です。",
+      faq_2_q: "位置情報がブレたらどうしますか？",
+      faq_2_a: "精度（accuracy）を表示し、一定以上ブレる場合はスタンプ判定を行わないなど、誤判定を減らす工夫を入れていきます。",
+      faq_3_q: "スマホにアプリとして入れられますか？",
+      faq_3_a: "まずはWeb（PWA）で“ホーム画面追加”に対応し、必要性が高まればネイティブ化も検討します。",
+      faq_4_q: "データは自由に使えますか？",
+      faq_4_a: "リポジトリの LICENSE に従います。利用しやすい形（クレジットの明確化）を整備していきます。",
+      // footer strings (footer.html内でも使う)
+      footer_tagline: "街道を、みんなでつないで育てる。",
+      footer_map: "地図",
+      footer_github: "GitHub",
+      footer_license: "ライセンス",
+      footer_report: "修正提案（フォーム）",
+    },
+
+    en: {
+      header_badge: "Community-built road map",
+      nav_concept: "Concept",
+      nav_features: "Features",
+      nav_join: "Join",
+      nav_future: "Roadmap",
+      nav_faq: "FAQ",
+      btn_open_map: "Open Map",
+      btn_suggest: "Suggest a Fix",
+      hero_badge: "Make historic roads a walkable experience",
+      hero_title: `Connect the roads,<br />and grow the map together.`,
+      hero_lead: `SamuraiRoad Project is a community-built map that visualizes Japan’s historic routes—like the Tōkaidō and Nakasendō—as a “walkable” experience.<br />Toggle route lines, post towns, and Ichirizuka, and walk with the feeling of heading toward the next station.`,
+      cta_map: "View the Map",
+      cta_github: "Join on GitHub",
+      cta_howto: "How to Join",
+      hero_fine: "We don’t aim for perfection from day one. We improve step by step with on-site findings, sources, and signboard info—together.",
+      stat_kaido_title: "Five Highways",
+      stat_kaido_desc: "Tōkaidō / Nakasendō / Kōshū / Nikkō / Ōshū",
+      stat_poi_title: "POI Toggle",
+      stat_poi_desc: "Post towns & Ichirizuka ON/OFF",
+      stat_policy_title: "Policy",
+      stat_policy_desc: "No external geocoding (predefined coords)",
+      stat_comm_title: "Community",
+      stat_comm_desc: "Improve via suggestions",
+      callout_title: "What “community-built map” means",
+      callout_body: "Walkers notice the details. We turn that knowledge into a simple flow—suggest → review → reflect—so the map becomes more accurate over time.",
+      pill_walk: "Historic walks",
+      pill_oldroad: "Old roads",
+      pill_posttown: "Post towns",
+      pill_ichirizuka: "Ichirizuka",
+      pill_progress: "Progress & stamps",
+      pill_pwa: "PWA (planned)",
+      concept_title: "Concept",
+      concept_1_title: "Made for walking",
+      concept_1_body: "Not just a map tool—this is about the walking experience and the rhythm of traveling to the next station.",
+      concept_2_title: "Accuracy grows",
+      concept_2_body: "We start practical, then improve with evidence-based suggestions and marked “tentative” segments.",
+      concept_3_title: "A cultural backbone",
+      concept_3_body: "Not points, but continuity. Preserving the structure of travel across the historic highways.",
+      features_title: "Features",
+      features_lead: "Core features on the current web map. We’ll add experience features (distance/progress/audio/stamps) in phases.",
+      features_1_title: "Route line layers",
+      features_1_body: "Switch between highway routes (GeoJSON).",
+      features_2_title: "Post towns & Ichirizuka",
+      features_2_body: "Shown only when toggled on. Coordinates are predefined.",
+      features_3_title: "Walk log (planned)",
+      features_3_body: "Progress, distance, and time—visual motivation for walkers.",
+      features_4_title: "Stamps & badges (planned)",
+      features_4_body: "Arrival stamps and achievements by route.",
+      join_title: "How to Join",
+      join_lead: `SamuraiRoad aims to be a place where corrections become assets—not something scary.<br />If you notice anything odd, please suggest a fix.`,
+      join_1_title: "1. Notice on site",
+      join_1_body: "Signboards, milestones, old town layouts—note where you feel the real center is.",
+      join_2_title: "2. Add evidence",
+      join_2_body: "Photos, sources, municipal pages, topographic maps—evidence speeds up review.",
+      join_3_title: "3. Submit a suggestion",
+      join_3_body: "Use the Form (easy) or GitHub Issues (detailed). We grow it together.",
+      join_tpl_title: "Suggested template",
+      join_tpl_body: "1) Route 2) Section 3) What’s wrong 4) Evidence/Photo 5) Lat/Lng",
+      join_cta_form: "Suggest a Fix (Form)",
+      join_cta_github: "Suggest on GitHub (Advanced)",
+      future_title: "Roadmap",
+      future_lead: `We won’t focus only on strict accuracy—we’ll keep stacking the value of the walking experience.<br />We refine the web beta first, and consider native options if needed.`,
+      future_a_title: "Experience metrics",
+      future_a_body: "Distance to next station, progress rate, stamps—boost the “I’m walking” feeling.",
+      future_b_title: "Offline support (planned)",
+      future_b_body: "Cache/offline map for mountains and weak-signal areas.",
+      future_c_title: "Audio guide & photos",
+      future_c_body: "Stories of the road—through ears and eyes.",
+      future_d_title: "Partnerships",
+      future_d_body: "Work with local tourism and events (stamp rallies, etc.).",
+      future_callout_title: "Monetization stays outside the core map",
+      future_callout_body: `Keep the base map open. Offer premium features like offline/audio/advanced logs/cloud sync.<br />Partner with local communities to support preservation.`,
+      faq_title: "FAQ",
+      faq_1_q: "How accurate are the routes?",
+      faq_1_a: "We don’t assume perfection. We mark tentative segments and welcome evidence-based suggestions to improve accuracy.",
+      faq_2_q: "What if GPS accuracy is poor?",
+      faq_2_a: "We’ll display accuracy and avoid stamp judgments when it’s too noisy to reduce false positives.",
+      faq_3_q: "Can I install it like an app?",
+      faq_3_a: "We’ll support PWA “Add to Home Screen” first, and consider native apps later if needed.",
+      faq_4_q: "Can I reuse the data?",
+      faq_4_a: "Please follow the repository LICENSE. We’ll keep improving clarity and attribution rules.",
+      footer_tagline: "Connect the roads, grow the map.",
+      footer_map: "Map",
+      footer_github: "GitHub",
+      footer_license: "License",
+      footer_report: "Suggest (Form)",
+    }
+  };
+
+  function getLangFromQuery() {
+    const m = new URLSearchParams(location.search).get("lang");
+    if (m === "en" || m === "ja") return m;
+    return null;
+  }
+
+  function setPressed(lang){
+    document.getElementById("btnJa").setAttribute("aria-pressed", String(lang==="ja"));
+    document.getElementById("btnEn").setAttribute("aria-pressed", String(lang==="en"));
+  }
+
+  function applyLang(lang){
+    const dict = I18N[lang] || I18N.ja;
+    document.documentElement.lang = lang;
+
+    document.querySelectorAll("[data-i18n]").forEach(el => {
+      const key = el.getAttribute("data-i18n");
+      const val = dict[key];
+      if (typeof val === "string") el.innerHTML = val;
+    });
+
+    setPressed(lang);
+    localStorage.setItem("sr_lang", lang);
+  }
+
+  function initLang(){
+    const q = getLangFromQuery();
+    const saved = localStorage.getItem("sr_lang");
+    const lang = q || saved || (navigator.language && navigator.language.startsWith("en") ? "en" : "ja");
+    applyLang(lang);
+  }
+
+  // run
+  includeHTML().then(() => initLang());
+
+  // buttons
+  document.getElementById("btnJa").addEventListener("click", () => applyLang("ja"));
+  document.getElementById("btnEn").addEventListener("click", () => applyLang("en"));
+})();
+</script>
+</body>
+</html>
+f
