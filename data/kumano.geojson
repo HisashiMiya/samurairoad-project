@@ -1,0 +1,16 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": { "name": "Kumano Kodo (Nakahechi)" },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [135.4947, 33.7937], [135.5600, 33.8200], [135.7735, 33.8407], 
+          [135.8000, 33.7500], [135.8903, 33.6744]
+        ]
+      }
+    }
+  ]
+}

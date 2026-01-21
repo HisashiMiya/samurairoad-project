@@ -1,0 +1,17 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": { "name": "Route 66 (Chicago -> LA)" },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [-87.6298, 41.8781], [-90.1994, 38.6270], [-97.5164, 35.4676], 
+          [-101.8313, 35.2220], [-106.6504, 35.0844], [-111.6513, 35.1983], 
+          [-118.4912, 34.0195]
+        ]
+      }
+    }
+  ]
+}

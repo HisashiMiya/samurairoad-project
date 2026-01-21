@@ -1,0 +1,15 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": { "name": "Inca Trail" },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [-72.4172, -13.2132], [-72.5000, -13.2333], [-72.5450, -13.1631]
+        ]
+      }
+    }
+  ]
+}

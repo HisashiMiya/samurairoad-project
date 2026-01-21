@@ -1,0 +1,17 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": { "name": "Appian Way (Rome -> Brindisi)" },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [12.5186, 41.8781], [13.2494, 41.2882], [14.2140, 41.1090], 
+          [14.7826, 41.1296], [15.8159, 40.9634], [17.2384, 40.4744], 
+          [17.9417, 40.6327]
+        ]
+      }
+    }
+  ]
+}

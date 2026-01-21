@@ -1,0 +1,555 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "route": "東海道",
+        "type": "宿場",
+        "name": "日本橋",
+        "no": 0
+      },
+      "geometry": null
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "route": "東海道",
+        "type": "宿場",
+        "name": "品川宿",
+        "no": 1
+      },
+      "geometry": null
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "route": "東海道",
+        "type": "宿場",
+        "name": "川崎宿",
+        "no": 2
+      },
+      "geometry": null
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "route": "東海道",
+        "type": "宿場",
+        "name": "神奈川宿",
+        "no": 3
+      },
+      "geometry": null
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "route": "東海道",
+        "type": "宿場",
+        "name": "保土ヶ谷宿",
+        "no": 4
+      },
+      "geometry": null
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "route": "東海道",
+        "type": "宿場",
+        "name": "戸塚宿",
+        "no": 5
+      },
+      "geometry": null
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "route": "東海道",
+        "type": "宿場",
+        "name": "藤沢宿",
+        "no": 6
+      },
+      "geometry": null
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "route": "東海道",
+        "type": "宿場",
+        "name": "平塚宿",
+        "no": 7
+      },
+      "geometry": null
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "route": "東海道",
+        "type": "宿場",
+        "name": "大磯宿",
+        "no": 8
+      },
+      "geometry": null
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "route": "東海道",
+        "type": "宿場",
+        "name": "小田原宿",
+        "no": 9
+      },
+      "geometry": null
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "route": "東海道",
+        "type": "宿場",
+        "name": "箱根宿",
+        "no": 10
+      },
+      "geometry": null
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "route": "東海道",
+        "type": "宿場",
+        "name": "三島宿",
+        "no": 11
+      },
+      "geometry": null
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "route": "東海道",
+        "type": "宿場",
+        "name": "沼津宿",
+        "no": 12
+      },
+      "geometry": null
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "route": "東海道",
+        "type": "宿場",
+        "name": "原宿",
+        "no": 13
+      },
+      "geometry": null
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "route": "東海道",
+        "type": "宿場",
+        "name": "吉原宿",
+        "no": 14
+      },
+      "geometry": null
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "route": "東海道",
+        "type": "宿場",
+        "name": "蒲原宿",
+        "no": 15
+      },
+      "geometry": null
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "route": "東海道",
+        "type": "宿場",
+        "name": "由比宿",
+        "no": 16
+      },
+      "geometry": null
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "route": "東海道",
+        "type": "宿場",
+        "name": "興津宿",
+        "no": 17
+      },
+      "geometry": null
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "route": "東海道",
+        "type": "宿場",
+        "name": "江尻宿",
+        "no": 18
+      },
+      "geometry": null
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "route": "東海道",
+        "type": "宿場",
+        "name": "府中宿",
+        "no": 19
+      },
+      "geometry": null
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "route": "東海道",
+        "type": "宿場",
+        "name": "丸子宿",
+        "no": 20
+      },
+      "geometry": null
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "route": "東海道",
+        "type": "宿場",
+        "name": "岡部宿",
+        "no": 21
+      },
+      "geometry": null
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "route": "東海道",
+        "type": "宿場",
+        "name": "藤枝宿",
+        "no": 22
+      },
+      "geometry": null
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "route": "東海道",
+        "type": "宿場",
+        "name": "島田宿",
+        "no": 23
+      },
+      "geometry": null
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "route": "東海道",
+        "type": "宿場",
+        "name": "金谷宿",
+        "no": 24
+      },
+      "geometry": null
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "route": "東海道",
+        "type": "宿場",
+        "name": "日坂宿",
+        "no": 25
+      },
+      "geometry": null
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "route": "東海道",
+        "type": "宿場",
+        "name": "掛川宿",
+        "no": 26
+      },
+      "geometry": null
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "route": "東海道",
+        "type": "宿場",
+        "name": "袋井宿",
+        "no": 27
+      },
+      "geometry": null
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "route": "東海道",
+        "type": "宿場",
+        "name": "見付宿",
+        "no": 28
+      },
+      "geometry": null
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "route": "東海道",
+        "type": "宿場",
+        "name": "浜松宿",
+        "no": 29
+      },
+      "geometry": null
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "route": "東海道",
+        "type": "宿場",
+        "name": "舞阪宿",
+        "no": 30
+      },
+      "geometry": null
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "route": "東海道",
+        "type": "宿場",
+        "name": "新居宿",
+        "no": 31
+      },
+      "geometry": null
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "route": "東海道",
+        "type": "宿場",
+        "name": "白須賀宿",
+        "no": 32
+      },
+      "geometry": null
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "route": "東海道",
+        "type": "宿場",
+        "name": "二川宿",
+        "no": 33
+      },
+      "geometry": null
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "route": "東海道",
+        "type": "宿場",
+        "name": "吉田宿",
+        "no": 34
+      },
+      "geometry": null
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "route": "東海道",
+        "type": "宿場",
+        "name": "御油宿",
+        "no": 35
+      },
+      "geometry": null
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "route": "東海道",
+        "type": "宿場",
+        "name": "赤坂宿",
+        "no": 36
+      },
+      "geometry": null
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "route": "東海道",
+        "type": "宿場",
+        "name": "藤川宿",
+        "no": 37
+      },
+      "geometry": null
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "route": "東海道",
+        "type": "宿場",
+        "name": "岡崎宿",
+        "no": 38
+      },
+      "geometry": null
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "route": "東海道",
+        "type": "宿場",
+        "name": "池鯉鮒宿",
+        "no": 39
+      },
+      "geometry": null
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "route": "東海道",
+        "type": "宿場",
+        "name": "鳴海宿",
+        "no": 40
+      },
+      "geometry": null
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "route": "東海道",
+        "type": "宿場",
+        "name": "宮宿",
+        "no": 41
+      },
+      "geometry": null
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "route": "東海道",
+        "type": "宿場",
+        "name": "桑名宿",
+        "no": 42
+      },
+      "geometry": null
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "route": "東海道",
+        "type": "宿場",
+        "name": "四日市宿",
+        "no": 43
+      },
+      "geometry": null
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "route": "東海道",
+        "type": "宿場",
+        "name": "石薬師宿",
+        "no": 44
+      },
+      "geometry": null
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "route": "東海道",
+        "type": "宿場",
+        "name": "庄野宿",
+        "no": 45
+      },
+      "geometry": null
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "route": "東海道",
+        "type": "宿場",
+        "name": "亀山宿",
+        "no": 46
+      },
+      "geometry": null
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "route": "東海道",
+        "type": "宿場",
+        "name": "関宿",
+        "no": 47
+      },
+      "geometry": null
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "route": "東海道",
+        "type": "宿場",
+        "name": "坂下宿",
+        "no": 48
+      },
+      "geometry": null
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "route": "東海道",
+        "type": "宿場",
+        "name": "土山宿",
+        "no": 49
+      },
+      "geometry": null
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "route": "東海道",
+        "type": "宿場",
+        "name": "水口宿",
+        "no": 50
+      },
+      "geometry": null
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "route": "東海道",
+        "type": "宿場",
+        "name": "石部宿",
+        "no": 51
+      },
+      "geometry": null
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "route": "東海道",
+        "type": "宿場",
+        "name": "草津宿",
+        "no": 52
+      },
+      "geometry": null
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "route": "東海道",
+        "type": "宿場",
+        "name": "三条大橋",
+        "no": 53
+      },
+      "geometry": null
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "route": "東海道",
+        "type": "一里塚",
+        "name": "★判断不可★",
+        "note": "緯度経度を入れてgeometryをPointにしてください"
+      },
+      "geometry": null
+    }
+  ]
+}

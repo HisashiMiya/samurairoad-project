@@ -1,0 +1,17 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": { "name": "Appalachian Trail (GA -> ME)" },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [-84.1936, 34.6267], [-83.4883, 35.6133], [-80.5000, 37.3000], 
+          [-77.7311, 39.3254], [-73.0000, 42.5000], [-71.3032, 44.2704], 
+          [-68.9216, 45.9044]
+        ]
+      }
+    }
+  ]
+}

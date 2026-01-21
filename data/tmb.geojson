@@ -1,0 +1,17 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": { "name": "Tour du Mont Blanc (Loop)" },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [6.7979, 45.8900], [6.7275, 45.8236], [6.7990, 45.7400], 
+          [6.9705, 45.7969], [7.1000, 45.9000], [7.1158, 46.0270], 
+          [6.9500, 46.0500], [6.8694, 45.9237], [6.7979, 45.8900]
+        ]
+      }
+    }
+  ]
+}

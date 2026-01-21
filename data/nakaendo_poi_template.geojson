@@ -1,0 +1,24 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "route": "中山道",
+        "type": "宿場",
+        "name": "★判断不可★",
+        "no": 0
+      },
+      "geometry": null
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "route": "中山道",
+        "type": "一里塚",
+        "name": "★判断不可★"
+      },
+      "geometry": null
+    }
+  ]
+}
