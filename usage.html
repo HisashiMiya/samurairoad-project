@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>使い方ガイド - Global Kaido Map</title>
+  <title>Usage Guide - Global Kaido Map</title>
   <style>
     :root { --primary: #0066cc; --bg: #f4f7f6; --text: #333; --card-bg: #ffffff; }
     body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 20px; line-height: 1.6; }
@@ -20,62 +20,160 @@
     .tag { display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: bold; color: white; vertical-align: middle; }
     .tag-red { background: #cc0000; }
     .tag-blue { background: blue; }
-    .tag-green { background: #28a745; }
-
+    
     ul { padding-left: 20px; margin: 8px 0; font-size: 14px; color: #555; }
     li { margin-bottom: 4px; }
 
-    .btn-close { display: block; width: 100%; max-width: 200px; margin: 30px auto 0; padding: 12px; background: #333; color: white; text-align: center; border: none; border-radius: 50px; text-decoration: none; font-weight: bold; }
+    .btn-close { display: block; width: 100%; max-width: 200px; margin: 30px auto 0; padding: 12px; background: #333; color: white; text-align: center; border: none; border-radius: 50px; text-decoration: none; font-weight: bold; cursor: pointer; }
+
+    /* 言語切り替えボタン */
+    .lang-switch { text-align: right; margin-bottom: 10px; }
+    .lang-switch button { background: none; border: 1px solid #ccc; padding: 4px 8px; border-radius: 4px; cursor: pointer; color: #666; font-size: 12px; }
+
+    /* 表示制御用クラス */
+    [data-lang-content="ja"], [data-lang-content="en"] { display: none; }
+    body.lang-ja [data-lang-content="ja"] { display: block; }
+    body.lang-en [data-lang-content="en"] { display: block; }
   </style>
 </head>
-<body>
+<body class="lang-ja"> <div class="container">
+  
+  <div class="lang-switch">
+    <button onclick="toggleLang()">English / 日本語</button>
+  </div>
 
-<div class="container">
-  <h1>使い方ガイド</h1>
+  <h1 data-lang-content="ja">使い方ガイド</h1>
+  <h1 data-lang-content="en">User Guide</h1>
 
   <div class="card">
-    <h2><span class="icon">🗺️</span> 街道を探す</h2>
-    <p>画面下の「探す」ボタンを押すと、世界中の街道リストが表示されます。</p>
-    <ul>
-      <li>歩きたい街道を選ぶと、地図上に <span class="tag tag-red">赤線</span> でルートが表示されます。</li>
-      <li>現在地ボタン「◎」を押すと、自分の位置が表示されます。</li>
-    </ul>
+    <h2 data-lang-content="ja"><span class="icon">🗺️</span> 街道を探す</h2>
+    <h2 data-lang-content="en"><span class="icon">🗺️</span> Find Routes</h2>
+    
+    <div data-lang-content="ja">
+      <p>画面下の「探す」ボタンを押すと、世界中の街道リストが表示されます。</p>
+      <ul>
+        <li>歩きたい街道を選ぶと、地図上に <span class="tag tag-red">赤線</span> でルートが表示されます。</li>
+        <li>現在地ボタン「◎」を押すと、自分の位置が表示されます。</li>
+      </ul>
+    </div>
+    <div data-lang-content="en">
+      <p>Tap the "Routes" button at the bottom to explore trails.</p>
+      <ul>
+        <li>Select a route to see the <span class="tag tag-red">Red Line</span> on the map.</li>
+        <li>Tap the "◎" button to show your current location.</li>
+      </ul>
+    </div>
   </div>
 
   <div class="card">
-    <h2><span class="icon">⏺️</span> 記録する (GPS)</h2>
-    <p>あなたの歩いた軌跡を記録できます。</p>
-    <ul>
-      <li>「記録」メニューから「記録開始」を押してください。</li>
-      <li>歩いた道が <span class="tag tag-blue">青線</span> で地図に描かれます。</li>
-      <li>ブラウザを閉じても記録は保存されますが、長時間の記録時は画面を消さないことをおすすめします（設定で「画面常時点灯」可能）。</li>
-    </ul>
+    <h2 data-lang-content="ja"><span class="icon">⏺️</span> 記録する (GPS)</h2>
+    <h2 data-lang-content="en"><span class="icon">⏺️</span> Record (GPS)</h2>
+
+    <div data-lang-content="ja">
+      <p>あなたの歩いた軌跡を記録できます。</p>
+      <ul>
+        <li>「記録」メニューから「記録開始」を押してください。</li>
+        <li>歩いた道が <span class="tag tag-blue">青線</span> で地図に描かれます。</li>
+        <li>ブラウザを閉じても記録は保存されますが、長時間の記録時は画面を消さないことをおすすめします（設定で「画面常時点灯」可能）。</li>
+      </ul>
+    </div>
+    <div data-lang-content="en">
+      <p>You can record your own walking path.</p>
+      <ul>
+        <li>Go to the "Record" menu and tap "Start".</li>
+        <li>Your track will be drawn as a <span class="tag tag-blue">Blue Line</span>.</li>
+        <li>Recording works in the background, but keeping the screen on (via Settings) is recommended for long treks.</li>
+      </ul>
+    </div>
   </div>
 
   <div class="card">
-    <h2><span class="icon">💾</span> データの保存・読込</h2>
-    <p>記録したデータはご自身の管理下にあります。</p>
-    <ul>
-      <li><strong>GPXダウンロード:</strong> 記録した軌跡をファイル(.gpx)としてスマホやPCに保存できます。Google EarthやYAMAP等で閲覧可能です。</li>
-      <li><strong>GPX読込:</strong> 過去のログや、他のアプリで作ったルートを地図上に表示できます。</li>
-    </ul>
+    <h2 data-lang-content="ja"><span class="icon">💾</span> データの保存・読込</h2>
+    <h2 data-lang-content="en"><span class="icon">💾</span> Save & Load Data</h2>
+
+    <div data-lang-content="ja">
+      <p>記録したデータはご自身の管理下にあります。</p>
+      <ul>
+        <li><strong>GPXダウンロード:</strong> 記録した軌跡をファイル(.gpx)としてスマホやPCに保存できます。</li>
+        <li><strong>GPX読込:</strong> 過去のログや、他のアプリで作ったルートを地図上に表示できます。</li>
+      </ul>
+    </div>
+    <div data-lang-content="en">
+      <p>Your data belongs to you.</p>
+      <ul>
+        <li><strong>Download GPX:</strong> Save your recorded track as a .gpx file to your device.</li>
+        <li><strong>Import GPX:</strong> Load past logs or external route files to view them on this map.</li>
+      </ul>
+    </div>
   </div>
 
   <div class="card">
-    <h2><span class="icon">📝</span> 報告機能</h2>
-    <p>街道の状況（通行止め、素晴らしい景色、トイレの場所など）を報告フォームから送信できます。位置情報が自動的に添付されます。</p>
+    <h2 data-lang-content="ja"><span class="icon">📝</span> 報告機能</h2>
+    <h2 data-lang-content="en"><span class="icon">📝</span> Report</h2>
+
+    <div data-lang-content="ja">
+      <p>街道の状況（通行止め、素晴らしい景色、トイレの場所など）を報告フォームから送信できます。位置情報が自動的に添付されます。</p>
+    </div>
+    <div data-lang-content="en">
+      <p>Use the "Report" feature to send updates about road conditions, scenery, or facilities. Your location is attached automatically.</p>
+    </div>
   </div>
 
   <div class="card">
-    <h2><span class="icon">⚙️</span> 設定</h2>
-    <ul>
-      <li><strong>言語:</strong> 日本語と英語を切り替えられます。</li>
-      <li><strong>画面常時点灯:</strong> 記録中にスマホがスリープするのを防ぎます（バッテリー消費に注意してください）。</li>
-    </ul>
+    <h2 data-lang-content="ja"><span class="icon">⚙️</span> 設定</h2>
+    <h2 data-lang-content="en"><span class="icon">⚙️</span> Settings</h2>
+
+    <div data-lang-content="ja">
+      <ul>
+        <li><strong>言語:</strong> 日本語と英語を切り替えられます。</li>
+        <li><strong>画面常時点灯:</strong> 記録中にスマホがスリープするのを防ぎます（バッテリー消費に注意してください）。</li>
+      </ul>
+    </div>
+    <div data-lang-content="en">
+      <ul>
+        <li><strong>Language:</strong> Switch between Japanese and English.</li>
+        <li><strong>Keep Screen On:</strong> Prevents the phone from sleeping while recording (Note: consumes more battery).</li>
+      </ul>
+    </div>
   </div>
 
-  <a href="#" onclick="window.close()" class="btn-close">閉じる</a>
+  <a href="#" onclick="window.close()" class="btn-close">
+    <span data-lang-content="ja">閉じる</span>
+    <span data-lang-content="en">Close</span>
+  </a>
 </div>
+
+<script>
+  // メイン画面と同じキーを使用
+  const STORAGE_KEY = 'kaido_lang';
+
+  function applyLanguage(lang) {
+    document.body.classList.remove('lang-ja', 'lang-en');
+    document.body.classList.add('lang-' + lang);
+    document.documentElement.lang = lang;
+  }
+
+  function toggleLang() {
+    const current = document.body.classList.contains('lang-ja') ? 'ja' : 'en';
+    const next = current === 'ja' ? 'en' : 'ja';
+    applyLanguage(next);
+    // ここで保存しておけば、次回開いたときもその言語になる（メイン画面とは共有しない場合もあるが、閲覧の利便性のため）
+    // ※メイン画面と同期させたい場合は、メイン画面側でも 'storage' イベントを監視する必要がありますが、
+    // 今回は「メインから引き継ぐ」ことを優先し、ここでの変更はローカルな一時変更扱い、または保存してもOKです。
+    // ここでは保存せずに「一時切り替え」にするか、保存するか選べますが、保存する方が親切でしょう。
+    localStorage.setItem(STORAGE_KEY, next);
+  }
+
+  // 初期化：localStorageから読み込む
+  (function init() {
+    const savedLang = localStorage.getItem(STORAGE_KEY);
+    if (savedLang === 'en') {
+      applyLanguage('en');
+    } else {
+      applyLanguage('ja'); // デフォルト
+    }
+  })();
+</script>
 
 </body>
 </html>
