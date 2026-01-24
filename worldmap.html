@@ -13,7 +13,6 @@
     :root { --primary: #0066cc; --danger: #cc0000; --bg: #ffffff; --text: #333333; }
     body { margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; overflow: hidden; height: 100vh; width: 100vw; color: var(--text); background: var(--bg); }
     
-    /* bodyタグに余白を追加して、コンテンツ全体を押し上げる（広告対策） */
     body { padding-bottom: 80px; box-sizing: border-box; }
 
     #map { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; }
@@ -87,69 +86,44 @@
     }
     .toast.show { opacity: 1; }
     
-
-  /* Hamburger */
-  .hamburger {
-    position: absolute;
-    top: 14px;
-    left: 14px;
-    z-index: 1100;
-    width: 44px;
-    height: 44px;
-    border: none;
-    border-radius: 12px;
-    background: rgba(255,255,255,0.95);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-  }
-  .hamburger .bars {
-    width: 18px;
-    height: 12px;
-    display: grid;
-    gap: 3px;
-  }
-  .hamburger .bars span {
-    display: block;
-    height: 2px;
-    background: #333;
-    border-radius: 2px;
-  }
-
-  /* Bottom bar を使わないなら非表示 */
-/* .bottom-bar { display: none; } */
+    /* Hamburger */
+    .hamburger {
+      position: absolute; top: 14px; left: 14px; z-index: 1100;
+      width: 44px; height: 44px; border: none; border-radius: 12px;
+      background: rgba(255,255,255,0.95); box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      display: flex; align-items: center; justify-content: center; cursor: pointer;
+    }
+    .hamburger .bars { width: 18px; height: 12px; display: grid; gap: 3px; }
+    .hamburger .bars span { display: block; height: 2px; background: #333; border-radius: 2px; }
   </style>
 </head>
 <body>
 
   <div id="map"></div>
- <!-- Hamburger -->
-<button class="hamburger" id="btnHamburger" aria-label="menu">
-  <div class="bars"><span></span><span></span><span></span></div>
-</button>
+
+  <button class="hamburger" id="btnHamburger" aria-label="menu">
+    <div class="bars"><span></span><span></span><span></span></div>
+  </button>
+
   <div class="modal-overlay" id="modalMainMenu">
     <div class="modal-content">
       <h2>Menu</h2>
-
       <div class="list-group">
         <div class="list-item" id="menuItemRoutes">🗺️ <span data-lang="menu_routes">探す</span></div>
         <div class="list-item" id="menuItemRecord">⏺️ <span data-lang="menu_record">記録</span></div>
         <div class="list-item" id="menuItemReport">📝 <span data-lang="menu_report">報告</span></div>
         <div class="list-item" id="menuItemSettings">⚙️ <span data-lang="menu_settings">設定</span></div>
       </div>
-
       <button class="btn-block" style="background:#888;" onclick="closeModals()" data-lang="btn_close">閉じる</button>
     </div>
   </div>
+
   <div class="top-bar">
     <div class="status-title" id="lblCurrentRoute">--</div>
     <div class="status-info" id="lblNavInfo">--</div>
   </div>
 
   <button class="fab-locate" id="btnLocate">◎</button>
-<button onclick="addDummyPoint()" style="position:fixed; top:50px; right:10px; z-index:9999;">＋点追加</button>
   <div class="bottom-bar">
     <button class="action-btn" id="btnMenuRoutes">
       <svg viewBox="0 0 24 24"><path d="M20.5 3l-.16.03L15 5.1 9 3 3.36 4.9c-.21.07-.36.25-.36.48V20.5c0 .28.22.5.5.5l.16-.03L9 18.9l6 2.1 5.64-1.9c.21-.07.36-.25.36-.48V3.5c0-.28-.22-.5-.5-.5zM15 19l-6-2.11V5l6 2.11V19z"/></svg>
@@ -198,23 +172,25 @@
   </div>
 
   <div class="modal-overlay" id="modalSettings">
-    <div class="modal-content">
-      <h2 data-lang="title_settings">設定</h2>
-      
-      <div class="settings-row">
-        <span data-lang="lbl_lang">言語 / Language</span>
-        <button id="btnToggleLang" style="padding:6px 12px; border-radius:6px; border:1px solid #ccc; background:#eee; cursor:pointer;">日本語</button>
-      </div>
+      <div class="modal-content">
+        <h2 data-lang="title_settings">設定</h2>
+        
+        <div class="settings-row">
+          <span data-lang="lbl_lang">言語 / Language</span>
+          <button id="btnToggleLang" style="padding:6px 12px; border-radius:6px; border:1px solid #ccc; background:#eee; cursor:pointer;">日本語</button>
+        </div>
 
-      <div class="settings-row">
-        <span data-lang="lbl_wakelock">画面常時点灯</span>
-        <input type="checkbox" id="chkWakeLock" style="transform:scale(1.5);">
+        <div class="settings-row">
+          <span data-lang="lbl_wakelock">画面常時点灯</span>
+          <input type="checkbox" id="chkWakeLock" style="transform:scale(1.5);">
+        </div>
+        
+        <button class="btn-block btn-secondary" style="margin-top:15px; background:#0088cc;" onclick="window.open('usage.html', '_blank')">
+          📖 <span data-lang="btn_usage">使い方ガイド</span>
+        </button>
+        <button class="btn-block" style="background:#888; margin-top:20px;" onclick="closeModals()" data-lang="btn_close">閉じる</button>
       </div>
-
-      <button class="btn-block" style="background:#888; margin-top:20px;" onclick="closeModals()" data-lang="btn_close">閉じる</button>
     </div>
-  </div>
-
   <div class="toast" id="toast"></div>
 
 <script>
@@ -229,6 +205,7 @@
       title_record: "記録 / GPX", lbl_status: "状態", lbl_points: "点数",
       btn_start: "記録開始", btn_stop: "記録停止", btn_gpx: "保存(DL)", btn_clear: "クリア", btn_import: "GPX読込",
       title_settings: "設定", lbl_lang: "言語 / Language", lbl_wakelock: "画面常時点灯",
+      btn_usage: "使い方ガイド",
       status_recording: "記録中...", status_stopped: "停止中",
       msg_start: "記録を開始しました", msg_stop: "記録を停止しました", msg_clear: "ログを消去しました",
       msg_no_data: "データがありません", msg_loaded: "読み込み完了", msg_error: "エラーが発生しました",
@@ -241,6 +218,7 @@
       title_record: "GPS & GPX", lbl_status: "Status", lbl_points: "Points",
       btn_start: "Start", btn_stop: "Stop", btn_gpx: "Download", btn_clear: "Clear", btn_import: "Import GPX",
       title_settings: "Settings", lbl_lang: "Language", lbl_wakelock: "Keep Screen On",
+      btn_usage: "How to Use",
       status_recording: "Recording...", status_stopped: "Stopped",
       msg_start: "Recording started", msg_stop: "Recording stopped", msg_clear: "Log cleared",
       msg_no_data: "No data found", msg_loaded: "Route loaded", msg_error: "Error occurred",
@@ -253,22 +231,24 @@
   // 1. データ定義 (日英対応)
   // =========================================
   const WORLD_ROUTES = [
-  { 
-    region_ja: "日本 (五街道・巡礼)", region_en: "Japan", 
-    routes: [
-      { id: "tokaido", name_ja: "東海道", name_en: "Tokaido", file: "data/tokaido_strict.geojson" },
-      { id: "nakasendo", name_ja: "中山道", name_en: "Nakasendo", file: "data/nakaendo_route.geojson" },
-      { id: "koshu", name_ja: "甲州街道", name_en: "Koshu Kaido", file: "data/koshu_route.geojson" },
-      { id: "nikko", name_ja: "日光街道", name_en: "Nikko Kaido", file: "data/nikko_route.geojson" },
-      { id: "oshu", name_ja: "奥州街道", name_en: "Oshu Kaido", file: "data/oshu_route.geojson" },
-      { id: "kumano", name_ja: "熊野古道（中辺路）", name_en: "Kumano Kodo", file: "data/kumano.geojson" },
-      // ...他の中山道などは省略...
-    ]
-  },
-  { 
-    region_ja: "アジア / ユーラシア", region_en: "Asia / Eurasia", 
+    { 
+      region_ja: "日本 (五街道・巡礼)", region_en: "Japan", 
       routes: [
-        { id: "silkroad_uz", name_ja: "シルクロード（ウズベキスタン）", name_en: "Silk Road (Uzbekistan)", file: "data/silkroad_uz.geojson" }
+        { id: "tokaido", name_ja: "東海道", name_en: "Tokaido", file: "data/tokaido_strict.geojson" },
+        { id: "nakasendo", name_ja: "中山道", name_en: "Nakasendo", file: "data/nakaendo_route.geojson" },
+        { id: "koshu", name_ja: "甲州街道", name_en: "Koshu Kaido", file: "data/koshu_route.geojson" },
+        { id: "nikko", name_ja: "日光街道", name_en: "Nikko Kaido", file: "data/nikko_route.geojson" },
+        { id: "oshu", name_ja: "奥州街道", name_en: "Oshu Kaido", file: "data/oshu_route.geojson" },
+        { id: "kumano", name_ja: "熊野古道（中辺路）", name_en: "Kumano Kodo", file: "data/kumano.geojson" },
+        { id: "shikoku88", name_ja: "四国遍路（88ヶ所）", name_en: "Shikoku Pilgrimage", file: "data/88tmples.geojson" }
+      ]
+    },
+    { 
+      region_ja: "アジア / ユーラシア", region_en: "Asia / Eurasia", 
+      routes: [
+        { id: "silkroad_uz", name_ja: "シルクロード（ウズベキスタン）", name_en: "Silk Road (Uzbekistan)", file: "data/silkroad_uz.geojson" },
+        { id: "lycian", name_ja: "リキアン・ウェイ", name_en: "Lycian Way", file: "data/lycianway.geojson" },
+        { id: "jeju", name_ja: "済州オルレ", name_en: "Jeju Olle Trail", file: "data/jot.geojson" }
       ]
     },
     { 
@@ -276,7 +256,11 @@
       routes: [
         { id: "appia", name_ja: "アッピア街道", name_en: "Appian Way", file: "data/appia.geojson" },
         { id: "tmb", name_ja: "ツール・ド・モンブラン", name_en: "Tour du Mont Blanc", file: "data/tmb.geojson" },
-        { id: "camino", name_ja: "サンティアゴ巡礼（フランス人の道）", name_en: "Camino de Santiago (Francés)", file: "data/camino_frances.geojson" }
+        { id: "camino", name_ja: "サンティアゴ巡礼（フランス人の道）", name_en: "Camino de Santiago (Francés)", file: "data/camino_frances.geojson" },
+        { id: "francigena", name_ja: "フランチジェナ街道", name_en: "Via Francigena", file: "data/viafrancigena.geojson" },
+        { id: "whw", name_ja: "ウェスト・ハイランド・ウェイ", name_en: "West Highland Way", file: "data/whway.geojson" },
+        { id: "hadrian", name_ja: "ハドリアヌスの長城パス", name_en: "Hadrian's Wall Path", file: "data/hwp.geojson" },
+        { id: "stolav", name_ja: "聖オラフの道", name_en: "St. Olav's Way", file: "data/sow.geojson" }
       ]
     },
     { 
@@ -284,7 +268,15 @@
       routes: [
         { id: "appalachian", name_ja: "アパラチアン・トレイル", name_en: "Appalachian Trail", file: "data/appalachian.geojson" },
         { id: "route66", name_ja: "ルート66", name_en: "Route 66", file: "data/route66.geojson" },
-        { id: "inca", name_ja: "インカ道", name_en: "Inca Trail", file: "data/inca.geojson" }
+        { id: "inca", name_ja: "インカ道", name_en: "Inca Trail", file: "data/inca.geojson" },
+        { id: "pct", name_ja: "パシフィック・クレスト・トレイル (PCT)", name_en: "Pacific Crest Trail", file: "data/pct.geojson" },
+        { id: "jmt", name_ja: "ジョン・ミューア・トレイル (JMT)", name_en: "John Muir Trail", file: "data/jmt.geojson" }
+      ]
+    },
+    {
+      region_ja: "オセアニア", region_en: "Oceania",
+      routes: [
+        { id: "milford", name_ja: "ミルフォード・トラック", name_en: "Milford Track", file: "data/milfordtrack.geojson" }
       ]
     }
   ];
@@ -353,10 +345,6 @@
     // ポリライン（線）を作成：青色
     const latlngs = AppState.trackPoints.map(p => [p.lat, p.lng]);
     AppState.layers.trackLine = L.polyline(latlngs, { color: 'blue', weight: 4, opacity: 0.8 }).addTo(map);
-    
-    // 現在位置にマーカー
-    const last = AppState.trackPoints[AppState.trackPoints.length - 1];
-    /* recording marker managed in toggleRecord, but we can center map here if needed */
   }
 
   function loadActiveRoute() {
@@ -449,7 +437,15 @@
   function downloadGpx() {
     const pts = AppState.trackPoints;
     if (pts.length === 0) { alert(t('msg_no_data')); return; }
+    const now = new Date();
+    // デフォルトの日付ファイル名 (例: 20231025_walk)
+    const defaultName = `track_${now.getFullYear()}${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}`;
     
+    let fileName = prompt("ファイル名を入力してください", defaultName);
+    
+    if (fileName === null) return; // キャンセルボタンが押されたら何もしない
+    if (!fileName.trim()) fileName = defaultName; // 空欄のままならデフォルト名を使う
+    if (!fileName.toLowerCase().endsWith('.gpx')) fileName += '.gpx'; // .gpxが付いてなければ付ける
     let gpx = `<?xml version="1.0"?><gpx version="1.1"><trk><trkseg>`;
     pts.forEach(p => {
       gpx += `<trkpt lat="${p.lat}" lon="${p.lng}"><time>${new Date(p.t).toISOString()}</time></trkpt>`;
@@ -459,7 +455,8 @@
     const blob = new Blob([gpx], {type: "application/gpx+xml"});
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
-    a.href = url; a.download = `track_${Date.now()}.gpx`;
+    a.href = url; 
+    a.download = fileName; // ← 決定したファイル名で保存
     document.body.appendChild(a); a.click(); a.remove();
   }
 
@@ -473,7 +470,7 @@
       const xmlDoc = parser.parseFromString(text, "text/xml");
       const trkpts = xmlDoc.getElementsByTagName("trkpt");
       
-      AppState.trackPoints = []; // 既存をクリア（追記したい場合はここを変更）
+      AppState.trackPoints = []; 
       for (let i = 0; i < trkpts.length; i++) {
         const lat = parseFloat(trkpts[i].getAttribute("lat"));
         const lon = parseFloat(trkpts[i].getAttribute("lon"));
@@ -507,7 +504,6 @@
       params.push(`${ID_LNG}=${AppState.currentPos.lng}`);
     }
     if (AppState.currentRouteId) {
-      // 街道名は日本語なのでエンコード
       let name = AppState.currentRouteId;
       for (const group of WORLD_ROUTES) {
         const found = group.routes.find(r => r.id === AppState.currentRouteId);
@@ -573,14 +569,14 @@
   document.getElementById('btnClearRecord').onclick = clearRecord;
   document.getElementById('btnDownloadGpx').onclick = downloadGpx;
   document.getElementById('btnToggleLang').onclick = toggleLanguage;
-// Hamburger open
-document.getElementById('btnHamburger').onclick = () => openModal('modalMainMenu');
-
-// Menu items
-document.getElementById('menuItemRoutes').onclick = () => { closeModals(); openModal('modalRoutes'); };
-document.getElementById('menuItemRecord').onclick = () => { closeModals(); openModal('modalRecord'); };
-document.getElementById('menuItemSettings').onclick = () => { closeModals(); openModal('modalSettings'); };
-document.getElementById('menuItemReport').onclick = () => { closeModals(); openReportForm(); };
+  
+  // Hamburger & Menu items
+  document.getElementById('btnHamburger').onclick = () => openModal('modalMainMenu');
+  document.getElementById('menuItemRoutes').onclick = () => { closeModals(); openModal('modalRoutes'); };
+  document.getElementById('menuItemRecord').onclick = () => { closeModals(); openModal('modalRecord'); };
+  document.getElementById('menuItemSettings').onclick = () => { closeModals(); openModal('modalSettings'); };
+  document.getElementById('menuItemReport').onclick = () => { closeModals(); openReportForm(); };
+  
   document.getElementById('btnLocate').onclick = () => {
     if(!navigator.geolocation) return;
     showToast(t('route_loading'));
@@ -596,35 +592,22 @@ document.getElementById('menuItemReport').onclick = () => { closeModals(); openR
   // 初期化
   updateLanguage();
   if (AppState.currentRouteId) loadActiveRoute();
-  drawTrack(); // 保存されていた軌跡があれば描画
+  drawTrack();
 
 })();
-// ★テスト用: ダミーデータを追加して描画する関数
+
+// ★テスト用
 window.addDummyPoint = function() {
   if (!AppState.isRecording) { alert("まずは「記録開始」してください"); return; }
-  
-  // 現在の地図の中心に点を打つ
   const center = map.getCenter();
-  // 少しだけずらして「移動した感」を出す
   const lat = center.lat + (Math.random() - 0.5) * 0.002;
   const lng = center.lng + (Math.random() - 0.5) * 0.002;
-  
   AppState.trackPoints.push({ lat, lng, t: Date.now() });
   localStorage.setItem('kaido_track_points', JSON.stringify(AppState.trackPoints));
-  
-  drawTrack();       // 線を引く
-  updateRecordStats(); // 表示を更新
+  drawTrack();
+  updateRecordStats();
   showToast("テスト点追加: " + lat.toFixed(4) + ", " + lng.toFixed(4));
 };
-</script>
-<!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-XPMXMPVEKV"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-
-  gtag('config', 'G-XPMXMPVEKV');
 </script>
 </body>
 </html>

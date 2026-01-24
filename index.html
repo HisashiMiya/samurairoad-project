@@ -179,15 +179,8 @@
     </div>
   </section>
 
-  <footer>
-    <div>© <span id="y"></span> SamuraiRoad Project</div>
-    <div class="footlinks">
-      <a href="./index.html" data-i18n="foot_home">Home</a>
-      <a data-link="intro" data-i18n="foot_overview">Project Overview</a>
-      <a data-link="hub" data-i18n="foot_hub">Search Hub</a>
-      <a data-link="worldmap" data-i18n="foot_map">World Map</a>
-    </div>
-  </footer>
+  <!-- Footer include mount point -->
+  <div data-include="/includes/footer.html" aria-label="Footer"></div>
 </main>
 
 <script>
@@ -359,15 +352,6 @@ document.getElementById("y").textContent = new Date().getFullYear();
 
 /* init */
 initLang();
-</script>
-
-<!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-XPMXMPVEKV"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-  gtag('config', 'G-XPMXMPVEKV');
 </script>
 </body>
 </html>
