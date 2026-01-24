@@ -1,0 +1,341 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>SamuraiRoad — FeatureWorks Map</title>
+  <meta name="description" content="FeatureWorks Map: a one-page overview of SamuraiRoad Project — an experience design that shifts your sense of reality by 1°." />
+
+  <style>
+    :root{
+      --bg:#0b0f19; --card:#111a2b; --card2:#0f1726;
+      --text:#e7eefc; --muted:#aab7d6; --line:rgba(255,255,255,.12);
+      --accent:#7aa2ff; --accent2:#a2ffda;
+      --shadow: 0 18px 45px rgba(0,0,0,.35);
+      --radius:18px;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:var(--sans);
+      background: radial-gradient(1200px 700px at 20% 10%, rgba(122,162,255,.18), transparent 55%),
+                  radial-gradient(1200px 700px at 80% 20%, rgba(162,255,218,.10), transparent 55%),
+                  var(--bg);
+      color:var(--text);
+      line-height:1.55;
+    }
+    a{color:var(--accent); text-decoration:none}
+    a:hover{text-decoration:underline}
+    .wrap{max-width:1080px; margin:0 auto; padding:28px 18px 60px}
+    header{
+      display:flex; gap:18px; align-items:flex-start; justify-content:space-between;
+      padding:22px 22px;
+      border:1px solid var(--line);
+      background: linear-gradient(180deg, rgba(17,26,43,.92), rgba(17,26,43,.65));
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+    }
+    .title h1{margin:0; font-size:28px; letter-spacing:.2px}
+    .title p{margin:8px 0 0; color:var(--muted); max-width:60ch}
+    .pillrow{display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end}
+    .pill{
+      border:1px solid var(--line);
+      background: rgba(255,255,255,.06);
+      color: var(--text);
+      padding:7px 10px;
+      border-radius:999px;
+      font-size:12px;
+      white-space:nowrap;
+    }
+    .pill b{color:var(--accent2); font-weight:700}
+    .grid{display:grid; grid-template-columns: 1.15fr .85fr; gap:16px; margin-top:16px}
+    @media (max-width: 920px){ .grid{grid-template-columns:1fr} header{flex-direction:column} .pillrow{justify-content:flex-start}}
+    section.card{
+      border:1px solid var(--line);
+      background: linear-gradient(180deg, rgba(15,23,38,.85), rgba(15,23,38,.6));
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      padding:18px 18px;
+    }
+    .h2{display:flex; align-items:baseline; gap:10px; margin:0 0 10px}
+    .h2 h2{margin:0; font-size:18px}
+    .h2 span{font-size:12px; color:var(--muted)}
+    .map{
+      border:1px dashed rgba(255,255,255,.18);
+      border-radius:14px;
+      padding:14px;
+      background: rgba(0,0,0,.16);
+      overflow:auto;
+    }
+    pre{
+      margin:0;
+      font-family:var(--mono);
+      font-size:12px;
+      color:#dfe8ff;
+      line-height:1.45;
+      white-space:pre;
+    }
+    .kvs{display:grid; grid-template-columns: 1fr; gap:10px}
+    .feature{
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(255,255,255,.04);
+      border-radius:14px;
+      padding:12px 12px;
+    }
+    .feature .top{
+      display:flex; align-items:flex-start; justify-content:space-between; gap:10px;
+    }
+    .feature h3{margin:0; font-size:15px}
+    .tag{
+      font-size:11px;
+      color:var(--muted);
+      border:1px solid rgba(255,255,255,.12);
+      padding:4px 8px;
+      border-radius:999px;
+      background: rgba(255,255,255,.05);
+      white-space:nowrap;
+    }
+    .feature p{margin:8px 0 0; color:var(--text)}
+    .feature ul{margin:10px 0 0; padding-left:18px; color:var(--muted)}
+    .feature li{margin:4px 0}
+    .quote{
+      margin:10px 0 0;
+      border-left:3px solid rgba(122,162,255,.7);
+      padding:10px 12px;
+      background: rgba(122,162,255,.08);
+      border-radius:12px;
+      color:#eaf0ff;
+    }
+    .anti{
+      display:grid; gap:10px;
+      padding:12px; border-radius:14px;
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(255,80,80,.06);
+    }
+    .anti h3{margin:0; font-size:14px}
+    .anti ul{margin:6px 0 0; padding-left:18px; color:var(--muted)}
+    .foot{
+      margin-top:14px;
+      color:var(--muted);
+      font-size:12px;
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+    .langnote{
+      margin-top:10px;
+      padding:10px 12px;
+      border:1px solid rgba(255,255,255,.10);
+      border-radius:14px;
+      background: rgba(255,255,255,.04);
+      color:var(--muted);
+      font-size:12px;
+    }
+    .mini{font-size:12px; color:var(--muted)}
+    .jp{opacity:.92}
+    .btnrow{display:flex; gap:10px; flex-wrap:wrap; margin-top:10px}
+    .btn{
+      display:inline-block;
+      padding:10px 12px;
+      border-radius:12px;
+      border:1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.06);
+      color: var(--text);
+      font-size:13px;
+    }
+    .btn:hover{background: rgba(255,255,255,.10)}
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <header>
+      <div class="title">
+        <h1>SamuraiRoad — FeatureWorks Map</h1>
+        <p>
+          Not a navigation app. Not a tourism app. <br/>
+          A design system that lets you walk with AI and come back with your sense of reality shifted by <b>1°</b>.
+        </p>
+        <div class="langnote jp">
+          <b>日本語（要約）:</b> SamuraiRoad FeatureWorks は「便利になる」ための機能ではなく、<br/>
+          AIと共に歩くことで <b>現実の感じ方が1°だけズレる</b> 体験を段階的に解放する設計群です。
+        </div>
+      </div>
+
+      <div class="pillrow" aria-label="Key points">
+        <div class="pill"><b>Target</b> walkers / history / engineers</div>
+        <div class="pill"><b>Promise</b> hard to recommend, impossible to forget</div>
+        <div class="pill"><b>Rule</b> explain less, let reality speak</div>
+      </div>
+    </header>
+
+    <div class="grid">
+      <!-- LEFT: STRUCTURE -->
+      <section class="card">
+        <div class="h2">
+          <h2>Overall Structure</h2>
+          <span>“Beautiful entrance → deeper weirdness”</span>
+        </div>
+
+        <div class="map" role="img" aria-label="FeatureWorks structure diagram">
+<pre>
+[Entrance: quiet, almost normal]
+        |
+        v
++------------------------------+
+| ③ Stealth Walk (Entertainment) |  — hook / onboarding
++------------------------------+
+        |  unlocked by: time & calm walking
+        v
++------------------------------+
+| ① Silent Walk (Core)          |  — controlled silence
++------------------------------+
+        |  low frequency / probabilistic
+        v
++------------------------------+
+| ② Resonance (Body Hack)       |  — short, unexplained vibration
++------------------------------+
+        |  unlocked by: continued use / sync score
+        v
++------------------------------+
+| ④ Memory Fragments (Addiction)|  — incomplete collection
++------------------------------+
+        |  optional participation
+        v
++------------------------------+
+| ⑤ Patron Stela (Sponsors)     |  — honor + responsibility
++------------------------------+
+
+[Exit: back to daily life, but something remains]
+</pre>
+        </div>
+
+        <div class="quote">
+          <b>One-line definition</b><br/>
+          FeatureWorks is not a set of convenience features. It is a system that places “inescapable moments” where you
+          <i>feel</i> reality again — with AI walking beside you, not leading you.
+        </div>
+
+        <div class="langnote jp">
+          <b>日本語（外向け一文）:</b><br/>
+          FeatureWorksとは、AIと共に便利になるための機能ではなく、<br/>
+          現実を感じ直してしまう瞬間を“逃げ道なく”配置する設計群である。
+        </div>
+      </section>
+
+      <!-- RIGHT: FEATURES -->
+      <section class="card">
+        <div class="h2">
+          <h2>Features at a Glance</h2>
+          <span>external summary</span>
+        </div>
+
+        <div class="kvs">
+          <div class="feature">
+            <div class="top">
+              <h3>① Silent Walk <span class="mini">(Core)</span></h3>
+              <span class="tag">silence control</span>
+            </div>
+            <p>
+              AI intentionally stays quiet. No explanation. No visible “progress.”
+              Sometimes nothing happens — and that’s the point.
+            </p>
+            <ul>
+              <li>Designed to be <b>remembered</b>, not “liked.”</li>
+              <li>Triggers are <b>rare</b> and <b>non-repeatable</b> in the same way.</li>
+              <li>Meaning arrives late — or never.</li>
+            </ul>
+          </div>
+
+          <div class="feature">
+            <div class="top">
+              <h3>② Resonance <span class="mini">(Body Hack)</span></h3>
+              <span class="tag">haptics</span>
+            </div>
+            <p>
+              A short, irregular vibration appears without telling you why.
+              Your body notices first; your mind tries to catch up later.
+            </p>
+            <ul>
+              <li>No constant effects. <b>Only as a betrayal</b> of silence.</li>
+              <li>Built for “maybe it was nothing” ambiguity.</li>
+            </ul>
+          </div>
+
+          <div class="feature">
+            <div class="top">
+              <h3>③ Stealth Walk <span class="mini">(Entertainment Layer)</span></h3>
+              <span class="tag">game-mode</span>
+            </div>
+            <p>
+              A quiet walking challenge: fewer screen checks, fewer sudden speed changes,
+              less modern noise. No rankings — only personal “stillness.”
+            </p>
+            <ul>
+              <li>Onboarding hook that leads to the core.</li>
+              <li>Rewards unlock <b>deeper silence</b>, not louder content.</li>
+            </ul>
+          </div>
+
+          <div class="feature">
+            <div class="top">
+              <h3>④ Memory Fragments <span class="mini">(Addiction)</span></h3>
+              <span class="tag">incomplete collection</span>
+            </div>
+            <p>
+              You collect imperfect fragments: noisy audio, blurred images, broken lines.
+              Completion is impossible by design.
+            </p>
+            <ul>
+              <li><b>No 100%</b>. A missing piece always remains.</li>
+              <li>Each revisit shifts the fragment slightly.</li>
+            </ul>
+          </div>
+
+          <div class="feature">
+            <div class="top">
+              <h3>⑤ Patron Stela <span class="mini">(Sponsors)</span></h3>
+              <span class="tag">honor + responsibility</span>
+            </div>
+            <p>
+              GitHub Sponsors becomes participation in “editing memory.”
+              A patron name marks a spot — but what’s released is ambiguous, not a clean story.
+            </p>
+            <ul>
+              <li>Public honor on the surface.</li>
+              <li>Private responsibility underneath.</li>
+            </ul>
+          </div>
+
+          <div class="anti">
+            <h3>What we will never do</h3>
+            <ul>
+              <li>Shortest-route navigation</li>
+              <li>Full map unlock / 100% completion meters</li>
+              <li>Rankings & distance competitions</li>
+              <li>“AI is amazing” explanations</li>
+              <li>Explicit fear-mongering</li>
+            </ul>
+            <div class="mini jp">
+              日本語: 最短ルート／完全地図／達成率100%／ランキング／AI自己主張／露骨な恐怖演出 は禁止。
+            </div>
+          </div>
+
+          <div class="btnrow">
+            <a class="btn" href="#" onclick="window.print();return false;">Print / Save as PDF</a>
+            <a class="btn" href="https://github.com/sponsors" target="_blank" rel="noopener">GitHub Sponsors</a>
+          </div>
+        </div>
+
+        <div class="foot">
+          <div>© SamuraiRoad Project</div>
+          <div class="mini">External one-pager / v0.1</div>
+        </div>
+      </section>
+    </div>
+  </div>
+</body>
+</html>
