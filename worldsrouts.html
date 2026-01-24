@@ -53,6 +53,10 @@ tbody tr:hover{background:rgba(255,255,255,.04)}
 .note{margin-top:8px;color:var(--muted);font-size:12px;line-height:1.6}
 .loading{padding:16px;color:var(--muted)}
 code{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace}
+.chip-map::before{
+  content:"🗺";
+  margin-right:4px;
+}
 </style>
 </head>
 <body>
@@ -234,7 +238,7 @@ function makeCard(row, cols){
         <div class="name">${name}</div>
         <div class="meta">
           ${chips.join("")}
-          ${mapURL ? `<a class="chip" href="${mapURL}" target="_blank" rel="noopener">地図で見る</a>` : ""}
+          ${mapURL ? `<a class="chip chip-map" href="${mapURL}" target="_blank" rel="noopener">地図で見る</a>` : ""}
         </div>
       </div>
       <div class="small"><a href="#top">↑</a></div>
