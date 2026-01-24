@@ -297,3 +297,60 @@
   .badge{ display: none; }
 }
 .navlinks{ gap: 0px; }
+
+/* ===== mobile optimization ===== */
+@media (max-width: 768px){
+
+  /* header */
+  .nav{
+    flex-wrap: wrap;
+    row-gap: 10px;
+  }
+
+  .navlinks{
+    width: 100%;
+    justify-content: space-between;
+    gap: 6px;
+  }
+
+  .brand{
+    max-width: 100%;
+  }
+
+  /* hero layout */
+  .heroGrid{
+    grid-template-columns: 1fr;   /* 2カラム → 1カラム */
+    gap: 14px;
+  }
+
+  /* CTA buttons stack */
+  .ctaRow{
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .ctaRow .btn{
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* cards padding slightly tighter */
+  .cardInner{
+    padding: 14px;
+  }
+
+  /* stat grid: 2 → 1 column */
+  .statGrid{
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  /* text size tuning */
+  h1{
+    font-size: clamp(22px, 6vw, 28px);
+  }
+
+  .lead{
+    font-size: 14px;
+  }
+}
