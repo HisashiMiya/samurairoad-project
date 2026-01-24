@@ -1,0 +1,30 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 19,
+        "name": "Jeju Olle Trail",
+        "country": "South Korea",
+        "description": "Loop around Jeju Island",
+        "distance_km": 425
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [126.5310, 33.5000],
+          [126.6500, 33.5500],
+          [126.9420, 33.4580],
+          [126.7500, 33.3000],
+          [126.5620, 33.2480],
+          [126.3000, 33.2500],
+          [126.1600, 33.3000],
+          [126.2500, 33.4000],
+          [126.4000, 33.4800],
+          [126.5310, 33.5000]
+        ]
+      }
+    }
+  ]
+}

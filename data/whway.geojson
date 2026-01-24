@@ -1,0 +1,25 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 15,
+        "name": "West Highland Way",
+        "country": "Scotland",
+        "description": "Milngavie to Fort William"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [-4.3230, 55.9410],
+          [-4.4600, 56.0900],
+          [-4.6300, 56.2400],
+          [-4.7200, 56.4300],
+          [-4.8300, 56.6000],
+          [-5.1050, 56.8190]
+        ]
+      }
+    }
+  ]
+}

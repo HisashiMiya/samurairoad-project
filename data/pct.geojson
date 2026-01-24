@@ -1,0 +1,30 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 13,
+        "name": "Pacific Crest Trail (PCT)",
+        "country": "USA",
+        "description": "Mexico Border to Canada Border"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [-116.4700, 32.6000],
+          [-116.8000, 33.5000],
+          [-118.2900, 36.5700],
+          [-119.5000, 37.8000],
+          [-120.1200, 39.3000],
+          [-121.5000, 41.5000],
+          [-122.2000, 42.9000],
+          [-121.8000, 45.6000],
+          [-121.4000, 46.8000],
+          [-121.1000, 48.3000],
+          [-120.8000, 49.0000]
+        ]
+      }
+    }
+  ]
+}

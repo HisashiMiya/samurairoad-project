@@ -1,0 +1,26 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 16,
+        "name": "Milford Track",
+        "country": "New Zealand",
+        "description": "Glade Wharf to Sandfly Point",
+        "distance_km": 53.5
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [167.9360, -44.9270],
+          [167.8800, -44.8800],
+          [167.7850, -44.8080],
+          [167.7500, -44.7500],
+          [167.8200, -44.7000],
+          [167.9260, -44.6710]
+        ]
+      }
+    }
+  ]
+}

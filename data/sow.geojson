@@ -1,0 +1,29 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 18,
+        "name": "St. Olav's Way (Gudbrandsdalsleden)",
+        "country": "Norway",
+        "description": "Oslo to Trondheim (Nidaros Cathedral)",
+        "distance_km": 643
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [10.7520, 59.9130],
+          [11.1500, 60.2500],
+          [11.0680, 60.7940],
+          [10.4660, 61.1150],
+          [10.0000, 61.5000],
+          [9.2550, 61.9840],
+          [9.1290, 62.0750],
+          [9.7000, 62.6000],
+          [10.3950, 63.4300]
+        ]
+      }
+    }
+  ]
+}

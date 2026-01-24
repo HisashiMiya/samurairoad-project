@@ -1,0 +1,31 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+      "type": "Feature",
+      "properties": {
+        "id": 12,
+        "name": "Via Francigena",
+        "country": "Europe (UK to Italy)",
+        "description": "Canterbury to Rome"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [1.0800, 51.2800],
+          [1.8500, 50.9500],
+          [3.9500, 49.5000],
+          [4.0300, 49.2500],
+          [6.0000, 47.2500],
+          [6.6300, 46.5100],
+          [7.1700, 45.8600],
+          [8.5000, 45.0000],
+          [9.7000, 44.5000],
+          [10.9000, 43.5000],
+          [11.3000, 43.0000],
+          [12.1000, 42.2000],
+          [12.4534, 41.9029]
+        ]
+      }
+    }
+  ]
+}

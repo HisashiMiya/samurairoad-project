@@ -1,0 +1,30 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 11,
+        "name": "Lycian Way",
+        "country": "Turkey",
+        "description": "Ölüdeniz to Geyikbayırı (Antalya)"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [29.1250, 36.5500],
+          [29.1500, 36.4800],
+          [29.2600, 36.4000],
+          [29.4000, 36.2500],
+          [29.6300, 36.2000],
+          [29.9000, 36.2300],
+          [30.0400, 36.2900],
+          [30.2500, 36.3500],
+          [30.4000, 36.4500],
+          [30.4700, 36.5500],
+          [30.5400, 36.8800]
+        ]
+      }
+    }
+  ]
+}

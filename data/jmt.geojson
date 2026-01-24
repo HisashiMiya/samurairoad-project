@@ -1,0 +1,28 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 20,
+        "name": "John Muir Trail (JMT)",
+        "country": "USA",
+        "description": "Yosemite Valley to Mt. Whitney",
+        "distance_km": 340
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [-119.5580, 37.7330],
+          [-119.3560, 37.8750],
+          [-119.2450, 37.7550],
+          [-119.0750, 37.6140],
+          [-118.8000, 37.3000],
+          [-118.6690, 37.1120],
+          [-118.3730, 36.6950],
+          [-118.2920, 36.5780]
+        ]
+      }
+    }
+  ]
+}

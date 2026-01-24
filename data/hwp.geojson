@@ -1,0 +1,27 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 17,
+        "name": "Hadrian's Wall Path",
+        "country": "UK",
+        "description": "Wallsend to Bowness-on-Solway",
+        "distance_km": 135
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [-1.5350, 54.9870],
+          [-1.8000, 55.0000],
+          [-2.1380, 55.0240],
+          [-2.3290, 55.0130],
+          [-2.5360, 54.9820],
+          [-2.9330, 54.8920],
+          [-3.2140, 54.9530]
+        ]
+      }
+    }
+  ]
+}
