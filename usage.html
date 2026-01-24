@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>使い方ガイド - Global Kaido Map</title>
+  <style>
+    :root { --primary: #0066cc; --bg: #f4f7f6; --text: #333; --card-bg: #ffffff; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 20px; line-height: 1.6; }
+    .container { max-width: 600px; margin: 0 auto; }
+    
+    h1 { text-align: center; color: var(--primary); margin-bottom: 20px; font-size: 24px; }
+    
+    .card { background: var(--card-bg); border-radius: 12px; padding: 20px; margin-bottom: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+    .card h2 { margin-top: 0; font-size: 18px; border-bottom: 2px solid #eee; padding-bottom: 8px; color: var(--primary); display: flex; align-items: center; gap: 8px; }
+    
+    .icon { font-size: 24px; }
+    p { margin: 8px 0; font-size: 14px; color: #555; }
+    
+    .tag { display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: bold; color: white; vertical-align: middle; }
+    .tag-red { background: #cc0000; }
+    .tag-blue { background: blue; }
+    .tag-green { background: #28a745; }
+
+    ul { padding-left: 20px; margin: 8px 0; font-size: 14px; color: #555; }
+    li { margin-bottom: 4px; }
+
+    .btn-close { display: block; width: 100%; max-width: 200px; margin: 30px auto 0; padding: 12px; background: #333; color: white; text-align: center; border: none; border-radius: 50px; text-decoration: none; font-weight: bold; }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h1>使い方ガイド</h1>
+
+  <div class="card">
+    <h2><span class="icon">🗺️</span> 街道を探す</h2>
+    <p>画面下の「探す」ボタンを押すと、世界中の街道リストが表示されます。</p>
+    <ul>
+      <li>歩きたい街道を選ぶと、地図上に <span class="tag tag-red">赤線</span> でルートが表示されます。</li>
+      <li>現在地ボタン「◎」を押すと、自分の位置が表示されます。</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h2><span class="icon">⏺️</span> 記録する (GPS)</h2>
+    <p>あなたの歩いた軌跡を記録できます。</p>
+    <ul>
+      <li>「記録」メニューから「記録開始」を押してください。</li>
+      <li>歩いた道が <span class="tag tag-blue">青線</span> で地図に描かれます。</li>
+      <li>ブラウザを閉じても記録は保存されますが、長時間の記録時は画面を消さないことをおすすめします（設定で「画面常時点灯」可能）。</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h2><span class="icon">💾</span> データの保存・読込</h2>
+    <p>記録したデータはご自身の管理下にあります。</p>
+    <ul>
+      <li><strong>GPXダウンロード:</strong> 記録した軌跡をファイル(.gpx)としてスマホやPCに保存できます。Google EarthやYAMAP等で閲覧可能です。</li>
+      <li><strong>GPX読込:</strong> 過去のログや、他のアプリで作ったルートを地図上に表示できます。</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h2><span class="icon">📝</span> 報告機能</h2>
+    <p>街道の状況（通行止め、素晴らしい景色、トイレの場所など）を報告フォームから送信できます。位置情報が自動的に添付されます。</p>
+  </div>
+
+  <div class="card">
+    <h2><span class="icon">⚙️</span> 設定</h2>
+    <ul>
+      <li><strong>言語:</strong> 日本語と英語を切り替えられます。</li>
+      <li><strong>画面常時点灯:</strong> 記録中にスマホがスリープするのを防ぎます（バッテリー消費に注意してください）。</li>
+    </ul>
+  </div>
+
+  <a href="#" onclick="window.close()" class="btn-close">閉じる</a>
+</div>
+
+</body>
+</html>
