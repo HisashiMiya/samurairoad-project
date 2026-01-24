@@ -1,0 +1,27 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 21,
+        "name": "Romantic Road",
+        "country": "Germany",
+        "description": "Würzburg to Füssen",
+        "distance_km": 460
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [9.9333, 49.7917],
+          [9.7333, 49.6500],
+          [10.1833, 49.3767],
+          [10.4833, 48.9833],
+          [10.8978, 48.3705],
+          [10.8925, 47.8300],
+          [10.7017, 47.5696]
+        ]
+      }
+    }
+  ]
+}

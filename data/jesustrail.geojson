@@ -1,0 +1,25 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 26,
+        "name": "Jesus Trail",
+        "country": "Israel",
+        "description": "Nazareth to Capernaum",
+        "distance_km": 65
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [35.2986, 32.7019],
+          [35.3400, 32.7500],
+          [35.4500, 32.7800],
+          [35.5000, 32.8200],
+          [35.5700, 32.8800]
+        ]
+      }
+    }
+  ]
+}

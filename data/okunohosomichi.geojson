@@ -1,0 +1,31 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 23,
+        "name": "Oku no Hosomichi",
+        "country": "Japan",
+        "description": "Tokyo to Ogaki (via Tohoku & Hokuriku)",
+        "distance_km": 2400
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [139.7970, 35.6830],
+          [139.6030, 36.7500],
+          [140.4000, 37.0500],
+          [141.0667, 38.3750],
+          [141.1130, 38.9860],
+          [140.3000, 38.7000],
+          [139.9500, 39.2100],
+          [139.0300, 37.9100],
+          [136.6500, 36.5600],
+          [136.0600, 35.6500],
+          [136.6167, 35.3667]
+        ]
+      }
+    }
+  ]
+}

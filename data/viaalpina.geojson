@@ -1,0 +1,29 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 22,
+        "name": "Via Alpina (Red Trail)",
+        "country": "Monaco, France, Italy, Switzerland, Liechtenstein, Austria, Germany, Slovenia",
+        "description": "Trieste to Monaco",
+        "distance_km": 2600
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [13.7768, 45.6495],
+          [13.9000, 46.3000],
+          [12.5000, 46.6000],
+          [11.5000, 47.0000],
+          [9.5000, 47.1660],
+          [8.5000, 46.5000],
+          [7.0000, 45.8000],
+          [7.1000, 44.2000],
+          [7.4200, 43.7384]
+        ]
+      }
+    }
+  ]
+}

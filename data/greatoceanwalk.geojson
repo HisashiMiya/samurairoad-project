@@ -1,0 +1,25 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 28,
+        "name": "Great Ocean Walk",
+        "country": "Australia",
+        "description": "Apollo Bay to Twelve Apostles",
+        "distance_km": 104
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [143.6700, -38.7600],
+          [143.5500, -38.8000],
+          [143.4000, -38.7500],
+          [143.2500, -38.7000],
+          [143.1000, -38.6600]
+        ]
+      }
+    }
+  ]
+}

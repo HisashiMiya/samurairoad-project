@@ -1,0 +1,27 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 30,
+        "name": "Jordan Trail",
+        "country": "Jordan",
+        "description": "Um Qais to Aqaba",
+        "distance_km": 675
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [35.6800, 32.6500],
+          [35.7500, 32.3000],
+          [35.6000, 31.9500],
+          [35.7000, 31.5000],
+          [35.4400, 30.3200],
+          [35.4200, 29.5500],
+          [35.0000, 29.5300]
+        ]
+      }
+    }
+  ]
+}

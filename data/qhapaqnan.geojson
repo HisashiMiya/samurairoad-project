@@ -1,0 +1,30 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 24,
+        "name": "Qhapaq Nan (Andean Road System)",
+        "country": "Colombia, Ecuador, Peru, Bolivia, Chile, Argentina",
+        "description": "The Main Inca Road",
+        "distance_km": 6000
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [-77.2800, 1.2100],
+          [-78.4600, -0.1800],
+          [-78.9800, -2.9000],
+          [-77.5000, -9.5000],
+          [-71.9675, -13.5320],
+          [-69.1500, -16.0000],
+          [-68.1193, -16.4897],
+          [-67.0000, -19.0000],
+          [-65.4100, -24.7800],
+          [-68.8000, -32.8800]
+        ]
+      }
+    }
+  ]
+}
