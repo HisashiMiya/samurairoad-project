@@ -232,7 +232,7 @@
   // =========================================
   const WORLD_ROUTES = [
     { 
-      region_ja: "日本 (五街道・巡礼)", region_en: "Japan", 
+      region_ja: "日本 ", region_en: "Japan", 
       routes: [
         { id: "tokaido", name_ja: "東海道", name_en: "Tokaido", file: "data/tokaido_strict.geojson" },
         { id: "nakasendo", name_ja: "中山道", name_en: "Nakasendo", file: "data/nakaendo_route.geojson" },
@@ -240,7 +240,8 @@
         { id: "nikko", name_ja: "日光街道", name_en: "Nikko Kaido", file: "data/nikko_route.geojson" },
         { id: "oshu", name_ja: "奥州街道", name_en: "Oshu Kaido", file: "data/oshu_route.geojson" },
         { id: "kumano", name_ja: "熊野古道（中辺路）", name_en: "Kumano Kodo", file: "data/kumano.geojson" },
-        { id: "shikoku88", name_ja: "四国遍路（88ヶ所）", name_en: "Shikoku Pilgrimage", file: "data/88tmples.geojson" }
+        { id: "shikoku88", name_ja: "四国遍路（88ヶ所）", name_en: "Shikoku Pilgrimage", file: "data/88tmples.geojson" },
+        { id: "okunohosomichi", name_ja: "奥の細道", name_en: "Oku no Hosomichi", file: "data/okunohosomichi.geojson" }
       ]
     },
     { 
@@ -248,7 +249,10 @@
       routes: [
         { id: "silkroad_uz", name_ja: "シルクロード（ウズベキスタン）", name_en: "Silk Road (Uzbekistan)", file: "data/silkroad_uz.geojson" },
         { id: "lycian", name_ja: "リキアン・ウェイ", name_en: "Lycian Way", file: "data/lycianway.geojson" },
-        { id: "jeju", name_ja: "済州オルレ", name_en: "Jeju Olle Trail", file: "data/jot.geojson" }
+        { id: "jeju", name_ja: "済州オルレ", name_en: "Jeju Olle Trail", file: "data/jot.geojson" },
+        { id: "teahorse", name_ja: "茶馬古道", name_en: "Tea Horse Road", file: "data/teahorseroad.geojson" },
+        { id: "jesustrail", name_ja: "ジーザス・トレイル", name_en: "Jesus Trail", file: "data/jesustrail.geojson" },
+        { id: "jordantrail", name_ja: "ヨルダン・トレイル", name_en: "Jordan Trail", file: "data/jordantrail.geojson" }
       ]
     },
     { 
@@ -260,7 +264,11 @@
         { id: "francigena", name_ja: "フランチジェナ街道", name_en: "Via Francigena", file: "data/viafrancigena.geojson" },
         { id: "whw", name_ja: "ウェスト・ハイランド・ウェイ", name_en: "West Highland Way", file: "data/whway.geojson" },
         { id: "hadrian", name_ja: "ハドリアヌスの長城パス", name_en: "Hadrian's Wall Path", file: "data/hwp.geojson" },
-        { id: "stolav", name_ja: "聖オラフの道", name_en: "St. Olav's Way", file: "data/sow.geojson" }
+        { id: "stolav", name_ja: "聖オラフの道", name_en: "St. Olav's Way", file: "data/sow.geojson" },
+        { id: "romanticroad", name_ja: "ロマンチック街道", name_en: "Romantic Road", file: "data/romanticroad.geojson" },
+        { id: "viaalpina", name_ja: "ヴィア・アルピナ", name_en: "Via Alpina", file: "data/viaalpina.geojson" },
+        { id: "cotswold", name_ja: "コッツウォルズ・ウェイ", name_en: "Cotswold Way", file: "data/cotswoldway.geojson" },
+        { id: "kungsleden", name_ja: "クングスレーデン", name_en: "Kungsleden", file: "data/kungsleden.geojson" }
       ]
     },
     { 
@@ -270,23 +278,54 @@
         { id: "route66", name_ja: "ルート66", name_en: "Route 66", file: "data/route66.geojson" },
         { id: "inca", name_ja: "インカ道", name_en: "Inca Trail", file: "data/inca.geojson" },
         { id: "pct", name_ja: "パシフィック・クレスト・トレイル (PCT)", name_en: "Pacific Crest Trail", file: "data/pct.geojson" },
-        { id: "jmt", name_ja: "ジョン・ミューア・トレイル (JMT)", name_en: "John Muir Trail", file: "data/jmt.geojson" }
+        { id: "jmt", name_ja: "ジョン・ミューア・トレイル (JMT)", name_en: "John Muir Trail", file: "data/jmt.geojson" },
+        { id: "qhapaqnan", name_ja: "カパック・ニャン（アンデス・ロード）", name_en: "Qhapaq Nan", file: "data/qhapaqnan.geojson" }
       ]
     },
     {
       region_ja: "オセアニア", region_en: "Oceania",
       routes: [
-        { id: "milford", name_ja: "ミルフォード・トラック", name_en: "Milford Track", file: "data/milfordtrack.geojson" }
+        { id: "milford", name_ja: "ミルフォード・トラック", name_en: "Milford Track", file: "data/milfordtrack.geojson" },
+        { id: "greatocean", name_ja: "グレート・オーシャン・ウォーク", name_en: "Great Ocean Walk", file: "data/greatoceanwalk.geojson" }
       ]
     }
   ];
+
+  // =========================================
+  // 1.5 URLパラメータ処理 (初期化前)
+  // =========================================
+  const urlParams = new URLSearchParams(window.location.search);
+  
+  // langパラメータのチェック
+  const paramLang = urlParams.get('lang');
+  if (paramLang && (paramLang === 'ja' || paramLang === 'en')) {
+    localStorage.setItem('kaido_lang', paramLang);
+  }
+
+  // routeパラメータのチェックと検証
+  const paramRoute = urlParams.get('route');
+  let initialRouteId = null;
+  if (paramRoute) {
+    // 全ルートからIDが一致するものを探す
+    let found = false;
+    for (const group of WORLD_ROUTES) {
+      if (group.routes.some(r => r.id === paramRoute)) {
+        found = true;
+        break;
+      }
+    }
+    if (found) {
+      initialRouteId = paramRoute;
+      localStorage.setItem('kaido_active_route', initialRouteId);
+    }
+  }
 
   // =========================================
   // 2. アプリの状態管理
   // =========================================
   const AppState = {
     lang: localStorage.getItem('kaido_lang') || 'ja',
-    currentRouteId: localStorage.getItem('kaido_active_route') || null,
+    currentRouteId: initialRouteId || localStorage.getItem('kaido_active_route') || null, // URLパラメータ優先
     trackPoints: JSON.parse(localStorage.getItem('kaido_track_points') || '[]'),
     isRecording: false,
     watchId: null,
@@ -299,6 +338,30 @@
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     maxZoom: 19, attribution: '&copy; OpenStreetMap'
   }).addTo(map);
+
+  // マップ移動時に位置を保存 (次回起動用)
+  map.on("moveend", () => {
+    // ルート表示による自動移動直後でなければ保存
+    if (!AppState.isLoadingRoute) {
+      const c = map.getCenter();
+      localStorage.setItem("sr_lat", String(c.lat));
+      localStorage.setItem("sr_lng", String(c.lng));
+      localStorage.setItem("sr_zoom", String(map.getZoom()));
+    }
+  });
+
+  // 保存された位置の復元 (ルート指定がない場合のみ)
+  function restoreMapPosition() {
+    // 今回URLでルート指定があった場合は、ルートの描画範囲に合わせるため復元しない
+    if (initialRouteId) return;
+
+    const lat = parseFloat(localStorage.getItem("sr_lat"));
+    const lng = parseFloat(localStorage.getItem("sr_lng"));
+    const zoom = parseFloat(localStorage.getItem("sr_zoom"));
+    if (isFinite(lat) && isFinite(lng) && isFinite(zoom)){
+      map.setView([lat,lng], zoom, { animate:false });
+    }
+  }
 
   // =========================================
   // 3. 基本機能 & 翻訳システム
@@ -361,6 +424,9 @@
     document.getElementById('lblNavInfo').textContent = t('route_loading');
 
     if (AppState.layers.route) AppState.layers.route.remove();
+    
+    // フラグを立てて moveend イベントでの座標保存を一時的に防ぐ（ルート全景に合わせるため）
+    AppState.isLoadingRoute = true;
 
     fetch(targetRoute.file)
       .then(res => {
@@ -374,11 +440,13 @@
         
         map.fitBounds(AppState.layers.route.getBounds(), { padding: [50, 50] });
         document.getElementById('lblNavInfo').textContent = t('msg_loaded');
+        setTimeout(() => { AppState.isLoadingRoute = false; }, 1000);
       })
       .catch(err => {
         console.error(err);
         document.getElementById('lblNavInfo').textContent = "Error";
         showToast(t('msg_error'));
+        AppState.isLoadingRoute = false;
       });
   }
 
@@ -589,7 +657,8 @@
     }, err => alert("GPS Error: " + err.message));
   };
 
-  // 初期化
+  // 初期化実行
+  restoreMapPosition(); // ルート指定がない場合のみ前回位置を復元
   updateLanguage();
   if (AppState.currentRouteId) loadActiveRoute();
   drawTrack();
