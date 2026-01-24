@@ -191,6 +191,10 @@ function buildTagOptions(allTags){
 
 function makeCard(row, cols){
   const get = (k)=> row[k] ?? "";
+    const id = (get("id") || "").toString().trim();
+  const mapURL = id
+    ? `https://samurairoad-project.pages.dev/worldmap?route=${encodeURIComponent(id)}`
+    : null;
   const no = escapeHTML(get("No"));
   const name = escapeHTML(get("名前"));
   const region = escapeHTML(get("国・地域"));
@@ -228,7 +232,10 @@ function makeCard(row, cols){
       <div>
         <div class="no">No.${no}</div>
         <div class="name">${name}</div>
-        <div class="meta">${chips.join("")}</div>
+        <div class="meta">
+          ${chips.join("")}
+          ${mapURL ? `<a class="chip" href="${mapURL}" target="_blank" rel="noopener">地図で見る</a>` : ""}
+        </div>
       </div>
       <div class="small"><a href="#top">↑</a></div>
     </div>
