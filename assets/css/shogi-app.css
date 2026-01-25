@@ -123,3 +123,52 @@
   overflow-wrap: anywhere;
   text-overflow: clip;
 }
+
+
+/* ===== Desktop layout (PC): Board left, Kifu below, Chat right (no page scroll) ===== */
+@media (min-width: 1101px){
+  /* ページ全体のスクロールを抑え、各パネル内だけスクロールさせる */
+  body{ overflow: hidden; }
+
+  .wrap{
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 16px;
+    display: grid;
+    gap: 14px;
+    grid-template-columns: minmax(720px, 1fr) 420px;
+    grid-template-rows: 1fr 360px;
+    grid-template-areas:
+      "game chat"
+      "kifu chat";
+    height: calc(100vh - 32px);
+    align-items: stretch;
+  }
+
+  #gamePanel{ grid-area: game; overflow: hidden; }
+  #kifuPanel{ grid-area: kifu; overflow: hidden; }
+  #chatPanel{
+    grid-area: chat;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* チャットはログだけスクロール */
+  #chatPanel .chatLog{
+    flex: 1;
+    min-height: 0;
+    height: auto !important; /* base.css の height:320px を上書き */
+    overflow: auto;
+  }
+
+  /* チャット入力は下に固定（パネル内） */
+  #chatPanel .chatComposer{
+    position: sticky;
+    bottom: 0;
+  }
+}
+
+/* ===== Dev memo: normally hidden (open via header button) ===== */
+#devMemo{ display:none; }
+
