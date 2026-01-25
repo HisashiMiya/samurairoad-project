@@ -28,7 +28,7 @@
           <div class="muted" style="margin-bottom:8px">スマホの制限により、音は最初のタップ後に有効になります。</div>
           <div class="row">
             <label class="small" style="display:flex;align-items:center;gap:8px">
-              <input type="checkbox" id="chkAudio" checked> 音：ON
+              <input type="checkbox" id="chkAudio"> 音：OFF
             </label>
           </div>
           <div class="row">
@@ -59,11 +59,6 @@
 
   <div class="wrap">
     <section class="card" id="gamePanel">
-      <h1>極み将棋</h1>
-      <p class="muted">
-        URLの <code>#room=xxxx</code> を共有すると同じ部屋に入れます。<br>
-      </p>
-
       <div class="row" style="margin:10px 0">
         <input id="name" class="input" style="max-width:220px" placeholder="名前" />
         <button class="btn primary" id="btnConnect">接続</button>
@@ -71,13 +66,18 @@
         <button class="btn" id="btnReset">リセット</button>
         <button class="btn" id="btnFull">⛶ 全画面</button>
         <button class="btn chatToggle" id="btnChatToggle">💬 チャット</button>
-        <button class="btn ghost" id="btnSound">🔊 音: ON</button>
+        <button class="btn ghost" id="btnSound">🔇 音: OFF</button>
+        <a class="btn ghost" id="btnHelpTop" href="./shogihelp.html" target="_blank" rel="noopener">❓ 操作方法</a>
       </div>
-<div class="status" id="status">未接続</div>
-
-      <div class="row" style="margin:10px 0 12px">
-        <span class="badge turnBig" id="turnBadge"><span class="dot"></span><span id="turnText">手番: -</span></span>
-      </div>
+      <div class="statusRow">
+        <div class="status" id="status">未接続</div>
+        <div class="row" style="margin:10px 0 12px">
+          <span class="badge turnBig" id="turnBadge"><span class="dot"></span><span id="turnText">手番: -</span></span>
+        </div>
+        <p class="muted">
+        極み将棋。URLの <code>#room=xxxx</code> を共有すると同じ部屋に入れます。<br>
+      </p>
+       </div>
 <div class="hand">
             <div class="handTitle"><span>相手の持ち駒</span><span class="small" id="handHintG"></span></div>
             <div class="handPieces" id="handG"></div>
@@ -98,13 +98,35 @@
           ・盤の駒を選択→移動先クリックで動かします。<br>
         </div>
       </div>
+      <div id="kifuDock"></div>
     </section>
 
-    
-    <div id="kifuDock"></div>
-    <aside class="card" id="kifuPanel">
-  <div class="kifuHeader">
-    <h1>棋譜</h1>
+
+
+    <aside class="card" id="supportPanel">
+      <div class="tabs">
+        <button class="btn tab active" type="button" data-tab="chat">💬 チャット</button>
+        <button class="btn tab" type="button" data-tab="kifu">📜 棋譜</button>
+        <button class="btn tab" type="button" data-tab="dev">🛠 開発者メモ</button>
+      </div>
+
+      <section class="tabPane active" id="tab-chat">
+<div class="panelTitle">チャット</div>
+      <div class="chatLog" id="chatLog"></div>
+      <div class="chatComposer">
+      <div class="row" style="margin-top:0">
+        <input id="chatInput" class="input" placeholder="メッセージ…" />
+      </div>
+      <div class="row" style="margin-top:10px">
+        <button class="btn primary" id="btnSend">送信</button>
+      </div>
+      </div>
+      <p class="small">※観戦者もチャット可能。対局は先着2人がプレイヤーになります（MVPのため強制は未実装）。</p>
+      </section>
+
+      <section class="tabPane" id="tab-kifu">
+<div class="kifuHeader">
+<div class="panelTitle">棋譜</div>
     <div class="kifuNav" aria-label="kifu-nav">
       <button class="btn" id="btnKifuPrev">◀ 前へ</button>
       <button class="btn" id="btnKifuNext">次へ ▶</button>
@@ -120,27 +142,10 @@
         <textarea id="kifuText" class="input" style="min-height:140px;resize:vertical" placeholder="ここに棋譜JSONを貼り付け（インポート用）"></textarea>
       </div>
       <p class="small"></p>
-    </aside>
+      </section>
 
-
-    <aside class="card" id="chatPanel">
-      <h1>チャット</h1>
-      <div class="chatLog" id="chatLog"></div>
-      <div class="chatComposer">
-      <div class="row" style="margin-top:0">
-        <input id="chatInput" class="input" placeholder="メッセージ…" />
-      </div>
-      <div class="row" style="margin-top:10px">
-        <button class="btn primary" id="btnSend">送信</button>
-      </div>
-      </div>
-      <p class="small">※観戦者もチャット可能。対局は先着2人がプレイヤーになります（MVPのため強制は未実装）。</p>
-    </aside>
-  </div>
-</div>
-<details class="card" id="devMemo">
-  <summary>🛠 開発者メモ</summary>
-  <div class="muted" style="font-size:.92rem;line-height:1.65; margin-top:10px">
+      <section class="tabPane" id="tab-dev">
+<div class="muted" style="font-size:.92rem;line-height:1.65; margin-top:10px">
   <div class="muted" style="font-size:.92rem;line-height:1.65">
     <div>MVP：合法手・王手判定・打ち歩詰め等は未対応（ただし「二歩」「行き所のない駒の打ち」は最低限ガード）。</div>
     <div>成りは実装済み（成れる場合は確認、強制成りも対応）。</div>
@@ -151,15 +156,8 @@
     <div>・AIによる次の最善手解析（設計案）：まずは「現局面をテキスト化→解析用プロンプト生成→コピーしてAIに貼る」方式（超安全）。次段階でWorkers経由のAPI連携、さらに将棋エンジン/WASM化へ拡張。</div>
     <div>・棋譜：自動取得ONのとき、指し手ごとにローカル保存（localStorage）します。</div>
   </div>
-</details>
-
-
-<div id="aiResultModal">
-  <div class="ai-content">
-    <div id="aiResultBody"></div>
-    <div class="row" style="justify-content:flex-end; margin-top:20px;">
-      <button class="btn" id="btnAiResultClose" type="button">閉じる</button>
-    </div>
+      </section>
+    </aside>
   </div>
 </div>
   <!-- Footer include mount point -->
