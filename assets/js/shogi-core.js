@@ -68,6 +68,8 @@
   const chatInput = document.getElementById("chatInput");
   const btnSend = document.getElementById("btnSend");
   const btnSound = document.getElementById("btnSound");
+  const btnDevMemo = document.getElementById("btnDevMemo");
+  const devMemoEl = document.getElementById("devMemo");
   const turnText = document.getElementById("turnText");
   const handS = document.getElementById("handS");
   const handG = document.getElementById("handG");
@@ -483,9 +485,13 @@ selected = null;
     const total = game.kifu.moves.length;
     const cur = game.kifu.cursor;
     if (kifuStep) kifuStep.textContent = `手数 ${cur} / ${total}`;
+
+    // 対局中（cursorが末尾）は棋譜操作をロック。レビュー中のみ操作可。
+    const isReviewMode = (cur < total);
     setKifuControlsEnabled(isReviewMode);
-    if (btnKifuPrev) btnKifuPrev.disabled = (cur <= 0);
-    if (btnKifuNext) btnKifuNext.disabled = (cur >= total);
+
+    if (btnKifuPrev) btnKifuPrev.disabled = (!isReviewMode || cur <= 0);
+    if (btnKifuNext) btnKifuNext.disabled = (!isReviewMode || cur >= total);
   }
 
   function setTurnUI(){
@@ -590,6 +596,25 @@ selected = null;
     btnSound.textContent = audioEnabled ? "🔊 音: ON" : "🔇 音: OFF";
     if (audioEnabled) ensureAudioUnlocked();
   });
+
+  // 開発者メモ（通常は非表示、ボタンで展開）
+  if (devMemoEl){
+    // CSSでも隠すが、念のため
+    try{ devMemoEl.style.display = "none"; }catch{}
+  }
+  if (btnDevMemo && devMemoEl){
+    btnDevMemo.addEventListener("click", () => {
+      const isHidden = (getComputedStyle(devMemoEl).display === "none");
+      if (isHidden){
+        devMemoEl.style.display = "block";
+        if ("open" in devMemoEl) devMemoEl.open = true; // <details> を開く
+      } else {
+        if ("open" in devMemoEl) devMemoEl.open = false;
+        devMemoEl.style.display = "none";
+      }
+    });
+  }
+
 
   function appendChat(user, text){
     const div = document.createElement("div");
