@@ -339,6 +339,16 @@
     }
   }
 
+//--モード設定・コントロール
+function setKifuControlsEnabled(enabled){
+  btnKifuPrev.disabled = !enabled;
+  btnKifuNext.disabled = !enabled;
+  btnKifuImport.disabled = !enabled;
+  btnAiReview.disabled = !enabled;
+  const cls = enabled ? "kifu-enabled" : "kifu-disabled";
+  document.getElementById("kifuPanel").classList.toggle("kifu-disabled", !enabled);
+}
+
   function rebuildToCursor(cursor){
     ensureKifu(game);
     const moves = game.kifu.moves || [];
@@ -473,6 +483,7 @@ selected = null;
     const total = game.kifu.moves.length;
     const cur = game.kifu.cursor;
     if (kifuStep) kifuStep.textContent = `手数 ${cur} / ${total}`;
+    setKifuControlsEnabled(isReviewMode);
     if (btnKifuPrev) btnKifuPrev.disabled = (cur <= 0);
     if (btnKifuNext) btnKifuNext.disabled = (cur >= total);
   }
