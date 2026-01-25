@@ -68,8 +68,6 @@
   const chatInput = document.getElementById("chatInput");
   const btnSend = document.getElementById("btnSend");
   const btnSound = document.getElementById("btnSound");
-  const btnDevMemo = document.getElementById("btnDevMemo");
-  const devMemoEl = document.getElementById("devMemo");
   const turnText = document.getElementById("turnText");
   const handS = document.getElementById("handS");
   const handG = document.getElementById("handG");
@@ -342,13 +340,28 @@
   }
 
 //--モード設定・コントロール
+function isInActiveMatch(){
+  const connected = (typeof ws !== "undefined" && ws && ws.readyState === 1);
+  const started = !!(game && game.startedAt);
+  const finished = !!(game && game.finishedAt);
+  return connected && started && !finished;
+}
+
 function setKifuControlsEnabled(enabled){
-  btnKifuPrev.disabled = !enabled;
-  btnKifuNext.disabled = !enabled;
-  btnKifuImport.disabled = !enabled;
-  btnAiReview.disabled = !enabled;
-  const cls = enabled ? "kifu-enabled" : "kifu-disabled";
-  document.getElementById("kifuPanel").classList.toggle("kifu-disabled", !enabled);
+  if (btnKifuPrev) btnKifuPrev.disabled = !enabled;
+  if (btnKifuNext) btnKifuNext.disabled = !enabled;
+  if (btnKifuImport) btnKifuImport.disabled = !enabled;
+  if (btnKifuDelete) btnKifuDelete.disabled = !enabled;
+  if (btnAiReview) btnAiReview.disabled = !enabled;
+
+  const t = document.getElementById("kifuText");
+  if (t) t.disabled = !enabled;
+
+  const note = document.getElementById("kifuLockNote");
+  if (note) note.style.display = enabled ? "none" : "inline";
+
+  const panel = document.getElementById("kifuPanel");
+  if (panel) panel.classList.toggle("kifu-disabled", !enabled);
 }
 
   function rebuildToCursor(cursor){
@@ -485,13 +498,9 @@ selected = null;
     const total = game.kifu.moves.length;
     const cur = game.kifu.cursor;
     if (kifuStep) kifuStep.textContent = `手数 ${cur} / ${total}`;
-
-    // 対局中（cursorが末尾）は棋譜操作をロック。レビュー中のみ操作可。
-    const isReviewMode = (cur < total);
-    setKifuControlsEnabled(isReviewMode);
-
-    if (btnKifuPrev) btnKifuPrev.disabled = (!isReviewMode || cur <= 0);
-    if (btnKifuNext) btnKifuNext.disabled = (!isReviewMode || cur >= total);
+    setKifuControlsEnabled(!isInActiveMatch());
+    if (btnKifuPrev) btnKifuPrev.disabled = (cur <= 0);
+    if (btnKifuNext) btnKifuNext.disabled = (cur >= total);
   }
 
   function setTurnUI(){
@@ -596,25 +605,6 @@ selected = null;
     btnSound.textContent = audioEnabled ? "🔊 音: ON" : "🔇 音: OFF";
     if (audioEnabled) ensureAudioUnlocked();
   });
-
-  // 開発者メモ（通常は非表示、ボタンで展開）
-  if (devMemoEl){
-    // CSSでも隠すが、念のため
-    try{ devMemoEl.style.display = "none"; }catch{}
-  }
-  if (btnDevMemo && devMemoEl){
-    btnDevMemo.addEventListener("click", () => {
-      const isHidden = (getComputedStyle(devMemoEl).display === "none");
-      if (isHidden){
-        devMemoEl.style.display = "block";
-        if ("open" in devMemoEl) devMemoEl.open = true; // <details> を開く
-      } else {
-        if ("open" in devMemoEl) devMemoEl.open = false;
-        devMemoEl.style.display = "none";
-      }
-    });
-  }
-
 
   function appendChat(user, text){
     const div = document.createElement("div");
