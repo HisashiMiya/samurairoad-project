@@ -125,50 +125,66 @@
 }
 
 
-/* ===== Desktop layout (PC): Board left, Kifu below, Chat right (no page scroll) ===== */
+/* ===== Desktop layout: board(left) + chat(right) / kifu under board ===== */
 @media (min-width: 1101px){
-  /* ページ全体のスクロールを抑え、各パネル内だけスクロールさせる */
-  body{ overflow: hidden; }
+  /* Prevent page scroll, but allow panels to manage their own overflow if needed */
+  body{ overflow:hidden; }
 
+  /* Expand wrap to full width on desktop */
+  .wrap{ max-width:none; }
+
+  /* Two-column grid: left=game+kifu, right=chat */
   .wrap{
-    max-width: 1400px;
-    margin: 0 auto;
-    padding: 16px;
-    display: grid;
-    gap: 14px;
-    grid-template-columns: minmax(720px, 1fr) 420px;
-    grid-template-rows: 1fr 360px;
+    display:grid;
+    grid-template-columns: minmax(760px, 1fr) 420px;
+    grid-template-rows: auto minmax(260px, 1fr);
     grid-template-areas:
       "game chat"
       "kifu chat";
-    height: calc(100vh - 32px);
+    gap: 14px;
+    height: 100vh;
     align-items: stretch;
   }
 
-  #gamePanel{ grid-area: game; overflow: hidden; }
-  #kifuPanel{ grid-area: kifu; overflow: hidden; }
-  #chatPanel{
-    grid-area: chat;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
+  #gamePanel{ grid-area: game; overflow:auto; display:flex; flex-direction:column; }
+  #kifuPanel{ grid-area: kifu; overflow:hidden; }
+  #chatPanel{ grid-area: chat; overflow:hidden; display:flex; flex-direction:column; }
+
+  /* Chat log scroll only */
+  #chatPanel .chatLog{ flex:1; min-height:0; overflow:auto; }
+
+  /* Board sizing: fit within available vertical space (avoid clipping) */
+  #board{
+    width: min(56vh, 720px);
+    max-width: 100%;
+    margin: 10px auto 0;
   }
 
-  /* チャットはログだけスクロール */
-  #chatPanel .chatLog{
-    flex: 1;
-    min-height: 0;
-    height: auto !important; /* base.css の height:320px を上書き */
-    overflow: auto;
+  /* --- Desktop: keep holdings visible (sticky) --- */
+  #gamePanel{ scroll-padding-top: 120px; scroll-padding-bottom: 140px; }
+  #gamePanel > .hand{
+    position: sticky;
+    top: 0;
+    z-index: 5;
+    background: rgba(17,26,51,.92);
+    backdrop-filter: blur(6px);
+    padding-top: 10px;
   }
-
-  /* チャット入力は下に固定（パネル内） */
-  #chatPanel .chatComposer{
+  #gamePanel .hands{
     position: sticky;
     bottom: 0;
+    z-index: 5;
+    background: rgba(17,26,51,.92);
+    backdrop-filter: blur(6px);
+    padding-bottom: 10px;
+    margin-top: 10px;
   }
+
+  /* --- Kifu header: title(left) + nav(right) --- */
+  #kifuPanel .kifuHeader{ display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:6px; }
+  #kifuPanel .kifuHeader h1{ margin:0; }
+  #kifuPanel .kifuNav{ display:flex; align-items:center; gap:8px; flex:0 0 auto; }
+  #kifuPanel .kifuNav .btn{ padding:.55rem .85rem; border-radius:999px; }
+  #kifuPanel .kifuNav #kifuStep{ white-space:nowrap; opacity:.9; }
+
 }
-
-/* ===== Dev memo: normally hidden (open via header button) ===== */
-#devMemo{ display:none; }
-

@@ -1,5 +1,3 @@
-@media(min-width:980px){.wrap{grid-template-columns: 1fr 360px;align-items:start}}
-
 @media(max-width:979px){
       .chatToggle{display:inline-flex}
       aside.card{display:none}
