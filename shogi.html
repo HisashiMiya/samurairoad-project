@@ -4,7 +4,10 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>the Shogi(極み将棋) H.M.C</title>
-  <link rel="stylesheet" href="./assets/css/shogi.css?v=20260117-2">
+<link rel="stylesheet" href="./assets/css/base.css">
+<link rel="stylesheet" href="./assets/css/shogi.css?v=20260117-2">
+<link rel="stylesheet" href="./assets/css/shogi-app.css">
+<link rel="stylesheet" href="./assets/css/mobile.css">
 </head>
 <body>
 
@@ -100,24 +103,15 @@
     
     <div id="kifuDock"></div>
     <aside class="card" id="kifuPanel">
-      <h1>棋譜</h1>
-      <div class="muted" style="margin-bottom:8px">
-        「前へ/次へ」で手順再生（レビュー）できます。
-      </div>
-
-      <div class="row" style="margin-top:6px">
-        <button class="btn" id="btnKifuDelete">棋譜ファイル削除</button>
-        <button class="btn ghost" id="btnKifuImport">棋譜ファイル読込</button>
-        <button class="btn primary" id="btnAiReview">🤖 AI対局評価</button>
-      </div>
-
-      <div class="row" style="margin-top:10px">
-        <button class="btn" id="btnKifuPrev">前へ</button>
-        <button class="btn" id="btnKifuNext">次へ</button>
-        <span class="small" id="kifuStep">手数 0 / 0</span>
-      </div>
-
-      <div class="row" style="margin-top:10px">
+  <div class="kifuHeader">
+    <h1>棋譜</h1>
+    <div class="kifuNav" aria-label="kifu-nav">
+      <button class="btn" id="btnKifuPrev">◀ 前へ</button>
+      <button class="btn" id="btnKifuNext">次へ ▶</button>
+      <span class="small" id="kifuStep">手数 0 / 0</span>
+    </div>
+  </div>
+<div class="row" style="margin-top:10px">
         <textarea id="kifuText" class="input" style="min-height:140px;resize:vertical" placeholder="ここに棋譜JSONを貼り付け（インポート用）"></textarea>
       </div>
       <p class="small"></p>
