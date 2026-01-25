@@ -149,6 +149,15 @@
   #gamePanel{ grid-area: game; overflow:auto; display:flex; flex-direction:column; }
   #kifuPanel{ grid-area: kifu; overflow:hidden; }
   #chatPanel{ grid-area: chat; overflow:hidden; display:flex; flex-direction:column; }
+.statusRow{
+  display:flex;
+  gap:12px;
+  align-items:center;
+  justify-content:flex-start;
+}
+#connStatus{ opacity:.9; }
+#turnBadge{ white-space:nowrap;}
+
 
   /* Chat log scroll only */
   #chatPanel .chatLog{ flex:1; min-height:0; overflow:auto; }
@@ -188,3 +197,42 @@
   #kifuPanel .kifuNav #kifuStep{ white-space:nowrap; opacity:.9; }
 
 }
+
+
+/* ===== Desktop: place support (chat/kifu/dev tabs) to the RIGHT of the board ===== */
+@media (min-width: 1101px){
+  /* allow normal page scroll (no forced lock) */
+  body{ overflow:auto; }
+
+  .wrap{
+    max-width:none;
+    display:grid;
+    grid-template-columns: minmax(760px, 1fr) 420px;
+    grid-template-rows: auto;
+    grid-template-areas: "game support";
+    gap:14px;
+    align-items:start;
+    height:auto; /* do not clamp to 100vh */
+  }
+
+  /* left */
+  #gamePanel{ grid-area: game; }
+
+  /* right */
+  #supportPanel{
+    grid-area: support;
+    display:flex;
+    flex-direction:column;
+    min-height: 520px;
+  }
+
+  /* keep tab content scrollable if it gets long */
+  #supportPanel .tabPane{
+    overflow:auto;
+    max-height: calc(100vh - 140px);
+  }
+
+  /* if legacy panels still exist for some reason, hide them */
+  #chatPanel, #kifuPanel, #devMemo{ display:none !important; }
+}
+
