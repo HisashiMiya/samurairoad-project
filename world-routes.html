@@ -1,0 +1,389 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>世界の街道一覧</title>
+  <style>
+:root{
+  --bg:#0b1020; --card:#111a33; --line:rgba(255,255,255,.12);
+  --text:#e8eefc; --muted:#b9c6ea; --accent:#7aa2ff; --chip:#1b2752;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,"Noto Sans JP","Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;background:var(--bg);color:var(--text);}
+a{color:var(--accent);text-decoration:none}
+.header{position:sticky;top:0;z-index:5;background:linear-gradient(180deg, rgba(11,16,32,.98), rgba(11,16,32,.85));border-bottom:1px solid var(--line);backdrop-filter: blur(10px);}
+.wrap{max-width:1100px;margin:0 auto;padding:14px 14px 6px;}
+h1{font-size:18px;margin:0 0 6px;letter-spacing:.02em}
+.sub{color:var(--muted);font-size:12px;line-height:1.5}
+.controls{display:grid;grid-template-columns:1fr 160px 140px;gap:10px;margin-top:12px;align-items:center}
+input,select,button{width:100%;padding:10px 12px;border-radius:12px;border:1px solid var(--line);background:rgba(255,255,255,.06);color:var(--text);outline:none}
+button{cursor:pointer}
+button:hover{background:rgba(255,255,255,.1)}
+.count{margin-top:10px;color:var(--muted);font-size:12px}
+.main{max-width:1100px;margin:0 auto;padding:12px 14px 50px;}
+.cards{display:grid;grid-template-columns:1fr;gap:12px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:14px 14px 12px;box-shadow:0 10px 24px rgba(0,0,0,.25)}
+.cardTop{display:flex;gap:10px;align-items:flex-start;justify-content:space-between}
+.no{font-weight:700;color:var(--muted);font-size:12px}
+.name{font-size:16px;font-weight:800;line-height:1.25;margin:2px 0 4px}
+.meta{display:flex;gap:8px;flex-wrap:wrap;margin:6px 0 8px}
+.chip{background:var(--chip);border:1px solid var(--line);padding:6px 10px;border-radius:999px;font-size:12px;color:var(--text)}
+.kv{margin-top:10px;border-top:1px dashed var(--line);padding-top:10px}
+dl{margin:0;display:grid;grid-template-columns:110px 1fr;gap:6px 10px}
+dt{color:var(--muted);font-size:12px;line-height:1.5}
+dd{margin:0;font-size:13px;line-height:1.6}
+.small{font-size:12px;color:var(--muted)}
+.tableWrap{display:none;margin-top:14px;border:1px solid var(--line);border-radius:18px;overflow:auto}
+table{min-width:980px;width:100%;border-collapse:collapse;background:var(--card)}
+thead th{position:sticky;top:86px;background:rgba(17,26,51,.98);backdrop-filter: blur(10px);border-bottom:1px solid var(--line);text-align:left;font-size:12px;color:var(--muted);padding:10px;white-space:nowrap}
+tbody td{border-bottom:1px solid rgba(255,255,255,.06);padding:10px;font-size:13px;vertical-align:top;line-height:1.5}
+tbody tr:hover{background:rgba(255,255,255,.04)}
+@media (min-width: 860px){
+  .controls{grid-template-columns:1fr 220px 170px}
+  .tableWrap{display:block}
+}
+@media (prefers-color-scheme: light){
+  :root{--bg:#f6f8ff; --card:#ffffff; --text:#0b1020; --muted:#4c5878; --line:rgba(11,16,32,.12); --accent:#275efe; --chip:#f0f3ff;}
+  body{background:var(--bg);}
+  .header{background:linear-gradient(180deg, rgba(246,248,255,.98), rgba(246,248,255,.85));}
+  table{background:var(--card)}
+}
+.footer{margin-top:18px;color:var(--muted);font-size:12px}
+.note{margin-top:8px;color:var(--muted);font-size:12px;line-height:1.6}
+.loading{padding:16px;color:var(--muted)}
+code{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace}
+.chip-map{
+  background: linear-gradient(135deg, #7dd3fc, #a78bfa);
+  color: #06101a;
+  font-weight: 700;
+  border: none;
+  box-shadow: 0 6px 16px rgba(125,211,252,.35);
+}
+
+.chip-map:hover{
+  filter: brightness(1.05);
+  transform: translateY(-1px);
+}
+.chip-map::before{
+  content:"🗺";
+  margin-right:4px;
+}
+</style>
+</head>
+<body>
+  <div class="header" id="top">
+    <div class="wrap">
+      <h1>世界の街道一覧</h1>
+      <p class="hero-description">
+      歴史の足跡をたどる旅へ。世界中に点在する250以上の街道情報をまとめてみました。
+      </p>
+      <div class="controls" role="search">
+        <input id="q" type="search" placeholder="検索：名前 / 国 / 見どころ / 物語…（例：巡礼, #山岳, 富士）" />
+        <select id="tag"><option value="">タグ（全て）</option></select>
+        <select id="mode">
+          <option value="both">表示：自動</option>
+          <option value="cards">表示：カードのみ</option>
+          <option value="table">表示：表のみ</option>
+        </select>
+      </div>
+
+      <div class="count" id="count">-</div>
+      <div class="note">
+      </div>
+      <div style="margin-top:10px;display:flex;gap:10px;flex-wrap:wrap">
+        <button type="button" onclick="resetFilter()">リセット</button>
+        <button type="button" onclick="window.scrollTo({top:document.querySelector('.main').offsetTop, behavior:'smooth'})">一覧へ</button>
+      </div>
+    </div>
+  </div>
+
+  <main class="main">
+    <div class="cards" id="cards"></div>
+
+    <div class="tableWrap" aria-label="表（全項目）">
+      <table>
+        <thead id="thead"></thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+
+  <div data-include="/includes/footer.html" aria-label="Footer"></div>
+  </main>
+
+  <script>
+
+// ===== CSV parser (RFC4180-ish) =====
+function parseCSV(text) {
+  const rows = [];
+  let row = [];
+  let cur = '';
+  let i = 0;
+  let inQuotes = false;
+
+  // strip UTF-8 BOM
+  if (text && text.charCodeAt(0) === 0xFEFF) text = text.slice(1);
+
+  while (i < text.length) {
+    const ch = text[i];
+
+    if (inQuotes) {
+      if (ch === '"') {
+        if (i + 1 < text.length && text[i + 1] === '"') {
+          cur += '"';
+          i += 2;
+          continue;
+        } else {
+          inQuotes = false;
+          i++;
+          continue;
+        }
+      } else {
+        cur += ch;
+        i++;
+        continue;
+      }
+    } else {
+      if (ch === '"') { inQuotes = true; i++; continue; }
+      if (ch === ',') { row.push(cur); cur = ''; i++; continue; }
+      if (ch === '\r') { i++; continue; }
+      if (ch === '\n') { row.push(cur); rows.push(row); row = []; cur = ''; i++; continue; }
+      cur += ch;
+      i++;
+    }
+  }
+  row.push(cur);
+  rows.push(row);
+  return rows;
+}
+
+function escapeHTML(s) {
+  return (s ?? '').toString()
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#039;');
+}
+function norm(s){ return (s||"").toString().toLowerCase(); }
+
+const preferredOrder = ['No', '名前', '国・地域', 'タグ', '距離', '起点 〜 終点', '特徴', '見どころ', '物語スイッチ', 'ベストシーズン × 表情変化', '到達後のご褒美', '覚悟レベル', '危険・制限', 'ChatGPT一言', 'Geminiの一言', 'ブー之助の一言'];
+
+function reorderCols(cols){
+  const inSet = new Set(cols);
+  const ordered = [];
+  for (const c of preferredOrder) if (inSet.has(c)) ordered.push(c);
+  for (const c of cols) if (!ordered.includes(c)) ordered.push(c);
+  return ordered;
+}
+
+function extractTags(tagField){
+  const tags = [];
+  const raw = (tagField||"").toString().trim();
+  if(!raw) return tags;
+  raw.split(/\s+|,/).forEach(t=>{
+    t = t.trim();
+    if(t) tags.push(t);
+  });
+  return tags;
+}
+
+function buildTagOptions(allTags){
+  const sel = document.getElementById("tag");
+  sel.innerHTML = "";
+  const optAll = document.createElement("option");
+  optAll.value = "";
+  optAll.textContent = "タグ（全て）";
+  sel.appendChild(optAll);
+
+  [...allTags].sort().forEach(t=>{
+    const opt = document.createElement("option");
+    opt.value = t;
+    opt.textContent = t;
+    sel.appendChild(opt);
+  });
+}
+
+function makeCard(row, cols){
+  const get = (k)=> row[k] ?? "";
+    const id = (get("id") || "").toString().trim();
+  const mapURL = id
+    ? `https://samurairoad-project.pages.dev/worldmap?route=${encodeURIComponent(id)}`
+    : null;
+  const no = escapeHTML(get("No"));
+  const name = escapeHTML(get("名前"));
+  const region = escapeHTML(get("国・地域"));
+  const kind = escapeHTML(get("区分"));
+  const dist = escapeHTML(get("距離"));
+  const tags = extractTags(get("タグ"));
+  const dataTags = escapeHTML(tags.join(" "));
+
+  const story = escapeHTML(get("物語スイッチ")) || "★判断不可★";
+  const season = escapeHTML(get("ベストシーズン × 表情変化")) || "★判断不可★";
+  const reward = escapeHTML(get("到達後のご褒美")) || "★判断不可★";
+  const level = escapeHTML(get("覚悟レベル")) || "★判断不可★";
+  const danger = escapeHTML(get("危険・制限")) || "★判断不可★";
+  const comment = escapeHTML(get("ChatGPTコメント")) || "";
+
+  const chips = [];
+  if(region) chips.push(`<span class="chip">${region}</span>`);
+  if(kind) chips.push(`<span class="chip">${kind}</span>`);
+  if(dist) chips.push(`<span class="chip">距離: ${dist}</span>`);
+  tags.forEach(t=>chips.push(`<span class="chip">${escapeHTML(t)}</span>`));
+
+  const blob = cols.map(c=> (get(c)??"")).join(" ").toLowerCase();
+
+  const fullPairs = [];
+  for(const c of cols){
+    const v = (get(c)??"").toString();
+    if(!v) continue;
+    if(["No","名前","国・地域","区分","距離","タグ"].includes(c)) continue;
+    fullPairs.push(`<dt>${escapeHTML(c)}</dt><dd>${escapeHTML(v)}</dd>`);
+  }
+
+  return `
+  <section class="card" id="no${no}" data-text="${escapeHTML(blob)}" data-tags="${dataTags}">
+    <div class="cardTop">
+      <div>
+        <div class="no">No.${no}</div>
+        <div class="name">${name}</div>
+        <div class="meta">
+          ${chips.join("")}
+          ${mapURL ? `<a class="chip chip-map" href="${mapURL}" target="_blank" rel="noopener">地図で見る</a>` : ""}
+        </div>
+      </div>
+      <div class="small"><a href="#top">↑</a></div>
+    </div>
+
+    <div class="kv">
+      <dl>
+        <dt>物語スイッチ</dt><dd>${story}</dd>
+        <dt>ベストシーズン</dt><dd>${season}</dd>
+        <dt>到達後のご褒美</dt><dd>${reward}</dd>
+        <dt>覚悟レベル</dt><dd>${level}</dd>
+        <dt>危険・制限</dt><dd>${danger}</dd>
+        <dt>コメント</dt><dd>${comment}</dd>
+      </dl>
+    </div>
+
+    <div class="kv">
+      <div class="small">全項目</div>
+      <dl>
+        ${fullPairs.join("\n")}
+      </dl>
+    </div>
+  </section>`;
+}
+
+function makeTable(rows, cols){
+  const thead = `<tr>${cols.map(c=>`<th>${escapeHTML(c)}</th>`).join("")}</tr>`;
+  const tbody = rows.map(r=>{
+    const blob = cols.map(c=>(r[c]??"")).join(" ").toLowerCase();
+    const tags = extractTags(r["タグ"]).join(" ");
+    const tds = cols.map(c=>`<td>${escapeHTML(r[c]??"")}</td>`).join("");
+    return `<tr data-text="${escapeHTML(blob)}" data-tags="${escapeHTML(tags)}">${tds}</tr>`;
+  }).join("\n");
+  return { thead, tbody };
+}
+
+function applyFilter(){
+  const q = norm(document.getElementById("q").value).trim();
+  const tag = document.getElementById("tag").value;
+  const mode = document.getElementById("mode").value;
+
+  const cards = document.querySelectorAll(".card");
+  let shown = 0;
+  cards.forEach(card=>{
+    const text = norm(card.getAttribute("data-text"));
+    const tags = (card.getAttribute("data-tags") || "").split(" ").filter(Boolean);
+    const okQ = !q || text.includes(q);
+    const okT = !tag || tags.includes(tag);
+    const ok = okQ && okT;
+    card.style.display = ok ? "" : "none";
+    if(ok) shown++;
+  });
+  document.getElementById("count").textContent = shown + " / " + cards.length + " 件";
+
+  const rows = document.querySelectorAll("tbody tr");
+  rows.forEach(tr=>{
+    const text = norm(tr.getAttribute("data-text"));
+    const tags = (tr.getAttribute("data-tags") || "").split(" ").filter(Boolean);
+    const okQ = !q || text.includes(q);
+    const okT = !tag || tags.includes(tag);
+    tr.style.display = (okQ && okT) ? "" : "none";
+  });
+
+  const tableWrap = document.querySelector(".tableWrap");
+  if(mode==="cards") tableWrap.style.display="none";
+  else if(mode==="table") tableWrap.style.display="block";
+  else tableWrap.style.display = (window.innerWidth>=860) ? "block" : "none";
+}
+
+function resetFilter(){
+  document.getElementById("q").value="";
+  document.getElementById("tag").value="";
+  document.getElementById("mode").value="both";
+  applyFilter();
+}
+
+window.addEventListener("resize", ()=>{
+  if(document.getElementById("mode").value==="both") applyFilter();
+});
+
+async function boot(){
+  const cardsWrap = document.getElementById("cards");
+  const tableHead = document.getElementById("thead");
+  const tableBody = document.getElementById("tbody");
+
+  cardsWrap.innerHTML = '<div class="loading">読み込み中…</div>';
+
+  const csvPath = "./data/htmldsp/world-routes.csv";
+  const res = await fetch(csvPath, { cache:"no-store" });
+  if(!res.ok){
+    cardsWrap.innerHTML = '<div class="loading">CSVを読み込めませんでした: ' + escapeHTML(csvPath) + '</div>';
+    return;
+  }
+  const text = await res.text();
+  const grid = parseCSV(text);
+  const header = grid[0] || [];
+  const cols = reorderCols(header);
+
+  const rows = [];
+  for(let i=1;i<grid.length;i++){
+    const arr = grid[i];
+    if(arr.length===1 && arr[0]==="") continue;
+    const obj = {};
+    header.forEach((h, idx)=> obj[h] = (arr[idx] ?? ""));
+    rows.push(obj);
+  }
+
+  const tagSet = new Set();
+  rows.forEach(r=> extractTags(r["タグ"]).forEach(t=>{ if(t.startsWith("#")) tagSet.add(t); }));
+  buildTagOptions(tagSet);
+
+  cardsWrap.innerHTML = rows.map(r=> makeCard(r, cols)).join("\n");
+  const tbl = makeTable(rows, cols);
+  tableHead.innerHTML = tbl.thead;
+  tableBody.innerHTML = tbl.tbody;
+
+  document.getElementById("q").addEventListener("input", applyFilter);
+  document.getElementById("tag").addEventListener("change", applyFilter);
+  document.getElementById("mode").addEventListener("change", applyFilter);
+
+  resetFilter();
+}
+
+document.addEventListener("DOMContentLoaded", boot);
+
+  </script>
+  <!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-XPMXMPVEKV"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-XPMXMPVEKV');
+</script>
+</body>
+</html>
