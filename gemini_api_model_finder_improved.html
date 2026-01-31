@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Gemini API Model Finder｜モデル一覧取得＆疎通確認（404対策）</title>
+
+<meta name="description" content="Gemini APIの利用可能モデル一覧をAPI経由で取得し、選択モデルへ ping（generateContent）で疎通確認できるデバッグツール。公式ドキュメントと実態の乖離・404エラー調査に。">
+<meta property="og:title" content="Gemini API Model Finder">
+<meta property="og:description" content="Gemini APIの利用可能モデル一覧取得＆疎通確認デバッグツール（404対策・モデル名確認）。">
+<meta name="robots" content="index,follow">
+<meta name="theme-color" content="#0b0f19">
+
+<style>
+  :root { 
+    --bg: #0b0f19;
+    --card: #151b2b;
+    --border: #334155;
+    --text: #e2e8f0;
+    --sub: #94a3b8;
+    --accent: #3b82f6;
+    --ok: #22c55e;
+    --ng: #ef4444;
+    --flash: #f59e0b;
+    --pro: #8b5cf6;
+    --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+    --sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans JP", sans-serif;
+  }
+
+  * { box-sizing: border-box; }
+  body { 
+    background: var(--bg); color: var(--text); font-family: var(--sans);
+    margin: 0; padding: 18px; line-height: 1.6;
+  }
+  code, pre, kbd { font-family: var(--mono); }
+  a { color: var(--accent); }
+  .container { max-width: 1200px; margin: 0 auto; }
+
+  /* Top nav */
+  .topbar{
+    display:flex; gap:12px; align-items:center; justify-content:space-between;
+    padding: 10px 12px; border:1px solid var(--border); border-radius: 10px;
+    background: rgba(0,0,0,0.25); margin-bottom: 14px;
+  }
+  .brand{ display:flex; flex-direction:column; gap:2px; }
+  .brand .title{ font-weight: 800; letter-spacing: .2px; }
+  .brand .sub{ color: var(--sub); font-size:.85rem; }
+  .navlinks{ display:flex; gap:10px; flex-wrap:wrap; justify-content:flex-end; }
+  .pill{
+    display:inline-flex; align-items:center; gap:8px;
+    padding: 8px 10px; border-radius: 999px; border:1px solid var(--border);
+    background: rgba(21,27,43,.75);
+    color: var(--text); text-decoration:none; font-size:.85rem;
+  }
+  .pill:hover{ border-color: var(--accent); }
+
+  /* Cards */
+  .card { 
+    background: var(--card);
+    border: 1px solid var(--border); 
+    border-radius: 12px;
+    padding: 18px;
+    margin-bottom: 16px;
+    box-shadow: 0 10px 24px rgba(0,0,0,.25);
+  }
+  h1, h2, h3 { margin: 0 0 10px 0; color: #fff; }
+  h1 { font-size: 1.25rem; }
+  h2 { font-size: 1.05rem; border-bottom: 1px solid var(--border); padding-bottom: 10px; }
+  p { margin: 8px 0; color: var(--text); }
+  .muted { color: var(--sub); }
+
+  /* Layout helpers */
+  .grid2{ display:grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .grid3{ display:grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+  @media (max-width: 980px){ .grid3{ grid-template-columns: 1fr; } }
+  @media (max-width: 860px){ .grid2{ grid-template-columns: 1fr; } }
+
+  /* Inputs */
+  .input-row{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+  input[type="password"], input[type="text"]{
+    flex: 1; min-width: 240px;
+    background: #000; border: 1px solid var(--border); color: #fff; 
+    padding: 12px; border-radius: 10px; font-family: var(--mono); font-size: .95rem;
+  }
+  input:focus{ outline: 2px solid rgba(59,130,246,.35); border-color: var(--accent); }
+  button{
+    background: var(--accent); color: #fff; border: none; padding: 11px 14px; 
+    border-radius: 10px; font-weight: 800; cursor: pointer; font-family: var(--sans); font-size: .95rem;
+    transition: transform .05s ease, opacity .2s ease;
+    box-shadow: 0 10px 18px rgba(59,130,246,.18);
+  }
+  button:hover{ opacity:.9; }
+  button:active{ transform: translateY(1px); }
+  button:disabled{ background: #22314a; color: #8896ac; cursor:not-allowed; box-shadow:none; }
+
+  .btn-ghost{
+    background: transparent; border:1px solid var(--border); color: var(--sub);
+    box-shadow:none;
+  }
+  .btn-ghost:hover{ border-color: var(--accent); color: var(--accent); opacity: 1; }
+
+  /* Alerts */
+  .alert{
+    border: 1px solid var(--border); border-radius: 12px; padding: 12px 14px;
+    background: rgba(0,0,0,.22);
+  }
+  .alert strong{ color:#fff; }
+  .alert.ok{ border-color: rgba(34,197,94,.35); }
+  .alert.ng{ border-color: rgba(239,68,68,.35); }
+
+  /* Badges */
+  .badge{ padding: 3px 8px; border-radius: 999px; font-size: .75rem; font-weight: 800; display:inline-block; }
+  .b-flash{ background: rgba(245,158,11,.18); color: #ffd68a; border:1px solid rgba(245,158,11,.35); }
+  .b-pro{ background: rgba(139,92,246,.18); color: #d5c6ff; border:1px solid rgba(139,92,246,.35); }
+  .b-stable{ background: rgba(34,197,94,.16); color: #b8f7c9; border:1px solid rgba(34,197,94,.35); }
+  .b-exp{ background: rgba(234,179,8,.16); color: #ffe9a6; border:1px solid rgba(234,179,8,.35); }
+
+  /* Table */
+  .toolsbar{
+    display:flex; gap:10px; flex-wrap:wrap; align-items:center; justify-content:space-between;
+    margin: 8px 0 10px;
+  }
+  .filterbar{ display:flex; gap:8px; flex-wrap:wrap; }
+  .filter-btn{
+    background: transparent; border:1px solid var(--border); color: var(--sub);
+    padding: 7px 10px; border-radius: 999px; font-size:.85rem; cursor:pointer;
+  }
+  .filter-btn.active{ border-color: var(--accent); color: var(--accent); background: rgba(59, 130, 246, 0.12); }
+
+  .table-wrap { overflow:auto; max-height: 520px; border: 1px solid var(--border); border-radius: 12px; }
+  table { width: 100%; border-collapse: collapse; font-size: .9rem; white-space: nowrap; }
+  th { 
+    background: #101827; text-align: left; padding: 10px; position: sticky; top: 0; z-index: 10;
+    border-bottom: 1px solid var(--border); color: var(--accent);
+  }
+  td { padding: 9px 10px; border-bottom: 1px solid rgba(51,65,85,.65); vertical-align: top; }
+  tr:hover { background: rgba(30,41,59,.55); }
+  .desc { max-width: 520px; white-space: normal; color: var(--sub); font-size:.85rem; }
+  .mono { font-family: var(--mono); }
+
+  /* Console */
+  #consoleLog{
+    background: #000; color: #4ade80; padding: 14px; border-radius: 12px;
+    height: 140px; overflow:auto; font-size: .85rem; border: 1px solid var(--border);
+    white-space: pre-wrap;
+  }
+
+  /* Footer */
+  footer{ margin-top: 18px; color: var(--sub); font-size:.85rem; }
+  .divider{ height:1px; background: rgba(51,65,85,.9); margin: 12px 0; }
+</style>
+</head>
+
+<body>
+<div class="container">
+
+  <div class="topbar">
+    <div class="brand">
+      <div class="title">Gemini API Model Finder</div>
+      <div class="sub">モデル名の「正解」をAPIから取りに行く（404/ドキュメント乖離の対策）</div>
+    </div>
+    <div class="navlinks">
+      <!-- ここはあなたのサイト導線：必要に応じてリンク先を差し替えてOK -->
+      <a class="pill" href="index.html" title="ホームへ">🏠home</a>
+      <a class="pill" href="worldmap.html" title="あなたのページへ">🚀 World Route</a>
+      <a class="pill" href="#share" title="このツールを紹介する">🔗 共有用</a>
+      <a class="pill" href="#faq" title="よくある詰まりポイント">❓ FAQ</a>
+    </div>
+  </div>
+
+  <div class="card">
+    <h1>モデル一覧取得＆疎通確認ツール</h1>
+    <p class="muted">
+      <strong>用途：</strong>「どのモデル名が通るのか分からない」「<code>404</code> が出る」「公式と違う」時に、APIに聞いて一覧を取得し、そのまま選択モデルへ <code>ping</code> できます。
+    </p>
+    <div class="grid2" style="margin-top:10px;">
+      <div class="alert">
+        <strong>🔒 キーの扱い</strong><br>
+        このページは <strong>クライアント側でのみ</strong> 実行されます（サーバーに保存しません）。<br>
+        ただしブラウザ拡張や共有PCなど、環境リスクはゼロではありません。必要に応じてキーをローテしてください。
+      </div>
+      <div class="alert">
+        <strong>✅ まずやること</strong><br>
+        1) APIキーを貼る → 2) Get Models → 3) 一覧から選ぶ → 4) Ping Test<br>
+        うまくいかない時は下の <a href="#faq">FAQ</a> を見てください。
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>1) API Key</h2>
+    <div class="input-row">
+      <input type="password" id="apiKey" placeholder="AIzaSy... (Paste your API Key)">
+      <button id="btnGetModels" onclick="fetchModels()">Get Models</button>
+      <button class="btn-ghost" onclick="toggleKeyVisibility()">Show/Hide</button>
+    </div>
+    <p class="muted" style="margin-top:8px;">
+      ※ このページは <code>https://generativelanguage.googleapis.com/v1beta/models</code> にアクセスします。
+    </p>
+  </div>
+
+  <div id="resultArea" style="display:none;">
+
+    <div class="card" style="border-left: 4px solid var(--accent);">
+      <div class="toolsbar">
+        <div>
+          <div style="font-weight:800;">Detected Models: <span id="modelCount">0</span></div>
+          <div class="muted" style="font-size:.85rem;">※ generateContent 対応モデルのみ抽出</div>
+        </div>
+        <div class="filterbar" aria-label="filters">
+          <button class="filter-btn active" onclick="applyFilter('all', this)">All</button>
+          <button class="filter-btn" onclick="applyFilter('stable', this)">Stable</button>
+          <button class="filter-btn" onclick="applyFilter('exp', this)">Exp/Beta/Preview</button>
+          <button class="filter-btn" onclick="applyFilter('flash', this)">Flash</button>
+          <button class="filter-btn" onclick="applyFilter('pro', this)">Pro</button>
+        </div>
+      </div>
+
+      <div class="input-row" style="margin:10px 0 6px;">
+        <input type="text" id="searchBox" placeholder="Search (e.g. 2.0 / flash / pro / 001 / vision)..." oninput="applySearch()" />
+        <button class="btn-ghost" onclick="copySelectedModel()" title="選択中のモデル名をコピー">Copy Selected</button>
+        <button class="btn-ghost" onclick="downloadJSON()" title="表示中のモデル一覧をJSONで保存">Export JSON</button>
+      </div>
+
+      <div class="table-wrap">
+        <table id="modelTable">
+          <thead>
+            <tr>
+              <th style="width:52px;">Sel</th>
+              <th>Model Name (ID)</th>
+              <th>Ver</th>
+              <th>Input Limit</th>
+              <th>Type</th>
+              <th>Description</th>
+            </tr>
+          </thead>
+          <tbody id="modelTableBody"></tbody>
+        </table>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="grid2">
+        <div class="alert">
+          <strong>💡 ざっくり選び方</strong><br>
+          <span class="badge b-flash">Flash</span> 高速・安価・大量処理向き<br>
+          <span class="badge b-pro">Pro</span> 高精度・複雑な推論向き<br><br>
+          <span class="muted">本番で挙動固定したいなら <code>001</code> 系（固定版）を優先。</span>
+        </div>
+        <div class="alert">
+          <strong>🧩 ありがちな罠</strong><br>
+          公式例にある名前が <code>v1beta</code> では通らない / 仕様変更が混ざることがあります。<br>
+          <span class="muted">この一覧は「今このキーで通る候補」を返すので、まずはここを正としてください。</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>2) Connection Test</h2>
+      <div class="input-row" style="justify-content:space-between;">
+        <div class="muted">Target: <strong id="targetModelName" style="color:#fff;">(Select from list)</strong></div>
+        <div class="input-row" style="flex:0; justify-content:flex-end;">
+          <button id="testBtn" onclick="runConnectionTest()" disabled>Ping Test</button>
+          <button class="btn-ghost" onclick="clearConsole()">Clear</button>
+        </div>
+      </div>
+      <div id="consoleLog">// Waiting for test execution...</div>
+
+      <div class="divider"></div>
+
+      <div class="alert" id="share">
+        <strong>🔗 共有したい人へ（コピペ用）</strong><br>
+        「Gemini API のモデル名が分からず 404 になる時は、まずこのページで “今通るモデル一覧” を取得して、選んで ping すると切り分けが早いです。」<br>
+        <span class="muted">※ キーは各自のものを入力（送らない）</span>
+      </div>
+
+      <div style="margin-top: 14px; display: flex; justify-content: flex-end; gap:10px; flex-wrap:wrap;">
+        <a class="pill" href="worldmap.html" style="border-color: var(--accent);">🚀 World Route へ</a>
+        <a class="pill" href="#faq">❓ FAQへ</a>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="card" id="faq">
+    <h2>FAQ（よくある詰まり）</h2>
+    <div class="grid3">
+      <div class="alert">
+        <strong>Q. Get Models が失敗する</strong><br>
+        A. キーが無効 / 課金・権限 / 組織設定 / ネットワーク制限など。<br>
+        <span class="muted">まずはエラーメッセージ全文を確認し、同じキーで別環境（別ブラウザ）も試す。</span>
+      </div>
+      <div class="alert">
+        <strong>Q. 一覧は出るのに Ping が失敗する</strong><br>
+        A. リクエスト形式、利用リージョン制約、レート制限、モデルごとの制約が考えられます。<br>
+        <span class="muted">このページは <code>generateContent</code> に <code>ping</code> を投げるだけの最小構成です。</span>
+      </div>
+      <div class="alert">
+        <strong>Q. stable/exp の違いは？</strong><br>
+        A. <code>exp/beta/preview</code> は挙動や可用性が変わる可能性が高め。<br>
+        <span class="muted">「動作が急に変わって困る」を避けるなら固定版（001 等）を優先。</span>
+      </div>
+    </div>
+
+    <p class="muted" style="margin-top:10px;">
+      ※ このページは “原因を断定” するものではなく、まず「モデル名が合っているか」「疎通できるか」を最短で切り分けるためのツールです。
+    </p>
+  </div>
+
+  <footer>
+    <div class="divider"></div>
+    <div class="muted">
+      Made for debugging Gemini API model naming / availability mismatches. This page runs in your browser.
+    </div>
+  </footer>
+
+</div>
+
+<script>
+let allModels = [];
+let viewModels = [];
+let selectedModel = "";
+let currentFilter = "all";
+
+function toggleKeyVisibility(){
+  const el = document.getElementById('apiKey');
+  el.type = (el.type === 'password') ? 'text' : 'password';
+}
+
+function clearConsole(){
+  document.getElementById('consoleLog').innerText = "// Cleared.";
+}
+
+function normalize(s){
+  return (s || "").toLowerCase();
+}
+
+async function fetchModels() {
+  const key = document.getElementById('apiKey').value.trim();
+  if(!key) { alert("Please enter API Key"); return; }
+
+  const tbody = document.getElementById('modelTableBody');
+  document.getElementById('resultArea').style.display = 'block';
+  tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:18px; color:#888;">Fetching...</td></tr>';
+
+  // Reset selection
+  selectedModel = "";
+  document.getElementById('targetModelName').innerText = "(Select from list)";
+  document.getElementById('testBtn').disabled = true;
+
+  try {
+    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${key}`);
+    const data = await res.json();
+    if(data.error) throw new Error(data.error.message || "API Error");
+
+    // generateContent 対応だけに絞る
+    allModels = (data.models || []).filter(m => (m.supportedGenerationMethods || []).includes("generateContent"));
+
+    // Newest first: name で降順（元の挙動を維持）
+    allModels.sort((a, b) => b.name.localeCompare(a.name));
+
+    if(allModels.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:#f87171;">No allowed models found.</td></tr>';
+      document.getElementById('modelCount').innerText = "0";
+      return;
+    }
+
+    document.getElementById('modelCount').innerText = String(allModels.length);
+
+    // 初期表示
+    currentFilter = "all";
+    document.getElementById('searchBox').value = "";
+    viewModels = allModels.slice();
+    renderTable(viewModels);
+
+  } catch(e) {
+    alert("Error: " + e.message);
+    tbody.innerHTML = `<tr><td colspan="6" style="color:#f87171;">Error: ${escapeHtml(e.message)}</td></tr>`;
+    document.getElementById('modelCount').innerText = "0";
+  }
+}
+
+function renderTable(models) {
+  const tbody = document.getElementById('modelTableBody');
+  tbody.innerHTML = "";
+
+  models.forEach((m, index) => {
+    const shortName = (m.name || "").replace("models/", "");
+    const isExp = /exp|beta|preview/i.test(shortName);
+
+    // Input limit formatting
+    let limitStr = "-";
+    if (m.inputTokenLimit) {
+      limitStr = m.inputTokenLimit >= 1000000
+        ? (m.inputTokenLimit/1000000) + "M"
+        : (m.inputTokenLimit/1000) + "k";
+    }
+
+    // Type badge
+    let typeBadge = '<span class="badge" style="background:rgba(148,163,184,.12); border:1px solid rgba(148,163,184,.25); color:#cbd5e1;">Other</span>';
+    if(/flash/i.test(shortName)) typeBadge = '<span class="badge b-flash">Flash</span>';
+    if(/pro/i.test(shortName)) typeBadge = '<span class="badge b-pro">Pro</span>';
+
+    const verBadge = isExp ? '<span class="badge b-exp">Exp</span>' : '<span class="badge b-stable">Stable</span>';
+
+    const tr = document.createElement('tr');
+    const rid = "m_" + index;
+    tr.innerHTML = `
+      <td style="text-align:center;">
+        <input type="radio" name="modelSelector" value="${escapeAttr(m.name)}" id="${rid}">
+      </td>
+      <td>
+        <label for="${rid}" style="cursor:pointer; font-weight:800; color:${isExp ? '#fbbf24' : '#60a5fa'};">
+          <span class="mono">${escapeHtml(shortName)}</span>
+        </label>
+        <div class="muted" style="font-size:.78rem; margin-top:2px;">${escapeHtml(m.name || "")}</div>
+      </td>
+      <td>${verBadge}</td>
+      <td class="mono" style="color:#cbd5e1;">${escapeHtml(limitStr)}</td>
+      <td>${typeBadge}</td>
+      <td class="desc">${escapeHtml(m.description || "-")}</td>
+    `;
+    tr.querySelector('input[type="radio"]').addEventListener('change', (ev) => selectModel(ev.target.value));
+    tbody.appendChild(tr);
+  });
+
+  if(models.length === 0){
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:18px; color:#888;">No models matched.</td></tr>';
+  }
+}
+
+function applyFilter(type, btn) {
+  currentFilter = type;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  applySearch();
+}
+
+function applySearch(){
+  const q = normalize(document.getElementById('searchBox').value);
+
+  let filtered = allModels.slice();
+
+  if(currentFilter === "stable"){
+    filtered = filtered.filter(m => !/exp|beta|preview/i.test(m.name || ""));
+  } else if(currentFilter === "exp"){
+    filtered = filtered.filter(m => /exp|beta|preview/i.test(m.name || ""));
+  } else if(currentFilter === "flash"){
+    filtered = filtered.filter(m => /flash/i.test((m.name || "").replace("models/","")));
+  } else if(currentFilter === "pro"){
+    filtered = filtered.filter(m => /pro/i.test((m.name || "").replace("models/","")));
+  }
+
+  if(q){
+    filtered = filtered.filter(m => {
+      const shortName = (m.name || "").replace("models/","");
+      return normalize(shortName).includes(q) || normalize(m.description).includes(q);
+    });
+  }
+
+  viewModels = filtered;
+  renderTable(viewModels);
+}
+
+function selectModel(modelName) {
+  selectedModel = modelName;
+  document.getElementById('targetModelName').innerText = (selectedModel || "").replace("models/", "");
+  document.getElementById('testBtn').disabled = !selectedModel;
+}
+
+function copySelectedModel(){
+  if(!selectedModel){ alert("Select a model first."); return; }
+  const shortName = selectedModel.replace("models/","");
+  navigator.clipboard.writeText(shortName).then(() => {
+    toast(`Copied: ${shortName}`);
+  }).catch(() => alert("Copy failed."));
+}
+
+function downloadJSON(){
+  const blob = new Blob([JSON.stringify(viewModels, null, 2)], {type: "application/json"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "gemini_models_export.json";
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+  toast("Exported JSON");
+}
+
+async function runConnectionTest() {
+  const key = document.getElementById('apiKey').value.trim();
+  const log = document.getElementById('consoleLog');
+  const btn = document.getElementById('testBtn');
+  if(!selectedModel) return;
+
+  btn.disabled = true; btn.innerText = "Testing...";
+  btn.style.background = "";
+  log.innerText = `> Connecting to ${selectedModel}...\n`;
+
+  try {
+    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/${selectedModel}:generateContent?key=${key}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ contents: [{ parts: [{ text: "ping" }] }] })
+    });
+
+    const data = await res.json();
+    if(!res.ok) throw new Error(data.error?.message || res.statusText);
+
+    const reply = data.candidates?.[0]?.content?.parts?.[0]?.text || "";
+    log.innerText += `> 200 OK\n> Reply: "${(reply || "").trim()}"\n✅ SUCCESS`;
+    btn.innerText = "Success";
+    btn.style.background = getComputedStyle(document.documentElement).getPropertyValue('--ok').trim();
+
+  } catch(e) {
+    log.innerText += `> Error: ${e.message}\n❌ FAILED`;
+    btn.innerText = "Failed";
+    btn.style.background = getComputedStyle(document.documentElement).getPropertyValue('--ng').trim();
+  } finally {
+    btn.disabled = false;
+    setTimeout(()=>{ btn.innerText = "Ping Test"; btn.style.background = ""; }, 1200);
+  }
+}
+
+/* --- tiny helpers --- */
+function escapeHtml(str){
+  return String(str ?? "")
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;")
+    .replaceAll("'","&#039;");
+}
+function escapeAttr(str){ return escapeHtml(str); }
+
+function toast(msg){
+  const t = document.createElement("div");
+  t.textContent = msg;
+  t.style.position = "fixed";
+  t.style.right = "14px";
+  t.style.bottom = "14px";
+  t.style.padding = "10px 12px";
+  t.style.background = "rgba(15,23,42,.92)";
+  t.style.border = "1px solid rgba(59,130,246,.45)";
+  t.style.borderRadius = "12px";
+  t.style.color = "#fff";
+  t.style.fontFamily = getComputedStyle(document.body).fontFamily;
+  t.style.fontSize = ".9rem";
+  t.style.zIndex = "9999";
+  t.style.boxShadow = "0 18px 30px rgba(0,0,0,.35)";
+  document.body.appendChild(t);
+  setTimeout(()=>{ t.style.opacity = "0"; t.style.transition = "opacity .25s"; }, 900);
+  setTimeout(()=>{ t.remove(); }, 1200);
+}
+</script>
+  <!-- Footer include mount point -->
+  <div data-include="/includes/footer.html" aria-label="Footer"></div>
+</body>
+</html>
