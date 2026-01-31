@@ -99,6 +99,12 @@
           <a class="btn" data-link="engine" data-i18n="open">Open</a>
         </li>
 
+
+        <li class="li">
+          <b data-i18n="qa_gemini_t">Gemini API</b>
+          <p data-i18n="qa_gemini_d">Model Finder</p>
+          <a class="btn" data-link="gemini_api_model_finder" data-i18n="open">Open</a>
+        </li>
         <li class="li">
           <b data-i18n="qa_shogi_t">Shogi</b>
           <p data-i18n="qa_shogi_d">Real-time Shogi UI</p>
@@ -141,7 +147,7 @@
       </div>
 
       <div class="card feature">
-        <div class="tag">AI</div>
+        <div class="tag" data-i18n="tag_ai">AI</div>
         <h4 data-i18n="ai_title">Search AI</h4>
         <p data-i18n="ai_desc">AI-powered search page.</p>
         <div class="actions">
@@ -149,6 +155,15 @@
         </div>
       </div>
 
+
+      <div class="card feature">
+        <div class="tag" data-i18n="tag_dev">Dev</div>
+        <h4 data-i18n="gemini_title">Gemini API Model Finder</h4>
+        <p data-i18n="gemini_desc">Explore and identify available Gemini API models.</p>
+        <div class="actions">
+          <a class="btn primary" data-link="gemini_api_model_finder" data-i18n="open">Open</a>
+        </div>
+      </div>
       <div class="card feature">
         <div class="tag" data-i18n="tag_rt">Real-time</div>
         <h4 data-i18n="shogi_title">Shogi</h4>
@@ -205,6 +220,7 @@ const LINKS = {
   shogi: "./shogi.html",
   intro: "./samurairoad_intro.html",
   index_original: "./index_original.html",
+  gemini_api_model_finder: "./gemini_api_model_finder.html",
 };
 
 /* apply links */
