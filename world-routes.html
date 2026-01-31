@@ -372,7 +372,7 @@ async function boot(){
   const text = await res.text();
   const grid = parseCSV(text);
   const header = grid[0] || [];
-  const cols = reorderCols(header);
+  let cols = reorderCols(header);
   cols = cols.filter(c => c !== "id" && c !== "区分");
 
   const rows = [];
