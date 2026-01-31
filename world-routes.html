@@ -18,6 +18,15 @@ h1{font-size:18px;margin:0 0 6px;letter-spacing:.02em}
 .sub{color:var(--muted);font-size:12px;line-height:1.5}
 .controls{display:grid;grid-template-columns:1fr 160px 140px;gap:10px;margin-top:12px;align-items:center}
 input,select,button{width:100%;padding:10px 12px;border-radius:12px;border:1px solid var(--line);background:rgba(255,255,255,.06);color:var(--text);outline:none}
+select option, select optgroup{
+  background: var(--card);
+  color: var(--text);
+}
+
+/* iOS/一部環境での見え方安定 */
+select{
+  color: var(--text);
+}
 button{cursor:pointer}
 button:hover{background:rgba(255,255,255,.1)}
 .count{margin-top:10px;color:var(--muted);font-size:12px}
@@ -223,7 +232,11 @@ function makeCard(row, cols){
   const reward = escapeHTML(get("到達後のご褒美")) || "★判断不可★";
   const level = escapeHTML(get("覚悟レベル")) || "★判断不可★";
   const danger = escapeHTML(get("危険・制限")) || "★判断不可★";
-  const comment = escapeHTML(get("ChatGPTコメント")) || "";
+  // 3つの一言（列名をCSVに合わせる）
+  const gptOne    = escapeHTML(get("ChatGPT一言")) || "";
+  const geminiOne = escapeHTML(get("Geminiの一言")) || "";
+  const booOne    = escapeHTML(get("ブー之助の一言")) || "";
+
 
   const chips = [];
   if(region) chips.push(`<span class="chip">${region}</span>`);
@@ -262,7 +275,9 @@ function makeCard(row, cols){
         <dt>到達後のご褒美</dt><dd>${reward}</dd>
         <dt>覚悟レベル</dt><dd>${level}</dd>
         <dt>危険・制限</dt><dd>${danger}</dd>
-        <dt>コメント</dt><dd>${comment}</dd>
+        <dt>GPTの一言</dt><dd>${gptOne || "★判断不可★"}</dd>
+        <dt>Geminiの一言</dt><dd>${geminiOne || "★判断不可★"}</dd>
+        <dt>ブー之助の一言</dt><dd>${booOne || "★判断不可★"}</dd>
       </dl>
     </div>
 
@@ -280,7 +295,18 @@ function makeTable(rows, cols){
   const tbody = rows.map(r=>{
     const blob = cols.map(c=>(r[c]??"")).join(" ").toLowerCase();
     const tags = extractTags(r["タグ"]).join(" ");
-    const tds = cols.map(c=>`<td>${escapeHTML(r[c]??"")}</td>`).join("");
+    const tds = cols.map(c=>{
+      const v = (r[c] ?? "");
+      if (c === "No") {
+        const no = escapeHTML(v);
+        return `<td><a href="#no${no}">No.${no}</a></td>`;
+      }
+      if (c === "名前") {
+        const no = escapeHTML(r["No"] ?? "");
+        return `<td><a href="#no${no}">${escapeHTML(v)}</a></td>`;
+      }
+      return `<td>${escapeHTML(v)}</td>`;
+    }).join("");
     return `<tr data-text="${escapeHTML(blob)}" data-tags="${escapeHTML(tags)}">${tds}</tr>`;
   }).join("\n");
   return { thead, tbody };
@@ -347,6 +373,7 @@ async function boot(){
   const grid = parseCSV(text);
   const header = grid[0] || [];
   const cols = reorderCols(header);
+  cols = cols.filter(c => c !== "id" && c !== "区分");
 
   const rows = [];
   for(let i=1;i<grid.length;i++){
