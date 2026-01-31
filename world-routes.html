@@ -323,7 +323,6 @@ function makeTable(rows, cols){
 function applyFilter(){
   const q = norm(document.getElementById("q").value).trim();
   const tag = document.getElementById("tag").value;
-  const mode = document.getElementById("mode").value;
 
   const cards = document.querySelectorAll(".card");
   let shown = 0;
@@ -348,21 +347,13 @@ function applyFilter(){
   });
 
   const tableWrap = document.querySelector(".tableWrap");
-  if(mode==="cards") tableWrap.style.display="none";
-  else if(mode==="table") tableWrap.style.display="block";
-  else tableWrap.style.display = (window.innerWidth>=860) ? "block" : "none";
 }
 
 function resetFilter(){
   document.getElementById("q").value="";
   document.getElementById("tag").value="";
-  document.getElementById("mode").value="both";
   applyFilter();
 }
-
-window.addEventListener("resize", ()=>{
-  if(document.getElementById("mode").value==="both") applyFilter();
-});
 
 async function boot(){
   const cardsWrap = document.getElementById("cards");
@@ -403,7 +394,6 @@ async function boot(){
 
   document.getElementById("q").addEventListener("input", applyFilter);
   document.getElementById("tag").addEventListener("change", applyFilter);
-  document.getElementById("mode").addEventListener("change", applyFilter);
 
   resetFilter();
 }
@@ -437,7 +427,7 @@ ${d.物語}
 async function copyAIPrompt(data){
   const text = buildPrompt(data);
   await navigator.clipboard.writeText(text);
-  alert("AIに投げる質問文をコピーしました。ChatGPT / Gemini に貼り付けてください。");
+  alert("AIに投げる質問文をコピーしました。ChatGPT / Geminiなど に貼り付けてください。");
 }
 
 
