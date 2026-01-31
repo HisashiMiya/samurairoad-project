@@ -90,19 +90,11 @@ code{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace}
       <div class="controls" role="search">
         <input id="q" type="search" placeholder="検索：名前 / 国 / 見どころ / 物語…（例：巡礼, #山岳, 富士）" />
         <select id="tag"><option value="">タグ（全て）</option></select>
-        <select id="mode">
-          <option value="both">表示：自動</option>
-          <option value="cards">表示：カードのみ</option>
-          <option value="table">表示：表のみ</option>
-        </select>
       </div>
 
       <div class="count" id="count">-</div>
       <div class="note">
-      </div>
-      <div style="margin-top:10px;display:flex;gap:10px;flex-wrap:wrap">
-        <button type="button" onclick="resetFilter()">リセット</button>
-        <button type="button" onclick="window.scrollTo({top:document.querySelector('.main').offsetTop, behavior:'smooth'})">一覧へ</button>
+        ※この下に、CSVの全項目を一覧で確認できるデータテーブルがあります（比較・確認用）。
       </div>
     </div>
   </div>
@@ -264,6 +256,22 @@ function makeCard(row, cols){
           ${chips.join("")}
           ${mapURL ? `<a class="chip chip-map" href="${mapURL}" target="_blank" rel="noopener">地図で見る</a>` : ""}
         </div>
+        <button class="chip chip-ai" type="button"
+        onclick='copyAIPrompt(${JSON.stringify({
+          No: row["No"]||"",
+          名前: row["名前"]||"",
+          国: row["国・地域"]||"",
+          タグ: row["タグ"]||"",
+          起点終点: row["起点 〜 終点"]||"",
+          距離: row["距離"]||"",
+          特徴: row["特徴"]||"",
+          見どころ: row["見どころ"]||"",
+          物語: row["物語スイッチ"]||"",
+          季節: row["ベストシーズン × 表情変化"]||"",
+          危険: row["危険・制限"]||""
+        })})'>
+        🤖 AIに詳細を聞く
+       </button>
       </div>
       <div class="small"><a href="#top">↑</a></div>
     </div>
@@ -399,6 +407,39 @@ async function boot(){
 
   resetFilter();
 }
+function buildPrompt(d){
+  return `以下の街道について、旅行者向けに詳しく解説してください。
+
+【街道情報】
+名前: ${d.名前}
+国・地域: ${d.国}
+起点〜終点: ${d.起点終点}
+距離: ${d.距離}
+タグ: ${d.タグ}
+
+【特徴】
+${d.特徴}
+
+【見どころ】
+${d.見どころ}
+
+【物語スイッチ】
+${d.物語}
+
+【質問】
+1) 初心者向けの歩き方（区間分け）
+2) ベストシーズンの理由
+3) 注意点・危険
+4) この街道を歩く意味を表す短い紀行文（300字以内）
+`;
+}
+
+async function copyAIPrompt(data){
+  const text = buildPrompt(data);
+  await navigator.clipboard.writeText(text);
+  alert("AIに投げる質問文をコピーしました。ChatGPT / Gemini に貼り付けてください。");
+}
+
 
 document.addEventListener("DOMContentLoaded", boot);
 
