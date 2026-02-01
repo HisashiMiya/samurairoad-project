@@ -216,6 +216,15 @@
   
   <div class="toast" id="toast"></div>
 
+<div id="aiModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:9999; align-items:center; justify-content:center;">
+    <div style="background:white; color:#333; padding:20px; border-radius:12px; width:90%; height:80%; display:flex; flex-direction:column; box-shadow: 0 4px 15px rgba(0,0,0,0.5);">
+        
+        <div id="aiContent" style="overflow-y:auto; flex-grow:1; font-size:16px; line-height:1.8; white-space: pre-wrap; margin-bottom:15px; padding:10px;"></div>
+        
+        <button onclick="document.getElementById('aiModal').style.display='none'" style="padding:15px; background:#0066cc; color:white; border:none; border-radius:8px; font-weight:bold; font-size:16px; cursor:pointer;">閉じる</button>
+    </div>
+</div>
+
 <script src="./assets/js/config.js?v=20260118" defer></script>
 <script>
 (() => {
@@ -465,6 +474,16 @@
       });
   }
 
+   // 新しい表示関数
+   function showAIResult(text) {
+       const modal = document.getElementById('aiModal');
+       const content = document.getElementById('aiContent');
+       
+       // 中身をセットして画面を表示
+       content.textContent = text;
+       modal.style.display = "flex"; 
+   }
+
   // --- AI / Cloudflare Workers 連携 ---
   async function callGemini(prompt, image = null) {
     // 自身のCloudflare Workersのエンドポイント (/gemini)
@@ -511,9 +530,9 @@
 短く、ユーモアたっぷりに一言コメントしてください。`;
 
       const answer = await callGemini(prompt, base64);
-      alert(t('ai_samurai_prefix') + answer);
+      showAIResult(t('ai_samurai_prefix') + answer);
     } catch (e) {
-      alert("AI Error: " + e.message);
+      showAIResult("AI Error: " + e.message);
     } finally {
       input.value = "";
     }
@@ -522,7 +541,7 @@
   // --- ここはどんな場所？ (History Guide) ---
   function askHistoryByGPS() {
     if (!navigator.geolocation) {
-      alert("GPS Not Supported");
+      showAIResult("GPS Not Supported");
       return;
     }
     showToast(t('msg_ai_history_search'));
@@ -542,12 +561,12 @@
 
       try {
         const answer = await callGemini(prompt);
-        alert("【歴史ガイド】\n" + answer);
+        showAIResult("【歴史ガイド】\n" + answer);
       } catch (e) {
-        alert("AI Error: " + e.message);
+        showAIResult("AI Error: " + e.message);
       }
     }, (err) => {
-      alert("GPS Error: " + err.message);
+      showAIResult("GPS Error: " + err.message);
     });
   }
 
