@@ -17,7 +17,7 @@
       <div class="logo"></div>
       <div>
         <h1 data-i18n="brand_title">SamuraiRoad</h1>
-        <p data-i18n="brand_tagline">Travel Edo with your thumb</p>
+        <p data-i18n="brand_tagline">Travel Edo at your fingertips. Connecting the world’s historic roads from past to future with AI.</p>
       </div>
     </a>
 
@@ -237,7 +237,7 @@ document.querySelectorAll("[data-link]").forEach(a => {
 const I18N = {
   en: {
     brand_title: "SamuraiRoad",
-    brand_tagline: "Travel Edo with your thumb",
+    brand_tagline: "Travel Edo at your fingertips. Connecting the world’s historic roads from past to future with AI.",
     nav_tools: "Tools",
     nav_about: "About",
     kicker: "SAMURAIROAD PROJECT",
@@ -293,7 +293,7 @@ const I18N = {
 
   ja: {
     brand_title: "SamuraiRoad",
-    brand_tagline: "指先で旅する、江戸の道",
+    brand_tagline: "指先で旅する、江戸の道。過去から未来をAIでつなぐ、世界の街道。",
     nav_tools: "ツール",
     nav_about: "概要",
     kicker: "SAMURAIROAD PROJECT",
@@ -375,7 +375,7 @@ document.getElementById("langBtn").addEventListener("click", () => {
 initLang();
 </script>
 <script type="module">
-  import { applyI18n, getLang } from "./assets/js/sr-i18n.js";
+  import { applyI18n, getLang } from "./assets/js/assetsjssr-i18n.js";
 
   // フッターはビルド時注入 or JS注入済み前提
   applyI18n(getLang());
