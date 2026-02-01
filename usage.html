@@ -7,43 +7,83 @@
   <style>
     :root { --primary: #0066cc; --bg: #f4f7f6; --text: #333; --card-bg: #ffffff; }
     body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 20px; line-height: 1.6; }
-    .container { max-width: 600px; margin: 0 auto; }
+    .container { max-width: 600px; margin: 0 auto; padding-bottom: 40px; }
     
     h1 { text-align: center; color: var(--primary); margin-bottom: 20px; font-size: 24px; }
     
     .card { background: var(--card-bg); border-radius: 12px; padding: 20px; margin-bottom: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
-    .card h2 { margin-top: 0; font-size: 18px; border-bottom: 2px solid #eee; padding-bottom: 8px; color: var(--primary); display: flex; align-items: center; gap: 8px; }
+    
+    /* タイトルのデザイン */
+    .card h2 { margin-top: 0; font-size: 18px; border-bottom: 2px solid #eee; padding-bottom: 8px; color: var(--primary); align-items: center; gap: 8px; }
     
     .icon { font-size: 24px; }
     p { margin: 8px 0; font-size: 14px; color: #555; }
     
     .tag { display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: bold; color: white; vertical-align: middle; }
     .tag-red { background: #cc0000; }
-    .tag-blue { background: blue; }
+    .tag-blue { background: #0066cc; }
+    .tag-purple { background: #8e44ad; }
     
     ul { padding-left: 20px; margin: 8px 0; font-size: 14px; color: #555; }
-    li { margin-bottom: 4px; }
+    li { margin-bottom: 6px; }
 
-    .btn-close { display: block; width: 100%; max-width: 200px; margin: 30px auto 0; padding: 12px; background: #333; color: white; text-align: center; border: none; border-radius: 50px; text-decoration: none; font-weight: bold; cursor: pointer; }
+    .btn-close { display: block; width: 100%; max-width: 200px; margin: 30px auto 0; padding: 12px; background: #333; color: white; text-align: center; border: none; border-radius: 50px; text-decoration: none; font-weight: bold; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
+    .btn-close:hover { background: #555; }
 
     /* 言語切り替えボタン */
     .lang-switch { text-align: right; margin-bottom: 10px; }
-    .lang-switch button { background: none; border: 1px solid #ccc; padding: 4px 8px; border-radius: 4px; cursor: pointer; color: #666; font-size: 12px; }
+    .lang-switch button { background: white; border: 1px solid #ccc; padding: 6px 12px; border-radius: 20px; cursor: pointer; color: #666; font-size: 12px; font-weight: bold; }
 
-    /* 表示制御用クラス */
-    [data-lang-content="ja"], [data-lang-content="en"] { display: none; }
-    body.lang-ja [data-lang-content="ja"] { display: block; }
-    body.lang-en [data-lang-content="en"] { display: block; }
+    /* ★★★ 修正箇所：確実に隠すために !important を追加 ★★★ */
+    [data-lang-content="ja"], [data-lang-content="en"] { display: none !important; }
+    
+    /* 表示するときは flex (アイコン横並び用) にする */
+    body.lang-ja [data-lang-content="ja"] { display: flex !important; }
+    body.lang-en [data-lang-content="en"] { display: flex !important; }
+    
+    /* h1などのブロック要素用 */
+    body.lang-ja h1[data-lang-content="ja"], 
+    body.lang-ja div[data-lang-content="ja"],
+    body.lang-ja p[data-lang-content="ja"],
+    body.lang-ja span[data-lang-content="ja"] { display: block !important; }
+
+    body.lang-en h1[data-lang-content="en"], 
+    body.lang-en div[data-lang-content="en"],
+    body.lang-en p[data-lang-content="en"],
+    body.lang-en span[data-lang-content="en"] { display: block !important; }
+
   </style>
 </head>
 <body class="lang-ja"> <div class="container">
   
   <div class="lang-switch">
-    <button onclick="toggleLang()">English / 日本語</button>
+    <button onclick="toggleLang()">🌐 English / 日本語</button>
   </div>
 
   <h1 data-lang-content="ja">使い方ガイド</h1>
   <h1 data-lang-content="en">User Guide</h1>
+
+  <div class="card" style="border-left: 5px solid #8e44ad;">
+    <h2 data-lang-content="ja" style="color: #8e44ad;"><span class="icon">🤖</span> AI歴史ガイド・侍の目</h2>
+    <h2 data-lang-content="en" style="color: #8e44ad;"><span class="icon">🤖</span> AI Samurai Guide</h2>
+    
+    <div data-lang-content="ja">
+      <p>最新のAI <span class="tag tag-purple">Gemini</span> があなたの旅をサポートします。</p>
+      <ul>
+        <li><strong>📍 歴史ガイド (GPS):</strong> 現在地の歴史や、江戸時代の宿場町のエピソードをAIが解説します。「昔の旅人」になった気分で楽しめます。</li>
+        <li><strong>📷 侍の目 (画像):</strong> 街道の写真をアップロードすると、AIがその風景を解析し、歴史的な背景を教えてくれます。</li>
+      </ul>
+      <p><small>※AI機能にはインターネット接続が必要です。</small></p>
+    </div>
+    <div data-lang-content="en">
+      <p>Powered by <span class="tag tag-purple">Gemini</span> AI to enhance your journey.</p>
+      <ul>
+        <li><strong>📍 History Guide (GPS):</strong> The AI explains the history of your current location, focusing on the Edo period context.</li>
+        <li><strong>📷 Samurai Eye (Image):</strong> Upload a photo of the scenery, and the AI will analyze it to provide historical context.</li>
+      </ul>
+      <p><small>* Internet connection is required for AI features.</small></p>
+    </div>
+  </div>
 
   <div class="card">
     <h2 data-lang-content="ja"><span class="icon">🗺️</span> 街道を探す</h2>
@@ -144,7 +184,6 @@
 </div>
 
 <script>
-  // メイン画面と同じキーを使用
   const STORAGE_KEY = 'kaido_lang';
 
   function applyLanguage(lang) {
@@ -157,20 +196,15 @@
     const current = document.body.classList.contains('lang-ja') ? 'ja' : 'en';
     const next = current === 'ja' ? 'en' : 'ja';
     applyLanguage(next);
-    // ここで保存しておけば、次回開いたときもその言語になる（メイン画面とは共有しない場合もあるが、閲覧の利便性のため）
-    // ※メイン画面と同期させたい場合は、メイン画面側でも 'storage' イベントを監視する必要がありますが、
-    // 今回は「メインから引き継ぐ」ことを優先し、ここでの変更はローカルな一時変更扱い、または保存してもOKです。
-    // ここでは保存せずに「一時切り替え」にするか、保存するか選べますが、保存する方が親切でしょう。
     localStorage.setItem(STORAGE_KEY, next);
   }
 
-  // 初期化：localStorageから読み込む
   (function init() {
     const savedLang = localStorage.getItem(STORAGE_KEY);
     if (savedLang === 'en') {
       applyLanguage('en');
     } else {
-      applyLanguage('ja'); // デフォルト
+      applyLanguage('ja');
     }
   })();
 </script>

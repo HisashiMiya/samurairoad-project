@@ -216,6 +216,15 @@
   
   <div class="toast" id="toast"></div>
 
+<div id="loadingModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(255,255,255,0.8); z-index:10000; align-items:center; justify-content:center; flex-direction:column;">
+    <div style="border: 8px solid #f3f3f3; border-top: 8px solid #3498db; border-radius: 50%; width: 60px; height: 60px; animation: spin 1.5s linear infinite;"></div>
+    <p id="loadingText" style="margin-top:20px; font-weight:bold; color:#333; font-size:18px;">侍が考え中...</p>
+</div>
+
+<style>
+@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+</style>
+
 <div id="aiModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:9999; align-items:center; justify-content:center;">
     <div style="background:white; color:#333; padding:20px; border-radius:12px; width:90%; height:80%; display:flex; flex-direction:column; box-shadow: 0 4px 15px rgba(0,0,0,0.5);">
         
@@ -484,6 +493,26 @@
        modal.style.display = "flex"; 
    }
 
+/ ローディング画面を出す
+function showLoading() {
+    const modal = document.getElementById('loadingModal');
+    const text = document.getElementById('loadingText');
+    
+    // 言語によってメッセージを変える
+    if (typeof currentLang !== 'undefined' && currentLang === 'en') {
+        text.textContent = "The Samurai is thinking...";
+    } else {
+        text.textContent = "侍が考え中...";
+    }
+    
+    modal.style.display = "flex";
+}
+
+// ローディング画面を消す
+function hideLoading() {
+    document.getElementById('loadingModal').style.display = "none";
+}
+
   // --- AI / Cloudflare Workers 連携 ---
   async function callGemini(prompt, image = null) {
     // 自身のCloudflare Workersのエンドポイント (/gemini)
@@ -509,66 +538,78 @@
   }
 
   // --- 侍の目 (AI Camera) ---
-  async function processSamuraiImage(input) {
-    if (!input.files || !input.files[0]) return;
-    const file = input.files[0];
-    showToast(t('msg_ai_analyzing'));
+async function processSamuraiImage(base64) {
+    // 1. ローディング開始
+    showLoading();
+
+    let prompt = "";
+
+    // 2. 言語判定
+    if (typeof currentLang !== 'undefined' && currentLang === 'en') {
+        // 【英語モード】
+        prompt = `Where is this location?
+Based on the image, please explain the scenery and its historical context (especially related to old Japanese roads if possible).
+Please answer in English.
+[Constraint]: Do not include titles. Start directly with the content.`;
+    } else {
+        // 【日本語モード】
+        prompt = `ここまでの会話は忘れてください。
+この画像はどこですか？
+街道歩きの旅の途中で撮影されたものです。
+画像から読み取れる風景や、歴史的な文脈（宿場町や史跡など）について詳しく解説してください。
+【制約事項】タイトル不要。いきなり本文から始めてください。`;
+    }
 
     try {
-      // Base64変換
-      const base64 = await new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.readAsDataURL(file);
-        reader.onload = () => resolve(reader.result.split(',')[1]);
-        reader.onerror = reject;
-      });
+        const answer = await callGemini(prompt, base64);
+        
+        // 3. ローディング終了
+        hideLoading();
+        showAIResult(answer);
 
-      // 侍プロンプト
-      const prompt = `あなたは江戸時代からタイムスリップしてきた侍です。
-この画像に写っている「現代の物体」や「風景」を見て、
-ひどく驚いたり、当時の言葉（「～でござる」「なんと！」など）を使って無理やり解釈してください。
-短く、ユーモアたっぷりに一言コメントしてください。`;
-
-      const answer = await callGemini(prompt, base64);
-      showAIResult(t('ai_samurai_prefix') + answer);
     } catch (e) {
-      showAIResult("AI Error: " + e.message);
-    } finally {
-      input.value = "";
+        hideLoading();
+        console.error(e);
+        alert(typeof t === 'function' ? t('error_occurred') : "エラーが発生しました");
     }
-  }
+}
   
   // --- ここはどんな場所？ (History Guide) ---
-  function askHistoryByGPS() {
-    if (!navigator.geolocation) {
-      showAIResult("GPS Not Supported");
-      return;
-    }
-    showToast(t('msg_ai_history_search'));
-    
-    navigator.geolocation.getCurrentPosition(async (pos) => {
-      const { latitude, longitude } = pos.coords;
-      
-      // マップも移動
-      map.setView([latitude, longitude], 15);
-      if(AppState.layers.me) AppState.layers.me.remove();
-      AppState.layers.me = L.circleMarker([latitude, longitude], { radius:8, color:'white', fillColor:'#0066cc', fillOpacity:1 }).addTo(map);
+async function askHistoryByGPS(latitude, longitude) {
+    // 1. ローディング開始
+    showLoading();
 
-      // AIへ問い合わせ
-      const prompt = `私は今、緯度${latitude}、経度${longitude}の場所にいます。
+    let prompt = "";
+
+    // 2. 言語判定してプロンプトを切り替え
+    if (typeof currentLang !== 'undefined' && currentLang === 'en') {
+        // 【英語モード】
+        prompt = `I am currently at Latitude ${latitude}, Longitude ${longitude}.
+Please act as a historical guide.
+Explain the history of this location (or the nearest historical road/post town) specifically focusing on the Edo period.
+Please answer in English.
+[Constraint]: Do not include any titles or headings. Start directly with the explanation.`;
+    } else {
+        // 【日本語モード】
+        prompt = `私は今、緯度${latitude}、経度${longitude}の場所にいます。
 この場所（または一番近い歴史的な街道や宿場町）について、
-「昔の旅人になった気分」で楽しめるような歴史的エピソードや、江戸時代に何があったかを詳しく教えてください。`;
+「昔の旅人になった気分」で楽しめるような歴史的エピソードや、江戸時代に何があったかを詳しく教えてください。
+【制約事項】
+・タイトルや見出しは一切書かないでください。
+・挨拶も不要です。いきなり本文から書き始めてください。`;
+    }
 
-      try {
+    try {
         const answer = await callGemini(prompt);
-        showAIResult("【歴史ガイド】\n" + answer);
-      } catch (e) {
-        showAIResult("AI Error: " + e.message);
-      }
-    }, (err) => {
-      showAIResult("GPS Error: " + err.message);
-    });
-  }
+        // 3. ローディング終了
+        hideLoading();
+        showAIResult(answer);
+    } catch (e) {
+        hideLoading();
+        console.error(e);
+        alert(typeof t === 'function' ? t('error_occurred') : "エラーが発生しました");
+    }
+}
 
   // --- 記録機能など (変更なし) ---
   function updateRecordStats() {
