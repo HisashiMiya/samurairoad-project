@@ -31,17 +31,27 @@
     localStorage.setItem("sr_lang", lang);
   }
 
-  function applyI18nFooter(lang) {
-    const dict = I18N_FOOTER[lang] || I18N_FOOTER.en;
+  function getDict(lang) {
+    // Page-level dictionary (optional): define as window.SR_I18N in each page
+    const page = window.SR_I18N;
+    if (page && (page[lang] || page.en)) return page[lang] || page.en;
+    return I18N_FOOTER[lang] || I18N_FOOTER.en;
+  }
+
+  function applyI18n(lang) {
+    const dict = getDict(lang);
     document.documentElement.lang = lang;
 
-    // data-i18n のうち、辞書にあるキーだけ置換（他ページを壊さない）
+    // Replace only keys that exist in the dictionary (do not break other pages)
     document.querySelectorAll("[data-i18n]").forEach((el) => {
       const key = el.getAttribute("data-i18n");
-      if (dict[key] != null) el.textContent = dict[key];
+      if (dict[key] == null) return;
+
+      // Allow <br> etc. for rich strings (hero_title). If you want strict safety, change to textContent.
+      el.innerHTML = dict[key];
     });
 
-    // 任意：ボタンの表示更新（あれば）
+    // Update label if exists (label shows "the other language" to switch to)
     const label = document.getElementById("langLabel");
     if (label) label.textContent = (lang === "ja") ? "EN" : "JP";
   }
@@ -67,18 +77,22 @@
     const btn = document.getElementById("langBtn");
     if (!btn) return;
 
+    // Prevent double-binding (when multiple scripts try to bind)
+    if (btn.dataset.srBound === "1") return;
+    btn.dataset.srBound = "1";
+
     btn.addEventListener("click", () => {
       const cur = getLang();
       const next = (cur === "ja") ? "en" : "ja";
       setLang(next);
-      applyI18nFooter(next);
+      applyI18n(next);
     });
   }
 
   async function boot() {
-    // 1) include注入 → 2) 翻訳適用 → 3) ボタン紐付け
+    // 1) include injection → 2) i18n apply → 3) bind button
     await applyIncludes();
-    applyI18nFooter(getLang());
+    applyI18n(getLang());
     bindLangButton();
   }
 
@@ -89,11 +103,20 @@
   }
 })();
 
-// --- GA4 init (safe) ---
-window.initGA4 = function () {
-  window.dataLayer = window.dataLayer || [];
-  window.gtag = window.gtag || function () { window.dataLayer.push(arguments); };
 
-  window.gtag('js', new Date());
-  window.gtag('config', 'G-XPMXMPVEKV');
-};
+// --- GA4 init (safe): define and auto-run once ---
+(function () {
+  window.initGA4 = window.initGA4 || function () {
+    window.dataLayer = window.dataLayer || [];
+    window.gtag = window.gtag || function () { window.dataLayer.push(arguments); };
+
+    window.gtag("js", new Date());
+    window.gtag("config", "G-XPMXMPVEKV");
+  };
+
+  if (window.__srGA4Inited) return;
+  window.__srGA4Inited = true;
+
+  // If gtag.js hasn't loaded yet, this still queues into dataLayer.
+  try { window.initGA4(); } catch (e) { console.warn("GA4 init skipped:", e); }
+})();
