@@ -21,6 +21,119 @@
     .sr-langSwitch button[aria-pressed="true"]{border-color:rgba(122,162,255,.75);box-shadow:0 0 0 2px rgba(122,162,255,.18) inset}
   </style>
 
+  <!-- Support page: class-alias styles (sr-* -> common styles) -->
+  <style>
+    /* The common stylesheet defines .wrap/.hero/.card/... but this page uses .sr-wrap/.sr-hero/.sr-card/...
+       So we provide lightweight aliases to ensure the common design applies here. */
+
+    .sr-wrap{ width:min(var(--max), 100%); margin:0 auto; padding:24px 16px 56px; }
+    .sr-hero{ padding:32px 0 8px; }
+    .sr-card{
+      background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+      border:1px solid var(--line);
+      border-radius: var(--radius2);
+      box-shadow: var(--shadow);
+    }
+    .sr-cardInner{ padding:18px; }
+
+    .sr-badge{
+      display:inline-flex; align-items:center; gap:8px;
+      border:1px solid var(--line);
+      padding:6px 10px;
+      border-radius:999px;
+      font-size:12px;
+      color:var(--muted);
+      background: rgba(255,255,255,.04);
+      width: fit-content;
+      flex: 0 0 auto;
+    }
+    .sr-dot{ width:8px; height:8px; border-radius:999px; background: var(--accent); box-shadow: 0 0 0 4px rgba(125,211,252,.12); }
+
+    .sr-h1{
+      margin:12px 0 10px;
+      font-size: clamp(26px, 4.8vw, 42px);
+      line-height:1.15;
+      letter-spacing:-.4px;
+    }
+    .sr-h2{ margin:0 0 10px; font-size: clamp(18px, 3.8vw, 26px); letter-spacing:-.2px; }
+    .sr-h3{ margin:0 0 6px; font-size:15px; }
+
+    .sr-lead{ margin:0; color: var(--muted); font-size: 15.5px; }
+    .sr-p{ margin:0 0 10px; color: var(--muted); }
+    .sr-fine{ margin-top:10px; color: rgba(170,179,199,.85); font-size: 12.5px; }
+
+    .sr-ctaRow{ display:flex; flex-wrap:wrap; gap:10px; margin-top:16px; }
+
+    .sr-btn{
+      display:inline-flex; align-items:center; justify-content:center;
+      gap:10px;
+      padding:12px 14px;
+      border-radius:14px;
+      border:1px solid var(--line);
+      background: rgba(255,255,255,.06);
+      color:var(--text);
+      font-weight:700;
+      user-select:none;
+      transition: transform .08s ease, background .15s ease, border-color .15s ease;
+      white-space:nowrap;
+      text-decoration:none;
+    }
+    .sr-btn:hover{ background: rgba(255,255,255,.09); border-color: rgba(255,255,255,.18); text-decoration:none; }
+    .sr-btn:active{ transform: translateY(1px); }
+    .sr-btn--primary{
+      background: linear-gradient(135deg, rgba(125,211,252,.95), rgba(167,139,250,.92));
+      border-color: rgba(255,255,255,.22);
+      color:#06101a;
+      box-shadow: 0 12px 30px rgba(167,139,250,.10);
+    }
+    .sr-btn--primary:hover{ background: linear-gradient(135deg, rgba(125,211,252,1), rgba(167,139,250,1)); }
+
+    .sr-section{ margin-top:26px; }
+
+    .sr-grid3{ display:grid; gap:12px; grid-template-columns: repeat(3, 1fr); }
+    .sr-mini{
+      background: rgba(255,255,255,.04);
+      border:1px solid var(--line);
+      border-radius: var(--radius);
+      padding:14px;
+    }
+    .sr-miniP{ margin:0; font-size:13.5px; color:var(--muted); }
+
+    .sr-callout{
+      border-radius: var(--radius2);
+      border:1px solid rgba(125,211,252,.22);
+      background: linear-gradient(135deg, rgba(125,211,252,.12), rgba(167,139,250,.08));
+      padding:16px;
+    }
+    .sr-calloutP{ margin:0; color: rgba(232,236,246,.90); }
+
+    .sr-faq{ display:grid; gap:12px; grid-template-columns: 1fr 1fr; }
+    .sr-details{
+      background: rgba(255,255,255,.04);
+      border:1px solid var(--line);
+      border-radius: var(--radius);
+      padding:12px 14px;
+    }
+    .sr-summary{ cursor:pointer; font-weight:800; list-style:none; }
+    .sr-detailsP{ margin:8px 0 0; color:var(--muted); font-size:13.5px; }
+
+    /* Mobile */
+    @media (max-width: 920px){
+      .sr-grid3{ grid-template-columns: 1fr; }
+      .sr-faq{ grid-template-columns: 1fr; }
+    }
+    @media (max-width: 768px){
+      .sr-topbarInner{ flex-wrap:wrap; row-gap:10px; }
+      .sr-nav{ width:100%; justify-content:space-between; gap:6px; }
+      .sr-ctaRow{ flex-direction:column; align-items:stretch; }
+      .sr-btn{ width:100%; }
+      .sr-cardInner{ padding:14px; }
+      .sr-h1{ font-size: clamp(22px, 6vw, 28px); }
+      .sr-lead{ font-size:14px; }
+    }
+  </style>
+
+
   <script>
     // i18n（supportページ分だけ）
     const I18N = {
@@ -274,7 +387,26 @@
       </div>
     </section>
 
+    
     <section class="sr-section">
+      <h2 class="sr-h2" data-i18n="sec_ai">AIと運用コストについて</h2>
+
+      <p class="sr-p" data-i18n="ai_p1">
+        SamuraiRoad Project では、情報整理や体験向上の一部にAIの活用も試しています。
+      </p>
+
+      <p class="sr-p" data-i18n="ai_p2">
+        ただし、AIのAPI呼び出しには実際にコストがかかります。現在は無料枠や回数制限の範囲内で、
+        できることを慎重に選びながら運用しています。
+      </p>
+
+      <p class="sr-p" data-i18n="ai_p3">
+        支援は、将来的に必要な場面でAIを適切に使うための基盤にもなります。
+      </p>
+    </section>
+
+
+<section class="sr-section">
       <h2 class="sr-h2" data-i18n="sec_transparency">透明性（お金の使い道）</h2>
       <p class="sr-p" data-i18n="trans_p">
         支援金は、運用費（ドメイン・ホスティング等）や、地図の改善活動（調査・整備・実装）に充てます。大きな支出が発生する場合は、GitHub上で共有する方針です。
