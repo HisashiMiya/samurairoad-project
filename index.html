@@ -204,7 +204,11 @@
     </div>
   </section>
 </main>
+<!-- Footer mount -->
+<div data-include="./includes/footer.html" aria-label="Footer"></div>
 
+<!-- 共通JS（defer必須） -->
+<script src="./assets/js/sr-common.js" defer></script>
 <script>
 /* ====== 1) links: one place to manage (dedupe) ====== */
 const LINKS = {
@@ -371,14 +375,6 @@ document.getElementById("langBtn").addEventListener("click", () => {
   applyLang(current === "en" ? "ja" : "en");
 });
 
-/* init */
-initLang();
-</script>
-<script type="module">
-  import { applyI18n, getLang } from "./assets/js/r-i18n.js";
-
-  // フッターはビルド時注入 or JS注入済み前提
-  applyI18n(getLang());
 </script>
 </body>
 </html>
