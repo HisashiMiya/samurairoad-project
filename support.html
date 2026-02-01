@@ -9,10 +9,20 @@
   <!-- 共通CSS -->
   <link rel="stylesheet" href="./assets/css/samurairoad_common.css" />
 
-  <script>
-    async function includeHTML(selector, url){
-    }
+  <style>
+    .sr-topbar{position:sticky;top:0;z-index:50;background:rgba(10,15,25,.9);backdrop-filter:blur(10px);border-bottom:1px solid rgba(255,255,255,.12)}
+    .sr-topbarInner{max-width:1100px;margin:0 auto;padding:10px 14px;display:flex;gap:12px;align-items:center;justify-content:space-between}
+    .sr-brand{color:inherit;font-weight:900;text-decoration:none;letter-spacing:.02em}
+    .sr-nav{display:flex;gap:10px;flex-wrap:wrap}
+    .sr-nav a{color:inherit;text-decoration:none;font-size:14px;opacity:.9}
+    .sr-nav a[aria-current="page"]{opacity:1;font-weight:800}
+    .sr-langSwitch{display:flex;gap:6px}
+    .sr-langSwitch button{padding:8px 10px;border-radius:10px;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.06);color:inherit;cursor:pointer}
+    .sr-langSwitch button[aria-pressed="true"]{border-color:rgba(122,162,255,.75);box-shadow:0 0 0 2px rgba(122,162,255,.18) inset}
+  </style>
 
+
+  <script>
     // i18n（必要最低限：supportページ分だけ）
     const I18N = {
       ja: {
@@ -110,7 +120,14 @@
       }
     };
 
-    function applyI18n(lang){
+    
+    function setPressed(lang){
+      const ja = document.getElementById("btnJa");
+      const en = document.getElementById("btnEn");
+      if (ja) ja.setAttribute("aria-pressed", String(lang==="ja"));
+      if (en) en.setAttribute("aria-pressed", String(lang==="en"));
+    }
+function applyI18n(lang){
       const dict = I18N[lang] || I18N.ja;
       document.documentElement.lang = lang;
       document.querySelectorAll("[data-i18n]").forEach(el=>{
@@ -131,17 +148,20 @@
     function setLang(lang){
       localStorage.setItem("sr_lang", lang);
       applyI18n(lang);
+      setPressed(lang);
     }
 
-    window.addEventListener("DOMContentLoaded", async ()=>{
-      // header/footer include（あなたのプロジェクトの実パスに合わせて）
-      await includeHTML("#sr-header", "./includes/header.html");
-      await includeHTML("#sr-footer", "./includes/footer.html");
-
+    window.addEventListener("DOMContentLoaded", ()=>{
       const lang = getLang();
       applyI18n(lang);
+      setPressed(lang);
 
-      // ヘッダに言語スイッチがある想定（無ければこのままでもOK）
+      const ja = document.getElementById("btnJa");
+      const en = document.getElementById("btnEn");
+      if (ja) ja.addEventListener("click", (ev)=>{ ev.preventDefault(); setLang("ja"); });
+      if (en) en.addEventListener("click", (ev)=>{ ev.preventDefault(); setLang("en"); });
+
+      // 既存のヘッダ（もし将来 data-setlang を置いた場合）にも対応
       document.addEventListener("click", (ev)=>{
         const btn = ev.target.closest("[data-setlang]");
         if (!btn) return;
@@ -149,12 +169,29 @@
         setLang(btn.getAttribute("data-setlang"));
       });
     });
+});
   </script>
 </head>
 
 <body>
-  <!-- 共通ヘッダ -->
-  <div id="sr-header"></div>
+
+  <header class="sr-topbar">
+    <div class="sr-topbarInner">
+      <a class="sr-brand" href="./index.html">SamuraiRoad</a>
+      <nav class="sr-nav">
+        <a href="./index.html" data-i18n="nav_home">ホーム</a>
+        <a href="./worldmap.html" data-i18n="nav_map">地図</a>
+        <a href="./world-routes.html" data-i18n="nav_routes">世界の街道</a>
+        <a href="./samurairoad_intro.html" data-i18n="nav_about">概要</a>
+        <a href="./support.html" aria-current="page" data-i18n="nav_support">支援する</a>
+      </nav>
+      <div class="sr-langSwitch" aria-label="Language switch">
+        <button type="button" id="btnJa" aria-pressed="true">日本語</button>
+        <button type="button" id="btnEn" aria-pressed="false">EN</button>
+      </div>
+    </div>
+  </header>
+
 
   <main class="sr-wrap">
     <section class="sr-hero">
