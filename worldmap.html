@@ -216,6 +216,7 @@
   
   <div class="toast" id="toast"></div>
 
+<script src="./assets/js/config.js?v=20260118" defer></script>
 <script>
 (() => {
   // =========================================
@@ -467,7 +468,8 @@
   // --- AI / Cloudflare Workers 連携 ---
   async function callGemini(prompt, image = null) {
     // 自身のCloudflare Workersのエンドポイント (/gemini)
-    const endpoint = "ai/samuraimap"; 
+    const base = (window.AI_HTTP || location.origin).replace(/\/$/, "");
+    const endpoint = `${base}/ai/samuraimap`;
     const payload = { prompt };
     if (image) payload.image = image;
 
