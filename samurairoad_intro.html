@@ -314,23 +314,10 @@
   <!-- Footer include mount point -->
   <div data-include="/includes/footer.html" aria-label="Footer"></div>
 </main>
-
+<!-- 共通JS（defer必須） -->
+<script src="./assets/js/sr-common.js" defer></script>
 <script>
 (() => {
-  // ===== include footer (static include via fetch) =====
-  async function includeHTML() {
-    const nodes = document.querySelectorAll("[data-include]");
-    await Promise.all([...nodes].map(async (el) => {
-      const url = el.getAttribute("data-include");
-      try{
-        const res = await fetch(url, { cache: "no-cache" });
-        if(!res.ok) throw new Error(String(res.status));
-        el.innerHTML = await res.text();
-      }catch(e){
-        el.innerHTML = '<footer class="sr-footer"><p style="color:rgba(170,179,199,.9)">Footer load failed.</p></footer>';
-      }
-    }));
-  }
 
   // ===== i18n dictionary =====
   const I18N = {
