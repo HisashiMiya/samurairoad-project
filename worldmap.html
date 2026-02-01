@@ -254,10 +254,11 @@
       msg_no_data: "データがありません", msg_loaded: "読み込み完了", msg_error: "エラーが発生しました",
       route_no_select: "街道未選択", nav_info_init: "「探す」から街道を選んでください",
       route_loading: "読込中...", region_jp: "日本 (五街道・巡礼)", region_world: "海外 / その他",
-      // AI関連
       msg_ai_analyzing: "🤖 解析中...\nしばらくお待ちください",
       msg_ai_history_search: "📍 歴史を調査中...\n(現在地周辺)",
-      ai_samurai_prefix: "【侍の目】\n"
+      ai_samurai_prefix: "【侍の目】\n",
+      err_occurred: "エラーが発生しました",
+      samurai_thinking: "侍が考え中..."
     },
     en: {
       menu_routes: "Routes", menu_record: "Record", menu_report: "Report", menu_settings: "Config",
@@ -274,12 +275,14 @@
       route_loading: "Loading...", region_jp: "Japan", region_world: "World / Other",
       msg_ai_analyzing: "🤖 Analyzing...",
       msg_ai_history_search: "📍 Searching History...",
-      ai_samurai_prefix: "[Samurai Vision]\n"
+      ai_samurai_prefix: "[Samurai Vision]\n",
+      err_occurred: "Error occurred",
+      samurai_thinking: "The Samurai is thinking..."
     }
   };
 
   // =========================================
-  // 1. データ定義 (日英対応)
+  // 1. データ定義
   // =========================================
   const WORLD_ROUTES = [
     { 
@@ -343,7 +346,7 @@
   ];
 
   // =========================================
-  // 1.5 URLパラメータ処理
+  // 1.5 URLパラメータ & 初期設定
   // =========================================
   const urlParams = new URLSearchParams(window.location.search);
   const paramLang = urlParams.get('lang');
@@ -367,7 +370,7 @@
   }
 
   // =========================================
-  // 2. アプリの状態管理
+  // 2. アプリの状態管理 (AppState)
   // =========================================
   const AppState = {
     lang: localStorage.getItem('kaido_lang') || 'ja',
@@ -404,7 +407,7 @@
   }
 
   // =========================================
-  // 3. 基本機能 & 翻訳システム
+  // 3. UI & 翻訳 & ローディング
   // =========================================
   
   function t(key) { return DICT[AppState.lang][key] || key; }
@@ -439,6 +442,30 @@
     }
     document.getElementById('lblCurrentRoute').textContent = name;
   }
+
+  // ■■■ ローディング画面の制御 ■■■
+  function showLoading() {
+    const modal = document.getElementById('loadingModal');
+    const text = document.getElementById('loadingText');
+    text.textContent = t('samurai_thinking'); // 言語に合わせて変更
+    modal.style.display = "flex";
+  }
+
+  function hideLoading() {
+    document.getElementById('loadingModal').style.display = "none";
+  }
+
+  // ■■■ AI結果表示用の自作ウィンドウ ■■■
+  function showAIResult(text) {
+     const modal = document.getElementById('aiModal');
+     const content = document.getElementById('aiContent');
+     content.textContent = text;
+     modal.style.display = "flex"; 
+  }
+
+  // =========================================
+  // 4. 地図・ルート・AI処理
+  // =========================================
 
   function drawTrack() {
     if (AppState.layers.trackLine) AppState.layers.trackLine.remove();
@@ -483,39 +510,8 @@
       });
   }
 
-   // 新しい表示関数
-   function showAIResult(text) {
-       const modal = document.getElementById('aiModal');
-       const content = document.getElementById('aiContent');
-       
-       // 中身をセットして画面を表示
-       content.textContent = text;
-       modal.style.display = "flex"; 
-   }
-
-// ローディング画面を出す
-function showLoading() {
-    const modal = document.getElementById('loadingModal');
-    const text = document.getElementById('loadingText');
-    
-    // 言語によってメッセージを変える
-    if (typeof currentLang !== 'undefined' && currentLang === 'en') {
-        text.textContent = "The Samurai is thinking...";
-    } else {
-        text.textContent = "侍が考え中...";
-    }
-    
-    modal.style.display = "flex";
-}
-
-// ローディング画面を消す
-function hideLoading() {
-    document.getElementById('loadingModal').style.display = "none";
-}
-
-  // --- AI / Cloudflare Workers 連携 ---
+  // --- Gemini API 呼び出し ---
   async function callGemini(prompt, image = null) {
-    // 自身のCloudflare Workersのエンドポイント (/gemini)
     const base = (window.AI_HTTP || location.origin).replace(/\/$/, "");
     const endpoint = `${base}/ai/samuraimap`;
     const payload = { prompt };
@@ -529,30 +525,42 @@ function hideLoading() {
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const json = await res.json();
-      // レスポンスの形式にあわせて調整
-      const resultText = json.text || json.candidates?.[0]?.content?.parts?.[0]?.text || JSON.stringify(json);
-      return resultText;
+      return json.text || json.candidates?.[0]?.content?.parts?.[0]?.text || JSON.stringify(json);
     } catch (e) {
       throw new Error(e.message);
     }
   }
 
-  // --- 侍の目 (AI Camera) ---
-async function processSamuraiImage(base64) {
-    // 1. ローディング開始
-    showLoading();
+  // --- 侍の目 (画像ファイル処理) ---
+  function handleSamuraiImageSelect(event) {
+      const file = event.target.files[0];
+      if (!file) return;
 
+      const reader = new FileReader();
+      showLoading(); // 読み込み開始でローディング表示
+
+      reader.onload = function(e) {
+          // Base64の生データを取得 (data:image/jpeg;base64,... のヘッダーを削除)
+          const base64 = e.target.result.split(',')[1];
+          // AI処理へ
+          processSamuraiImage(base64);
+      };
+      reader.readAsDataURL(file);
+      
+      // 同じファイルを連続で選べるようにリセット
+      event.target.value = '';
+  }
+
+  async function processSamuraiImage(base64) {
     let prompt = "";
-
-    // 2. 言語判定
-    if (typeof currentLang !== 'undefined' && currentLang === 'en') {
-        // 【英語モード】
+    
+    // 言語設定 (AppState.lang) を正しく参照
+    if (AppState.lang === 'en') {
         prompt = `Where is this location?
 Based on the image, please explain the scenery and its historical context (especially related to old Japanese roads if possible).
 Please answer in English.
 [Constraint]: Do not include titles. Start directly with the content.`;
     } else {
-        // 【日本語モード】
         prompt = `ここまでの会話は忘れてください。
 この画像はどこですか？
 街道歩きの旅の途中で撮影されたものです。
@@ -562,35 +570,28 @@ Please answer in English.
 
     try {
         const answer = await callGemini(prompt, base64);
-        
-        // 3. ローディング終了
         hideLoading();
         showAIResult(answer);
-
     } catch (e) {
         hideLoading();
         console.error(e);
-        alert(typeof t === 'function' ? t('error_occurred') : "エラーが発生しました");
+        alert(t('msg_error'));
     }
-}
+  }
   
-  // --- ここはどんな場所？ (History Guide) ---
-async function askHistoryByGPS(latitude, longitude) {
-    // 1. ローディング開始
+  // --- 歴史ガイド (GPS) ---
+  async function askHistoryByGPS(latitude, longitude) {
     showLoading();
-
     let prompt = "";
 
-    // 2. 言語判定してプロンプトを切り替え
-    if (typeof currentLang !== 'undefined' && currentLang === 'en') {
-        // 【英語モード】
+    // 言語設定 (AppState.lang) を正しく参照
+    if (AppState.lang === 'en') {
         prompt = `I am currently at Latitude ${latitude}, Longitude ${longitude}.
 Please act as a historical guide.
 Explain the history of this location (or the nearest historical road/post town) specifically focusing on the Edo period.
 Please answer in English.
 [Constraint]: Do not include any titles or headings. Start directly with the explanation.`;
     } else {
-        // 【日本語モード】
         prompt = `私は今、緯度${latitude}、経度${longitude}の場所にいます。
 この場所（または一番近い歴史的な街道や宿場町）について、
 「昔の旅人になった気分」で楽しめるような歴史的エピソードや、江戸時代に何があったかを詳しく教えてください。
@@ -601,17 +602,18 @@ Please answer in English.
 
     try {
         const answer = await callGemini(prompt);
-        // 3. ローディング終了
         hideLoading();
         showAIResult(answer);
     } catch (e) {
         hideLoading();
         console.error(e);
-        alert(typeof t === 'function' ? t('error_occurred') : "エラーが発生しました");
+        alert(t('msg_error'));
     }
-}
+  }
 
-  // --- 記録機能など (変更なし) ---
+  // =========================================
+  // 5. 記録・インポート・エクスポート
+  // =========================================
   function updateRecordStats() {
     const pts = AppState.trackPoints;
     document.getElementById('valRecStatus').textContent = AppState.isRecording ? t('status_recording') : t('status_stopped');
@@ -762,7 +764,7 @@ Please answer in English.
   }
 
   // =========================================
-  // 4. イベントリスナー
+  // 6. イベントリスナー登録
   // =========================================
   document.getElementById('btnMenuRoutes').onclick = () => openModal('modalRoutes');
   document.getElementById('btnMenuRecord').onclick = () => openModal('modalRecord');
@@ -780,15 +782,22 @@ Please answer in English.
   document.getElementById('menuItemReport').onclick = () => { closeModals(); openReportForm(); };
   document.getElementById('menuItemSettings').onclick = () => { closeModals(); openModal('modalSettings'); };
 
-  // 侍の目
+  // ★ 侍の目 (画像) イベント修正 ★
   document.getElementById('menuItemSamurai').onclick = () => {
     closeModals();
     document.getElementById('inpSamuraiCamera').click();
   };
-  document.getElementById('inpSamuraiCamera').onchange = (e) => processSamuraiImage(e.target);
+  // ファイルが選択されたら handleSamuraiImageSelect を呼ぶ
+  document.getElementById('inpSamuraiCamera').onchange = handleSamuraiImageSelect;
 
-  // 歴史ガイド
-  document.getElementById('btnHistory').onclick = askHistoryByGPS;
+  // ★ 歴史ガイド (GPS) イベント ★
+  document.getElementById('btnHistory').onclick = () => {
+      if(!navigator.geolocation) return;
+      // showLoading(); // askHistoryByGPS内で行うのでここでは不要
+      navigator.geolocation.getCurrentPosition(pos => {
+          askHistoryByGPS(pos.coords.latitude, pos.coords.longitude);
+      }, err => alert("GPS Error: " + err.message));
+  };
 
   // 現在地移動
   document.getElementById('btnLocate').onclick = () => {
@@ -803,7 +812,7 @@ Please answer in English.
     }, err => alert("GPS Error: " + err.message));
   };
 
-  // 初期化
+  // 初期化実行
   restoreMapPosition();
   updateLanguage();
   if (AppState.currentRouteId) loadActiveRoute();
