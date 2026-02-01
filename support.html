@@ -21,9 +21,8 @@
     .sr-langSwitch button[aria-pressed="true"]{border-color:rgba(122,162,255,.75);box-shadow:0 0 0 2px rgba(122,162,255,.18) inset}
   </style>
 
-
   <script>
-    // i18n（必要最低限：supportページ分だけ）
+    // i18n（supportページ分だけ）
     const I18N = {
       ja: {
         nav_home: "ホーム",
@@ -120,14 +119,14 @@
       }
     };
 
-    
     function setPressed(lang){
       const ja = document.getElementById("btnJa");
       const en = document.getElementById("btnEn");
       if (ja) ja.setAttribute("aria-pressed", String(lang==="ja"));
       if (en) en.setAttribute("aria-pressed", String(lang==="en"));
     }
-function applyI18n(lang){
+
+    function applyI18n(lang){
       const dict = I18N[lang] || I18N.ja;
       document.documentElement.lang = lang;
       document.querySelectorAll("[data-i18n]").forEach(el=>{
@@ -161,7 +160,7 @@ function applyI18n(lang){
       if (ja) ja.addEventListener("click", (ev)=>{ ev.preventDefault(); setLang("ja"); });
       if (en) en.addEventListener("click", (ev)=>{ ev.preventDefault(); setLang("en"); });
 
-      // 既存のヘッダ（もし将来 data-setlang を置いた場合）にも対応
+      // 将来 data-setlang を置いた場合にも対応
       document.addEventListener("click", (ev)=>{
         const btn = ev.target.closest("[data-setlang]");
         if (!btn) return;
@@ -169,12 +168,10 @@ function applyI18n(lang){
         setLang(btn.getAttribute("data-setlang"));
       });
     });
-});
   </script>
 </head>
 
 <body>
-
   <header class="sr-topbar">
     <div class="sr-topbarInner">
       <a class="sr-brand" href="./index.html">SamuraiRoad</a>
@@ -192,7 +189,6 @@ function applyI18n(lang){
     </div>
   </header>
 
-
   <main class="sr-wrap">
     <section class="sr-hero">
       <div class="sr-card sr-card--hero">
@@ -208,7 +204,6 @@ function applyI18n(lang){
           </p>
 
           <div class="sr-ctaRow">
-
             <a class="sr-btn sr-btn--primary" href="https://github.com/sponsors/HisashiMiya" target="_blank" rel="noopener noreferrer" data-i18n="btn_sponsor">
               GitHub Sponsors
             </a>
@@ -266,13 +261,11 @@ function applyI18n(lang){
         </p>
 
         <div class="sr-ctaRow" style="margin-top:12px;">
-          <!-- TODO: あなたのフォームURLに差し替え -->
           <a class="sr-btn sr-btn--primary" href="https://docs.google.com/forms/d/e/1FAIpQLSctfcD7qgXA3t7X1bWQnXiqyTSCdh2iy1uuM07otO4xGGoU_g/viewform"
              target="_blank" rel="noopener noreferrer">
             修正提案（フォーム）
           </a>
 
-          <!-- TODO: あなたのIssue作成URL（template=...）に差し替え -->
           <a class="sr-btn" href="https://github.com/HisashiMiya/samurairoad-project/issues/new/choose"
              target="_blank" rel="noopener noreferrer">
             GitHub Issues
@@ -314,11 +307,7 @@ function applyI18n(lang){
     </section>
   </main>
 
-  <!-- 共通フッタ -->
-<!-- Footer mount -->
-<div data-include="./includes/footer.html" aria-label="Footer"></div>
-
-<!-- 共通JS（defer必須） -->
-<script src="./assets/js/sr-common.js" defer></script>
+  <div data-include="./includes/footer.html" aria-label="Footer"></div>
+  <script src="./assets/js/sr-common.js" defer></script>
 </body>
 </html>
