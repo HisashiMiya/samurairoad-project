@@ -203,9 +203,6 @@
       </p>
     </div>
   </section>
-
-  <!-- Footer include mount point -->
-  <div data-include="/includes/footer.html" aria-label="Footer"></div>
 </main>
 
 <script>
@@ -374,11 +371,14 @@ document.getElementById("langBtn").addEventListener("click", () => {
   applyLang(current === "en" ? "ja" : "en");
 });
 
-/* year */
-document.getElementById("y").textContent = new Date().getFullYear();
-
 /* init */
 initLang();
+</script>
+<script type="module">
+  import { applyI18n, getLang } from "./assets/js/sr-i18n.js";
+
+  // フッターはビルド時注入 or JS注入済み前提
+  applyI18n(getLang());
 </script>
 </body>
 </html>
