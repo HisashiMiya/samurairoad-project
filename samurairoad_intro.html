@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <meta name="description" content="SamuraiRoad Project（サムライロード）— 五街道・旧街道の“歩く体験”を、みんなで育てる地図。" />
   <title>SamuraiRoad Project｜みんなで作り上げる街道さんぽマップ</title>
-  <link rel="stylesheet" href="./samurairoad_common.css" />
+  <link rel="stylesheet" href="./assets/css/samurairoad_common.css" />
 </head>
 
 <body>
@@ -535,14 +535,11 @@
     applyLang(lang);
   }
 
-  // run
-  includeHTML().then(() => initLang());
-
   // buttons
   document.getElementById("btnJa").addEventListener("click", () => applyLang("ja"));
   document.getElementById("btnEn").addEventListener("click", () => applyLang("en"));
 })();
+initGA4();
 </script>
 </body>
 </html>
-f

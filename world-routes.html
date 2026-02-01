@@ -108,10 +108,12 @@ code{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace}
         <tbody id="tbody"></tbody>
       </table>
     </div>
-
-  <div data-include="/includes/footer.html" aria-label="Footer"></div>
   </main>
+<!-- Footer mount -->
+<div data-include="./includes/footer.html" aria-label="Footer"></div>
 
+<!-- 共通JS（defer必須） -->
+<script src="./assets/js/sr-common.js" defer></script>
   <script>
 
 // ===== CSV parser (RFC4180-ish) =====
@@ -270,7 +272,7 @@ function makeCard(row, cols){
           季節: row["ベストシーズン × 表情変化"]||"",
           危険: row["危険・制限"]||""
         })})'>
-        🤖 AIに詳細を聞く
+        🤖 AIに聞く
        </button>
       </div>
       <div class="small"><a href="#top">↑</a></div>
@@ -434,14 +436,9 @@ async function copyAIPrompt(data){
 document.addEventListener("DOMContentLoaded", boot);
 
   </script>
-  <!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-XPMXMPVEKV"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
+  <script>
+  initGA4();
+  </script>
 
-  gtag('config', 'G-XPMXMPVEKV');
-</script>
 </body>
 </html>
