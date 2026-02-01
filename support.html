@@ -7,16 +7,9 @@
   <title>Support｜SamuraiRoad Project</title>
 
   <!-- 共通CSS -->
-  <link rel="stylesheet" href="./assets/css/samurairoad.css" />
+  <link rel="stylesheet" href="./assets/css/samurairoad_common.css" />
 
   <script>
-    async function includeHTML(selector, url){
-      const el = document.querySelector(selector);
-      if (!el) return;
-      const res = await fetch(url);
-      if (!res.ok) return;
-      el.innerHTML = await res.text();
-    }
 
     // i18n（必要最低限：supportページ分だけ）
     const I18N = {
@@ -180,6 +173,7 @@
             <a class="sr-btn sr-btn--primary" href="https://github.com/sponsors/HisashiMiya" target="_blank" rel="noopener noreferrer" data-i18n="btn_sponsor">
               GitHub Sponsors
             </a>
+            <br>
             <a class="sr-btn" href="https://buymeacoffee.com/hisa.miya" target="_blank" rel="noopener noreferrer" data-i18n="btn_kofi">
               Ko-fi / Buy Me a Coffee
             </a>
