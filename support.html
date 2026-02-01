@@ -1,0 +1,287 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="description" content="SamuraiRoad Project を支援するページ。街道文化と“歩く体験”を未来に残すためのサポート。" />
+  <title>Support｜SamuraiRoad Project</title>
+
+  <!-- 共通CSS -->
+  <link rel="stylesheet" href="./assets/css/samurairoad.css" />
+
+  <script>
+    async function includeHTML(selector, url){
+      const el = document.querySelector(selector);
+      if (!el) return;
+      const res = await fetch(url);
+      if (!res.ok) return;
+      el.innerHTML = await res.text();
+    }
+
+    // i18n（必要最低限：supportページ分だけ）
+    const I18N = {
+      ja: {
+        nav_home: "ホーム",
+        nav_map: "地図",
+        nav_routes: "世界の街道",
+        nav_about: "概要",
+        nav_support: "支援する",
+
+        hero_badge: "Support SamuraiRoad",
+        hero_title: "このプロジェクトを支援する",
+        hero_lead:
+          "SamuraiRoad Project は、街道文化と“歩く体験”を、みんなで育てる地図プロジェクトです。もし価値を感じていただけたら、支援という形で参加できます。",
+
+        sec_why: "なぜ支援が必要？",
+        why_p:
+          "現地での確認、データ整備、表示改善、サーバ運用など、少しずつ積み上げる活動で地図の体験は良くなります。広告や短期的なバズに寄らず、長く続く形を目指しています。",
+
+        sec_how: "支援でできること",
+        how_1_t: "地図の改善",
+        how_1_p: "ルート精度、表示切替、モバイルUIなどを継続的に改善します。",
+        how_2_t: "データ整備",
+        how_2_p: "宿場・一里塚・史跡の整備、根拠リンク付与、差分管理を進めます。",
+        how_3_t: "体験機能の追加",
+        how_3_p: "踏破ログ、距離表示、スタンプなど“歩く体験”を強化します。",
+
+        sec_ways: "支援の方法",
+        ways_note:
+          "下のリンクは運用開始後に実URLへ差し替えます（まずはページの枠を先に用意）。",
+        btn_sponsor: "GitHub Sponsors",
+        btn_kofi: "Ko-fi / Buy Me a Coffee",
+        btn_paypal: "PayPal / 決済リンク",
+        ways_alt: "もし寄付よりも協力が得意なら：修正提案（フォーム / Issue）も立派な支援です。",
+
+        sec_transparency: "透明性（お金の使い道）",
+        trans_p:
+          "支援金は、運用費（ドメイン・ホスティング等）や、地図の改善活動（調査・整備・実装）に充てます。大きな支出が発生する場合は、GitHub上で共有する方針です。",
+
+        sec_faq: "FAQ",
+        faq_q1: "匿名で支援できますか？",
+        faq_a1: "利用する決済手段によります。匿名性を重視する場合は、匿名対応のプラットフォームを選びます。",
+        faq_q2: "支援したら何か特典がありますか？",
+        faq_a2: "“広告非依存で長く続ける”ための支援が中心です。将来的に、支援者向けの早期アクセス等は検討します。",
+        faq_q3: "お金以外で支援できますか？",
+        faq_a3: "はい。現地情報・根拠リンク・写真・違和感の指摘など、修正提案が最も価値の高い支援になります。",
+
+        back_home: "ホームへ戻る",
+      },
+      en: {
+        nav_home: "Home",
+        nav_map: "Map",
+        nav_routes: "World Routes",
+        nav_about: "About",
+        nav_support: "Support",
+
+        hero_badge: "Support SamuraiRoad",
+        hero_title: "Support this project",
+        hero_lead:
+          "SamuraiRoad Project is a community-built map experience for historic routes. If you find value in it, you can join as a supporter.",
+
+        sec_why: "Why support?",
+        why_p:
+          "Field verification, data curation, UI improvements, and ongoing operations all help the map become more accurate and enjoyable. We aim to grow steadily without relying on short-term trends or heavy ads.",
+
+        sec_how: "What your support enables",
+        how_1_t: "Map improvements",
+        how_1_p: "We continuously improve route accuracy, layer toggles, and mobile UI.",
+        how_2_t: "Data curation",
+        how_2_p: "We maintain POIs with sources, track changes, and keep datasets clean.",
+        how_3_t: "Experience features",
+        how_3_p: "We add walking-focused features like progress, distance, and stamps.",
+
+        sec_ways: "Ways to support",
+        ways_note:
+          "Replace the links below with your real URLs once you decide the platform(s).",
+        btn_sponsor: "GitHub Sponsors",
+        btn_kofi: "Ko-fi / Buy Me a Coffee",
+        btn_paypal: "PayPal / Payment Link",
+        ways_alt:
+          "Prefer helping over donating? Submitting route fixes (Form / Issues) is also a great contribution.",
+
+        sec_transparency: "Transparency",
+        trans_p:
+          "Funds are used for operation costs (domain/hosting) and continuous map improvements. Larger expenses will be shared publicly on GitHub.",
+
+        sec_faq: "FAQ",
+        faq_q1: "Can I support anonymously?",
+        faq_a1: "It depends on the payment platform. We can offer anonymous-friendly options.",
+        faq_q2: "Do supporters get perks?",
+        faq_a2: "Support is mainly to keep the project sustainable. We may consider early-access perks later.",
+        faq_q3: "Can I help without money?",
+        faq_a3: "Yes. Field notes, sources, photos, and corrections are the most valuable contributions.",
+
+        back_home: "Back to Home",
+      }
+    };
+
+    function applyI18n(lang){
+      const dict = I18N[lang] || I18N.ja;
+      document.documentElement.lang = lang;
+      document.querySelectorAll("[data-i18n]").forEach(el=>{
+        const k = el.getAttribute("data-i18n");
+        if (dict[k]) el.textContent = dict[k];
+      });
+    }
+
+    function getLang(){
+      const q = new URLSearchParams(location.search);
+      const l = q.get("lang");
+      if (l === "en" || l === "ja") return l;
+      const saved = localStorage.getItem("sr_lang");
+      if (saved === "en" || saved === "ja") return saved;
+      return "ja";
+    }
+
+    function setLang(lang){
+      localStorage.setItem("sr_lang", lang);
+      applyI18n(lang);
+    }
+
+    window.addEventListener("DOMContentLoaded", async ()=>{
+      // header/footer include（あなたのプロジェクトの実パスに合わせて）
+      await includeHTML("#sr-header", "./includes/header.html");
+      await includeHTML("#sr-footer", "./includes/footer.html");
+
+      const lang = getLang();
+      applyI18n(lang);
+
+      // ヘッダに言語スイッチがある想定（無ければこのままでもOK）
+      document.addEventListener("click", (ev)=>{
+        const btn = ev.target.closest("[data-setlang]");
+        if (!btn) return;
+        ev.preventDefault();
+        setLang(btn.getAttribute("data-setlang"));
+      });
+    });
+  </script>
+</head>
+
+<body>
+  <!-- 共通ヘッダ -->
+  <div id="sr-header"></div>
+
+  <main class="sr-wrap">
+    <section class="sr-hero">
+      <div class="sr-card sr-card--hero">
+        <div class="sr-cardInner">
+          <div class="sr-badge">
+            <span class="sr-dot" aria-hidden="true"></span>
+            <span data-i18n="hero_badge">Support SamuraiRoad</span>
+          </div>
+
+          <h1 class="sr-h1" data-i18n="hero_title">このプロジェクトを支援する</h1>
+          <p class="sr-lead" data-i18n="hero_lead">
+            SamuraiRoad Project は、街道文化と“歩く体験”を、みんなで育てる地図プロジェクトです。もし価値を感じていただけたら、支援という形で参加できます。
+          </p>
+
+          <div class="sr-ctaRow">
+
+            <a class="sr-btn sr-btn--primary" href="https://github.com/sponsors/HisashiMiya" target="_blank" rel="noopener noreferrer" data-i18n="btn_sponsor">
+              GitHub Sponsors
+            </a>
+            <a class="sr-btn" href="https://buymeacoffee.com/hisa.miya" target="_blank" rel="noopener noreferrer" data-i18n="btn_kofi">
+              Ko-fi / Buy Me a Coffee
+            </a>
+<!-- TODO:
+            <a class="sr-btn" href="#" target="_blank" rel="noopener noreferrer" data-i18n="btn_paypal">
+              PayPal / 決済リンク
+            </a>
+実URLに差し替え -->
+          </div>
+
+          <p class="sr-fine" data-i18n="ways_note">
+            下のリンクは運用開始後に実URLへ差し替えます（まずはページの枠を先に用意）。
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section class="sr-section">
+      <h2 class="sr-h2" data-i18n="sec_why">なぜ支援が必要？</h2>
+      <p class="sr-p" data-i18n="why_p">
+        現地での確認、データ整備、表示改善、サーバ運用など、少しずつ積み上げる活動で地図の体験は良くなります。広告や短期的なバズに寄らず、長く続く形を目指しています。
+      </p>
+    </section>
+
+    <section class="sr-section">
+      <h2 class="sr-h2" data-i18n="sec_how">支援でできること</h2>
+
+      <div class="sr-grid3">
+        <div class="sr-mini">
+          <h3 class="sr-h3" data-i18n="how_1_t">地図の改善</h3>
+          <p class="sr-miniP" data-i18n="how_1_p">ルート精度、表示切替、モバイルUIなどを継続的に改善します。</p>
+        </div>
+        <div class="sr-mini">
+          <h3 class="sr-h3" data-i18n="how_2_t">データ整備</h3>
+          <p class="sr-miniP" data-i18n="how_2_p">宿場・一里塚・史跡の整備、根拠リンク付与、差分管理を進めます。</p>
+        </div>
+        <div class="sr-mini">
+          <h3 class="sr-h3" data-i18n="how_3_t">体験機能の追加</h3>
+          <p class="sr-miniP" data-i18n="how_3_p">踏破ログ、距離表示、スタンプなど“歩く体験”を強化します。</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="sr-section">
+      <h2 class="sr-h2" data-i18n="sec_ways">支援の方法</h2>
+
+      <div class="sr-callout">
+        <h3 class="sr-h3" data-i18n="sec_ways">支援の方法</h3>
+        <p class="sr-calloutP" data-i18n="ways_alt">
+          もし寄付よりも協力が得意なら：修正提案（フォーム / Issue）も立派な支援です。
+        </p>
+
+        <div class="sr-ctaRow" style="margin-top:12px;">
+          <!-- TODO: あなたのフォームURLに差し替え -->
+          <a class="sr-btn sr-btn--primary" href="https://docs.google.com/forms/d/e/1FAIpQLSctfcD7qgXA3t7X1bWQnXiqyTSCdh2iy1uuM07otO4xGGoU_g/viewform"
+             target="_blank" rel="noopener noreferrer">
+            修正提案（フォーム）
+          </a>
+
+          <!-- TODO: あなたのIssue作成URL（template=...）に差し替え -->
+          <a class="sr-btn" href="https://github.com/HisashiMiya/samurairoad-project/issues/new/choose"
+             target="_blank" rel="noopener noreferrer">
+            GitHub Issues
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <section class="sr-section">
+      <h2 class="sr-h2" data-i18n="sec_transparency">透明性（お金の使い道）</h2>
+      <p class="sr-p" data-i18n="trans_p">
+        支援金は、運用費（ドメイン・ホスティング等）や、地図の改善活動（調査・整備・実装）に充てます。大きな支出が発生する場合は、GitHub上で共有する方針です。
+      </p>
+    </section>
+
+    <section class="sr-section">
+      <h2 class="sr-h2" data-i18n="sec_faq">FAQ</h2>
+
+      <div class="sr-faq">
+        <details class="sr-details">
+          <summary class="sr-summary" data-i18n="faq_q1">匿名で支援できますか？</summary>
+          <p class="sr-detailsP" data-i18n="faq_a1">利用する決済手段によります。匿名性を重視する場合は、匿名対応のプラットフォームを選びます。</p>
+        </details>
+
+        <details class="sr-details">
+          <summary class="sr-summary" data-i18n="faq_q2">支援したら何か特典がありますか？</summary>
+          <p class="sr-detailsP" data-i18n="faq_a2">“広告非依存で長く続ける”ための支援が中心です。将来的に、支援者向けの早期アクセス等は検討します。</p>
+        </details>
+
+        <details class="sr-details">
+          <summary class="sr-summary" data-i18n="faq_q3">お金以外で支援できますか？</summary>
+          <p class="sr-detailsP" data-i18n="faq_a3">はい。現地情報・根拠リンク・写真・違和感の指摘など、修正提案が最も価値の高い支援になります。</p>
+        </details>
+      </div>
+
+      <div class="sr-ctaRow" style="margin-top:14px;">
+        <a class="sr-btn" href="./index.html" data-i18n="back_home">ホームへ戻る</a>
+      </div>
+    </section>
+  </main>
+
+  <!-- 共通フッタ -->
+  <div id="sr-footer"></div>
+</body>
+</html>
