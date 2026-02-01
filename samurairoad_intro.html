@@ -536,8 +536,13 @@
   }
 
   // buttons
-  document.getElementById("btnJa").addEventListener("click", () => applyLang("ja"));
-  document.getElementById("btnEn").addEventListener("click", () => applyLang("en"));
+  const _jaBtn = document.getElementById("btnJa");
+  const _enBtn = document.getElementById("btnEn");
+  if (_jaBtn) _jaBtn.addEventListener("click", () => applyLang("ja"));
+  if (_enBtn) _enBtn.addEventListener("click", () => applyLang("en"));
+
+  // 初期言語適用
+  initLang();
 })();
 initGA4();
 </script>
