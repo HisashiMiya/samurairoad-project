@@ -238,7 +238,7 @@ document.querySelectorAll("[data-link]").forEach(a => {
 });
 
 /* ====== 2) i18n: JP/EN toggle in same file ====== */
-const I18N = {
+window.SR_I18N = {
   en: {
     brand_title: "SamuraiRoad",
     brand_tagline: "Travel Edo at your fingertips. Connecting the world’s historic roads from past to future with AI.",
@@ -351,31 +351,6 @@ const I18N = {
     cta_routes: "世界の街道一覧",
   }
 };
-
-function applyLang(lang){
-  const dict = I18N[lang] || I18N.en;
-  document.documentElement.lang = lang;
-  document.querySelectorAll("[data-i18n]").forEach(el => {
-    const key = el.getAttribute("data-i18n");
-    if (dict[key] != null) el.innerHTML = dict[key];
-  });
-  localStorage.setItem("sr_lang", lang);
-  // ボタン表示：いま選べるのは「反対側」
-  document.getElementById("langLabel").textContent = (lang === "en") ? "JP" : "EN";
-}
-
-function initLang(){
-  const saved = localStorage.getItem("sr_lang");
-  const lang = saved || (navigator.language && navigator.language.startsWith("ja") ? "ja" : "en");
-  applyLang(lang);
-}
-
-document.getElementById("langBtn").addEventListener("click", () => {
-  const current = document.documentElement.lang || "en";
-  applyLang(current === "en" ? "ja" : "en");
-});
-
-initGA4();
 </script>
 </body>
 </html>
