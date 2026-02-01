@@ -158,6 +158,14 @@
   </div>
       </section>
     </aside>
+<div id="aiResultModal" style="display:none;position:fixed;inset:0;z-index:10001;background:rgba(0,0,0,.65);padding:8px">
+  <div class="ai-content" style="max-width:860px;margin:6vh auto 0;background:rgba(17,26,51,.98);border:1px solid rgba(255,255,255,.14);border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,.45);padding:16px;max-height:86vh;overflow:auto">
+    <div id="aiResultBody"></div>
+    <div class="row" style="justify-content:flex-end; margin-top:20px;">
+      <button class="btn" onclick="document.getElementById('aiResultModal').style.display='none'">閉じる</button>
+    </div>
+  </div>
+</div>
   </div>
 </div>
   <!-- Footer include mount point -->
