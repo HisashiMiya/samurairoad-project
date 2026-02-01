@@ -526,17 +526,25 @@ selected = null;
     return b === "K" || b === "k";
   }
 
-  function showWinPopup(winnerSide){
-    // 王が取られた後は「勝ち」だけ表示（ブラウザalertは使わない）
-    uiAlert(`${sideLabel(winnerSide)}の勝ち`);
+  async function showWinPopup(winnerSide){
+    const ok = await uiConfirm(
+      `${sideLabel(winnerSide)}の勝ち\nAIで対局を評価しますか？`,
+      "🤖 AI評価",
+      "閉じる"
+    );
+    if (ok){
+      const b = document.getElementById("btnAiReview");
+      if (b) b.click();
+    }
   }
+
 
   // ---- 音（WebAudio） ----
   function buzz(ms=10){
     if(!vibrationEnabled) return;
     try{ if (navigator.vibrate) navigator.vibrate(ms); }catch{}
   }
-  audioEnabled = (typeof audioEnabled === "boolean") ? audioEnabled : true;
+  audioEnabled = (typeof audioEnabled === "boolean") ? audioEnabled : false;
   vibrationEnabled = (typeof vibrationEnabled === "boolean") ? vibrationEnabled : true;
   let audioCtx = null;
   function ensureAudioUnlocked(){
@@ -549,7 +557,10 @@ selected = null;
 
   // ---- Audio unlock on first user gesture (mobile autoplay restriction) ----
   (function(){
-    const once = () => { try{ ensureAudioUnlocked(); }catch{}; window.removeEventListener("pointerdown", once, true); window.removeEventListener("touchstart", once, true); };
+    const once = () => { try{ ensureAudioUnlocked(); }catch{};
+      window.removeEventListener("pointerdown", once, true);
+      window.removeEventListener("touchstart", once, true);
+    };
     window.addEventListener("pointerdown", once, true);
     window.addEventListener("touchstart", once, true);
   })();
@@ -1467,3 +1478,20 @@ function formatChatTime(ts){
   const mm = String(d.getMinutes()).padStart(2, "0");
   return `${MM}/${DD} ${hh}:${mm}`; // 年なし
 }
+
+  // ---- Right panel tabs (chat/kifu/dev) ----
+  document.addEventListener("DOMContentLoaded", () => {
+    const root = document.getElementById("supportPanel");
+    if (!root) return;
+    const tabs = Array.from(root.querySelectorAll(".tab[data-tab]"));
+    const panes = {
+      chat: document.getElementById("tab-chat"),
+      kifu: document.getElementById("tab-kifu"),
+      dev:  document.getElementById("tab-dev"),
+    };
+    const activate = (key) => {
+      tabs.forEach(t => t.classList.toggle("active", t.dataset.tab === key));
+      Object.entries(panes).forEach(([k, el]) => { if (el) el.classList.toggle("active", k === key); });
+    };
+    tabs.forEach(t => t.addEventListener("click", () => activate(t.dataset.tab)));
+  });
