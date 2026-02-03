@@ -23,12 +23,8 @@
     /* ===== HUD（常に画面内）===== */
     .hud{
       position:absolute;
-      top:10px;
-      left:10px;
-      right:10px;
-      display:flex;
-      justify-content:space-between;
-      align-items:flex-start;
+      top:10px; left:10px; right:10px;
+      display:flex; justify-content:space-between; align-items:flex-start;
       gap:10px;
       pointer-events:none;
     }
@@ -38,7 +34,7 @@
       border-radius:12px;
       padding:8px 10px;
       backdrop-filter: blur(6px);
-      max-width:min(360px, 70vw);
+      max-width:min(420px, 78vw);
     }
     .hudLine{ font-size:12px; opacity:.95; line-height:1.25; }
     .hudScore{ font-size:14px; font-weight:700; }
@@ -47,8 +43,7 @@
     /* ===== ⚙️ボタン ===== */
     .menuBtn{
       position:absolute;
-      top:10px;
-      right:10px;
+      top:10px; right:10px;
       z-index:20;
       pointer-events:auto;
       appearance:none;
@@ -78,11 +73,9 @@
 
     .drawerHeader{
       display:flex; justify-content:space-between; align-items:center; gap:10px;
-      max-width:520px; margin:0 auto 10px;
+      max-width:560px; margin:0 auto 10px;
     }
-    .tabs{
-      display:flex; gap:8px; flex-wrap:wrap;
-    }
+    .tabs{ display:flex; gap:8px; flex-wrap:wrap; }
     .tab{
       appearance:none; cursor:pointer;
       border:1px solid rgba(255,255,255,.22);
@@ -102,10 +95,7 @@
       border-radius:10px; font-size:12px;
     }
 
-    .drawerBody{
-      max-width:520px; margin:0 auto;
-      display:none;
-    }
+    .drawerBody{ max-width:560px; margin:0 auto; display:none; }
     .drawerBody.active{ display:block; }
 
     .panel{
@@ -118,7 +108,7 @@
       border-radius:12px;
       background:rgba(255,255,255,.06);
     }
-    .row{ display:flex; align-items:center; gap:8px; flex:1 1 220px; min-width:220px; }
+    .row{ display:flex; align-items:center; gap:8px; flex:1 1 240px; min-width:240px; }
     label{ font-size:12px; opacity:.9; white-space:nowrap; }
     select, input[type="range"]{ width:100%; }
     .value{ font-size:12px; opacity:.9; min-width:52px; text-align:right; }
@@ -135,9 +125,25 @@
       white-space:nowrap;
     }
 
+    .btnPrimary{
+      border-color: rgba(255,105,180,.55);
+      box-shadow: 0 0 0 2px rgba(255,105,180,.12) inset;
+    }
+
     .hint{ font-size:12px; opacity:.85; margin-top:2px; text-align:center; }
 
-    /* スマホでキャンバス優先（縦を食い過ぎない） */
+    .howto{
+      font-size:13px; line-height:1.6; opacity:.95;
+    }
+    .howto h3{ margin:6px 0 6px; font-size:14px; }
+    .howto ul{ margin:6px 0 6px 18px; padding:0; }
+    .note{
+      font-size:12px; opacity:.85;
+      border-left:3px solid rgba(255,105,180,.6);
+      padding-left:10px;
+      margin-top:8px;
+    }
+
     @media (max-height: 720px){
       .hint{ display:none; }
     }
@@ -147,27 +153,27 @@
   <div class="wrap">
     <canvas id="gameCanvas"></canvas>
 
-    <!-- HUD（常に見える） -->
+    <!-- HUD -->
     <div class="hud" aria-label="hud">
       <div class="hudBox">
         <div class="hudLine hudScore" id="hudScore">Score: 0</div>
         <div class="hudLine" id="hudAiMsg">AI: …</div>
-        <div class="hudSmall" id="hudStats">癖: …</div>
+        <div class="hudSmall" id="hudStats">…</div>
       </div>
     </div>
 
-    <!-- ⚙️ -->
     <button class="menuBtn" id="btnMenu" type="button">⚙️</button>
-
-    <div class="hint">操作：長押しで上昇 / 離すと落下　｜　タップで開始・リトライ</div>
+    <div class="hint" id="hintLine">操作：長押しで上昇 / 離すと落下　｜　タップで開始・リトライ</div>
   </div>
 
   <!-- Drawer -->
   <div class="drawer" id="drawer">
     <div class="drawerHeader">
       <div class="tabs">
-        <button class="tab active" data-pane="pane-level" type="button">レベル</button>
-        <button class="tab" data-pane="pane-ai" type="button">AI表示</button>
+        <button class="tab active" data-pane="pane-level" type="button" id="tabLevel">レベル</button>
+        <button class="tab" data-pane="pane-howto" type="button" id="tabHowto">使い方</button>
+        <button class="tab" data-pane="pane-feedback" type="button" id="tabFeedback">フィードバック</button>
+        <button class="tab" data-pane="pane-lang" type="button" id="tabLang">言語</button>
       </div>
       <button class="closeBtn" id="btnClose" type="button">閉じる</button>
     </div>
@@ -175,7 +181,7 @@
     <div class="drawerBody active" id="pane-level">
       <div class="panel">
         <div class="row">
-          <label for="preset">プリセット</label>
+          <label for="preset" id="lblPreset">プリセット</label>
           <select id="preset">
             <option value="easy">EASY</option>
             <option value="normal" selected>NORMAL</option>
@@ -185,25 +191,25 @@
         </div>
 
         <div class="row">
-          <label for="speedBase">速度</label>
+          <label for="speedBase" id="lblSpeed">速度</label>
           <input id="speedBase" type="range" min="2" max="6" step="0.1" value="3">
           <div class="value" id="speedBaseVal">3.0</div>
         </div>
 
         <div class="row">
-          <label for="gapBase">間隔（上下の木）</label>
+          <label for="gapBase" id="lblGap">間隔（上下の木）</label>
           <input id="gapBase" type="range" min="130" max="260" step="1" value="200">
           <div class="value" id="gapBaseVal">200</div>
         </div>
 
         <div class="row">
-          <label for="spawnEvery">間隔（出現）</label>
+          <label for="spawnEvery" id="lblSpawn">間隔（出現）</label>
           <input id="spawnEvery" type="range" min="70" max="170" step="1" value="115">
           <div class="value" id="spawnEveryVal">115</div>
         </div>
 
         <div class="row">
-          <label for="accelEvery">加速（頻度）</label>
+          <label for="accelEvery" id="lblAccel">加速（頻度）</label>
           <input id="accelEvery" type="range" min="0" max="900" step="10" value="650">
           <div class="value" id="accelEveryVal">650</div>
         </div>
@@ -215,19 +221,179 @@
       </div>
     </div>
 
-    <div class="drawerBody" id="pane-ai">
+    <div class="drawerBody" id="pane-howto">
+      <div class="panel">
+        <div class="howto" id="howtoBox"></div>
+      </div>
+    </div>
+
+    <div class="drawerBody" id="pane-feedback">
       <div class="panel">
         <div class="row" style="flex:1 1 100%; min-width:100%;">
-          <div style="font-size:12px; opacity:.9;">
-            AIコメントと統計は <b>画面左上のHUD</b> に常時表示されます。<br>
-            ここは今後「モード固定（癒し/普通/地獄）」などの設定を置く枠です。
-          </div>
+          <div class="howto" id="feedbackText"></div>
+        </div>
+        <div class="row" style="justify-content:flex-end; gap:10px; flex:1 1 100%; min-width:100%;">
+          <button class="btn btnPrimary" id="btnBug" type="button">🐛 バグ報告</button>
+          <button class="btn btnPrimary" id="btnReq" type="button">✨ 要望</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="drawerBody" id="pane-lang">
+      <div class="panel">
+        <div class="row">
+          <label for="langSel" id="lblLang">言語</label>
+          <select id="langSel">
+            <option value="ja">日本語</option>
+            <option value="en">English</option>
+          </select>
+        </div>
+        <div class="row" style="flex:1 1 100%; min-width:100%;">
+          <div class="note" id="langNote">言語は端末に保存されます（次回も維持）。</div>
         </div>
       </div>
     </div>
   </div>
 
 <script>
+  const ISSUE_URL = "https://github.com/HisashiMiya/samurairoad-project/issues/new/choose";
+
+  // =========================
+  // i18n
+  // =========================
+  const I18N = {
+    ja: {
+      hint: "操作：長押しで上昇 / 離すと落下　｜　タップで開始・リトライ",
+      tabLevel: "レベル", tabHowto: "使い方", tabFeedback: "フィードバック", tabLang: "言語",
+      close: "閉じる",
+      preset: "プリセット", speed: "速度", gap: "間隔（上下の木）", spawn: "間隔（出現）", accel: "加速（頻度）",
+      apply: "適用（次から）", restart: "即リトライ",
+      lang: "言語",
+      langNote: "言語は端末に保存されます（次回も維持）。",
+      startTitle: "SAMURAI ROAD",
+      startSub: "タップ/クリックでスタート",
+      gameOver: "GAME OVER",
+      retry: "タップ/クリックでリトライ",
+      score: "Score",
+      ai: "AI",
+      aiFinal: "AI最終評価",
+      feedbackText: `
+        <h3>バグ報告・要望</h3>
+        <ul>
+          <li>プレイ中に気づいた違和感を、そのまま送れます</li>
+          <li>GitHub Issues のテンプレート選択画面に移動します</li>
+        </ul>
+        <div class="note">
+          例：スマホで見切れる / スコアが増えない / 操作が重い / 画像が出ない など
+        </div>
+      `,
+      bug: "🐛 バグ報告",
+      req: "✨ 要望",
+      howtoHtml: `
+        <h3>基本操作</h3>
+        <ul>
+          <li><b>長押し</b>：上昇（押している間、少しずつ上がります）</li>
+          <li><b>離す</b>：落下（重力で下がります）</li>
+          <li><b>タップ</b>：スタート / リトライ</li>
+        </ul>
+
+        <h3>ゲームオーバー（底）</h3>
+        <ul>
+          <li>上下の木に当たる</li>
+          <li><b>画面の下（床）に触れる</b> → 即ゲームオーバー</li>
+        </ul>
+
+        <h3>スコア</h3>
+        <ul>
+          <li>上下の木 <b>1セット</b> を <b>ぶつからずに通過</b> すると <b>+1</b></li>
+          <li>「木の真ん中を越えた」タイミングで加点します</li>
+        </ul>
+
+        <h3>レベル調整</h3>
+        <ul>
+          <li>⚙️ → 「レベル」タブで調整できます</li>
+          <li><b>間隔（上下の木）</b>を広げると簡単になります</li>
+        </ul>
+
+        <div class="note">
+          ※スマホの「タップの強さ（圧力）」では上昇量は変わりません。<br>
+          上昇は「押している時間」で決まります。
+        </div>
+      `
+    },
+    en: {
+      hint: "Controls: Hold to rise / Release to fall | Tap to start & retry",
+      tabLevel: "Level", tabHowto: "How to play", tabFeedback: "Feedback", tabLang: "Language",
+      close: "Close",
+      preset: "Preset", speed: "Speed", gap: "Gap (top/bottom)", spawn: "Spawn interval", accel: "Acceleration",
+      apply: "Apply (next run)", restart: "Restart now",
+      lang: "Language",
+      langNote: "Language is saved on this device.",
+      startTitle: "SAMURAI ROAD",
+      startSub: "Tap/click to start",
+      gameOver: "GAME OVER",
+      retry: "Tap/click to retry",
+      score: "Score",
+      ai: "AI",
+      aiFinal: "AI final",
+      feedbackText: `
+        <h3>Bug reports & requests</h3>
+        <ul>
+          <li>Send what felt off while playing</li>
+          <li>We’ll open GitHub Issues (template chooser)</li>
+        </ul>
+        <div class="note">
+          Examples: clipped on mobile / score not increasing / laggy controls / images not loading
+        </div>
+      `,
+      bug: "🐛 Report a bug",
+      req: "✨ Request a feature",
+      howtoHtml: `
+        <h3>Basic controls</h3>
+        <ul>
+          <li><b>Hold</b>: Rise (keeps pushing upward)</li>
+          <li><b>Release</b>: Fall (gravity)</li>
+          <li><b>Tap</b>: Start / Retry</li>
+        </ul>
+
+        <h3>Game over (the “bottom”)</h3>
+        <ul>
+          <li>Hit the top or bottom trees</li>
+          <li><b>Touch the floor (bottom edge)</b> → instant game over</li>
+        </ul>
+
+        <h3>Score</h3>
+        <ul>
+          <li><b>+1</b> when you pass <b>one pair</b> of trees without crashing</li>
+          <li>We count it when you cross the center of the obstacle</li>
+        </ul>
+
+        <h3>Difficulty</h3>
+        <ul>
+          <li>Open ⚙️ → “Level” tab</li>
+          <li>Wider <b>Gap</b> makes it easier</li>
+        </ul>
+
+        <div class="note">
+          Note: Tap pressure does NOT change lift on mobile.<br>
+          Lift depends on how long you hold.
+        </div>
+      `
+    }
+  };
+
+  function getSavedLang(){
+    const v = localStorage.getItem('sr_lang');
+    return (v === 'en' || v === 'ja') ? v : 'ja';
+  }
+  function saveLang(v){ localStorage.setItem('sr_lang', v); }
+
+  let LANG = getSavedLang();
+  function t(){ return I18N[LANG]; }
+
+  // =========================
+  // Canvas setup
+  // =========================
   const canvas = document.getElementById('gameCanvas');
   const ctx = canvas.getContext('2d');
 
@@ -250,35 +416,63 @@
   const clamp = (v,a,b)=>Math.max(a,Math.min(b,v));
   const lerp = (a,b,t)=>a+(b-a)*t;
 
-  // HUD
+  // =========================
+  // DOM refs
+  // =========================
   const hudScore = document.getElementById('hudScore');
   const hudAiMsg = document.getElementById('hudAiMsg');
   const hudStats = document.getElementById('hudStats');
 
-  // Drawer UI
+  const hintLine = document.getElementById('hintLine');
+
   const drawer = document.getElementById('drawer');
   const btnMenu = document.getElementById('btnMenu');
   const btnClose = document.getElementById('btnClose');
 
+  const tabLevel = document.getElementById('tabLevel');
+  const tabHowto = document.getElementById('tabHowto');
+  const tabFeedback = document.getElementById('tabFeedback');
+  const tabLang = document.getElementById('tabLang');
+
+  const lblPreset = document.getElementById('lblPreset');
+  const lblSpeed = document.getElementById('lblSpeed');
+  const lblGap = document.getElementById('lblGap');
+  const lblSpawn = document.getElementById('lblSpawn');
+  const lblAccel = document.getElementById('lblAccel');
+  const lblLang = document.getElementById('lblLang');
+  const langNote = document.getElementById('langNote');
+  const howtoBox = document.getElementById('howtoBox');
+  const feedbackText = document.getElementById('feedbackText');
+
+  const langSel = document.getElementById('langSel');
+  const btnBug = document.getElementById('btnBug');
+  const btnReq = document.getElementById('btnReq');
+
+  btnBug.addEventListener('click', ()=> window.open(ISSUE_URL, '_blank', 'noopener,noreferrer'));
+  btnReq.addEventListener('click', ()=> window.open(ISSUE_URL, '_blank', 'noopener,noreferrer'));
+
+  // =========================
+  // Drawer behavior
+  // =========================
   btnMenu.addEventListener('click', ()=> drawer.classList.add('open'));
   btnClose.addEventListener('click', ()=> drawer.classList.remove('open'));
-  drawer.addEventListener('click', (e)=>{
-    if(e.target === drawer) drawer.classList.remove('open');
-  });
 
-  document.querySelectorAll('.tab').forEach(t=>{
-    t.addEventListener('click', ()=>{
+  document.querySelectorAll('.tab').forEach(tbtn=>{
+    tbtn.addEventListener('click', ()=>{
       document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
-      t.classList.add('active');
-      const pane = t.dataset.pane;
+      tbtn.classList.add('active');
+      const pane = tbtn.dataset.pane;
       document.querySelectorAll('.drawerBody').forEach(p=>p.classList.remove('active'));
       document.getElementById(pane).classList.add('active');
     });
   });
 
+  // =========================
   // Difficulty
+  // =========================
   const difficulty = { preset:'normal', speedBase:3.0, gapBase:200, spawnEvery:115, accelEvery:650 };
   let pendingDifficulty = { ...difficulty };
+
   const PRESETS = {
     easy:   { speedBase: 2.6, gapBase: 220, spawnEvery: 130, accelEvery: 720 },
     normal: { speedBase: 3.0, gapBase: 200, spawnEvery: 115, accelEvery: 650 },
@@ -289,6 +483,7 @@
   const $ = (id)=>document.getElementById(id);
   const presetEl=$('preset'), speedBaseEl=$('speedBase'), gapBaseEl=$('gapBase'), spawnEveryEl=$('spawnEvery'), accelEveryEl=$('accelEvery');
   const speedBaseVal=$('speedBaseVal'), gapBaseVal=$('gapBaseVal'), spawnEveryVal=$('spawnEveryVal'), accelEveryVal=$('accelEveryVal');
+  const btnApply=$('btnApply'), btnRestart=$('btnRestart');
 
   function syncVals(){
     speedBaseVal.textContent = Number(speedBaseEl.value).toFixed(1);
@@ -308,7 +503,7 @@
     el.addEventListener('input', ()=>{ presetEl.value='custom'; syncVals(); });
   });
 
-  $('btnApply').addEventListener('click', ()=>{
+  btnApply.addEventListener('click', ()=>{
     pendingDifficulty = {
       preset: presetEl.value,
       speedBase: Number(speedBaseEl.value),
@@ -317,7 +512,7 @@
       accelEvery: Number(accelEveryEl.value)
     };
   });
-  $('btnRestart').addEventListener('click', ()=>{
+  btnRestart.addEventListener('click', ()=>{
     pendingDifficulty = {
       preset: presetEl.value,
       speedBase: Number(speedBaseEl.value),
@@ -335,28 +530,35 @@
   applyDifficultyNow();
   gameSpeed = difficulty.speedBase;
 
+  // =========================
   // Images
+  // =========================
   const imgBody = new Image(); imgBody.src = './images/buunosuke_body.png';
   const imgProp = new Image(); imgProp.src = './images/buunosuke_propeller.png';
   let imagesReady=false, loaded=0;
   [imgBody,imgProp].forEach(im=>im.onload=()=>{ if(++loaded===2) imagesReady=true; });
 
-  // AI
+  // =========================
+  // AI & stats (死因表示は出さない)
+  // =========================
   const ai = {
     mode:'normal', biasY:0, gapBoost:0, speedBoost:0,
-    passStreak:0, failStreak:0, lastDeath:null, msg:"最初は様子見。"
+    passStreak:0, failStreak:0, lastDeath:null,
+    msg:"…"
   };
   const stats = {
-    emaY:0.5, emaPress:0.0,
-    deaths:{TOP:0,BOTTOM:0,FLOOR:0},
-    lastPassFrame:0
+    emaY:0.5,
+    emaPress:0.0
   };
   let gameOverLines=["","",""];
+  let aiFinalLine="";
 
   function setAiMode(m){
     if(ai.mode===m) return;
     ai.mode=m;
-    ai.msg = (m==='soothe')?"癒しモード：少し優しくする。":(m==='hell'?"地獄モード：容赦しない。":"普通モード：普段通り。");
+    if(m==='soothe') ai.msg = (LANG==='ja')?"癒しモード：少し優しくする。":"Soothe mode: easing it a bit.";
+    else if(m==='hell') ai.msg = (LANG==='ja')?"地獄モード：容赦しない。":"Hell mode: no mercy.";
+    else ai.msg = (LANG==='ja')?"普通モード：普段通り。":"Normal mode.";
   }
   function maybeUpdateAiMode(){
     if(ai.failStreak>=3) setAiMode('soothe');
@@ -368,22 +570,40 @@
     if(ai.mode==='hell') return { gap:-18, spd:+0.35, spawn:-10 };
     return { gap:0, spd:0, spawn:0 };
   }
+
   function buildGameOverAnalysis(){
-    const top=stats.deaths.TOP, bot=stats.deaths.BOTTOM, flo=stats.deaths.FLOOR;
-    let main="原因：";
-    main += (ai.lastDeath==='TOP')?"上に当たりやすい":(ai.lastDeath==='BOTTOM'?"下に当たりやすい":"落ちやすい");
-    let habit="癖：";
-    habit += (stats.emaY<0.35)?"高めで粘る":(stats.emaY>0.65?"低めに沈む":"中央維持");
-    habit += `／押下率≈${Math.round(stats.emaPress*100)}%`;
-    let tip="次：";
-    tip += (ai.lastDeath==='TOP')?"“下側”を通す。長押しを短く。":
-           (ai.lastDeath==='BOTTOM')?"“上側”に逃がす。落ち始める前に1回。":
-           "落ちる前に小刻み。長押しで救わない。";
-    const sum = `内訳：上${top}/下${bot}/落${flo}`;
-    gameOverLines=[main, habit, tip+" "+sum];
+    // 死因は表示しない版：プレイ癖と次の一手だけ
+    if (LANG==='ja'){
+      const habit = (stats.emaY<0.35)?"高めで粘る":(stats.emaY>0.65?"低めに沈む":"中央維持");
+      const press = Math.round(stats.emaPress*100);
+      gameOverLines = [
+        `癖：${habit}（押下率≈${press}%）`,
+        "次の一手：落ちる前に1回だけ押す（救わない）",
+        "狙い：同じ高さを保ったまま、木の中心を抜ける"
+      ];
+    } else {
+      const habit = (stats.emaY<0.35)?"stays high":(stats.emaY>0.65?"sinks low":"stays mid");
+      const press = Math.round(stats.emaPress*100);
+      gameOverLines = [
+        `Tendency: ${habit} (hold≈${press}%)`,
+        "Next move: one small press BEFORE you drop (don’t “save”)",
+        "Goal: keep the same altitude and pass the center"
+      ];
+    }
   }
 
+  function buildAiFinalLine(){
+    // HUDのAI文言と異なる「最終評価」1行（短く）
+    if (LANG==='ja'){
+      aiFinalLine = "勝つ気持ちが先に出てる。高さを決めて、同じリズムで通れ。";
+    } else {
+      aiFinalLine = "You’re chasing the win. Commit to an altitude and pass with the same rhythm.";
+    }
+  }
+
+  // =========================
   // +1 popup
+  // =========================
   const popups=[];
   function addPopup(text,x,y){ popups.push({text,x,y,life:40}); }
   function drawPopups(){
@@ -398,7 +618,9 @@
     }
   }
 
+  // =========================
   // Player
+  // =========================
   const buunosuke = {
     x:60,y:H/2,width:56,height:56,velocity:0,
     gravity:0.28, thrust:-0.35, maxUp:-4.6, maxDown:6.5,
@@ -408,6 +630,7 @@
     update(){
       if(gameState!=='PLAYING') return;
 
+      // 圧力対応なし：長押しだけで上昇
       this.velocity += this.isFlying ? this.thrust : this.gravity;
       this.velocity = clamp(this.velocity, this.maxUp, this.maxDown);
       this.y += this.velocity;
@@ -415,8 +638,9 @@
       if(this.y<0){ this.y=0; this.velocity=0; }
       if(this.y+this.height>H){
         this.y=H-this.height;
-        ai.lastDeath='FLOOR'; stats.deaths.FLOOR++;
-        gameState='GAMEOVER'; buildGameOverAnalysis();
+        gameState='GAMEOVER';
+        buildGameOverAnalysis();
+        buildAiFinalLine();
       }
     },
     draw(){
@@ -443,7 +667,9 @@
     }
   };
 
+  // =========================
   // Obstacles
+  // =========================
   const pipes=[];
   function handleObstacles(){
     if(gameState!=='PLAYING') return;
@@ -475,10 +701,9 @@
       const hitTop = overlapX && (buunosuke.y < p.gapTop);
       const hitBottom = overlapX && (buunosuke.y+buunosuke.height > p.gapTop+p.gapHeight);
       if(hitTop || hitBottom){
-        ai.lastDeath = hitTop ? 'TOP' : 'BOTTOM';
-        stats.deaths[ai.lastDeath]++;
         gameState='GAMEOVER';
         buildGameOverAnalysis();
+        buildAiFinalLine();
       }
 
       // score（中心越え）
@@ -487,12 +712,7 @@
       if(!p.passed && buuCenterX > pipeCenterX){
         p.passed=true;
         score++;
-        stats.lastPassFrame=frames;
-
         ai.passStreak++; ai.failStreak=0;
-        ai.gapBoost = clamp(ai.gapBoost - 1.5, 0, 45);
-        ai.speedBoost = clamp(ai.speedBoost + 0.03, -0.6, 0);
-
         addPopup("+1", buunosuke.x+20, buunosuke.y-6);
       }
 
@@ -500,11 +720,14 @@
     }
   }
 
+  // =========================
   // Background
+  // =========================
   function drawBackground(){
     const g=ctx.createLinearGradient(0,0,0,H);
     g.addColorStop(0,"#0a0a2a"); g.addColorStop(1,"#2a0a1a");
     ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
+
     ctx.fillStyle='#ffb7c5';
     for(let i=0;i<20;i++){
       const x=(frames*2 + i*50)%W;
@@ -513,67 +736,98 @@
     }
   }
 
+  // =========================
+  // HUD update（死因カウント表示なし）
+  // =========================
   function updateHud(){
-    // stats
     const cy = (buunosuke.y + buunosuke.height/2) / Math.max(1,H);
     stats.emaY = lerp(stats.emaY, clamp(cy,0,1), 0.03);
     stats.emaPress = lerp(stats.emaPress, buunosuke.isFlying ? 1 : 0, 0.05);
 
-    const yLabel = stats.emaY < 0.35 ? "高め" : (stats.emaY > 0.65 ? "低め" : "中央");
+    const yLabel = stats.emaY < 0.35 ? (LANG==='ja'?"高め":"high") : (stats.emaY > 0.65 ? (LANG==='ja'?"低め":"low") : (LANG==='ja'?"中央":"mid"));
     const pressPct = Math.round(stats.emaPress*100);
 
-    hudScore.textContent = "Score: " + score;
-    hudAiMsg.textContent = "AI: " + ai.msg;
-    hudStats.textContent = `癖：高度=${yLabel} / 押下率≈${pressPct}% / 死因 上:${stats.deaths.TOP} 下:${stats.deaths.BOTTOM} 落:${stats.deaths.FLOOR}`;
+    hudScore.textContent = `${t().score}: ${score}`;
+    hudAiMsg.textContent = `${t().ai}: ${ai.msg}`;
+    hudStats.textContent =
+      (LANG==='ja')
+        ? `癖：高度=${yLabel} / 押下率≈${pressPct}%`
+        : `Tendency: ${yLabel} / hold≈${pressPct}%`;
   }
 
+  // =========================
+  // Canvas wrapping (GameOver 文字切れ対策)
+  // =========================
+  function drawWrappedCentered(text, cx, y, maxWidth, lineHeight){
+    let lines;
+    if (LANG==='ja'){
+      lines = [];
+      let cur = '';
+      for (const ch of text){
+        const test = cur + ch;
+        if (ctx.measureText(test).width <= maxWidth) cur = test;
+        else { lines.push(cur); cur = ch; }
+      }
+      if (cur) lines.push(cur);
+    } else {
+      const words = text.split(' ');
+      lines = [];
+      let line = '';
+      for (const w of words){
+        const test = line ? (line + ' ' + w) : w;
+        if (ctx.measureText(test).width <= maxWidth) line = test;
+        else { if (line) lines.push(line); line = w; }
+      }
+      if (line) lines.push(line);
+    }
+    for (let i=0;i<lines.length;i++){
+      ctx.fillText(lines[i], cx, y + i*lineHeight);
+    }
+    return lines.length;
+  }
+
+  // =========================
+  // UI (start/gameover)
+  // =========================
   function drawUI(){
     if(gameState==='START'){
       ctx.fillStyle='rgba(0,0,0,0.55)'; ctx.fillRect(0,0,W,H);
       ctx.fillStyle='#fff'; ctx.textAlign='center';
-      ctx.font='24px Arial'; ctx.fillText('SAMURAI ROAD', W/2, H/2-20);
-      ctx.font='16px Arial'; ctx.fillText('タップ/クリックでスタート', W/2, H/2+30);
+      ctx.font='24px Arial'; ctx.fillText(t().startTitle, W/2, H/2-20);
+      ctx.font='16px Arial'; ctx.fillText(t().startSub, W/2, H/2+30);
       ctx.textAlign='left';
     }else if(gameState==='GAMEOVER'){
-      ctx.fillStyle='rgba(0,0,0,0.68)'; ctx.fillRect(0,0,W,H);
+      ctx.fillStyle='rgba(0,0,0,0.70)'; ctx.fillRect(0,0,W,H);
+
       ctx.fillStyle='red'; ctx.textAlign='center';
-      ctx.font='30px Arial'; ctx.fillText('GAME OVER', W/2, H/2-30);
+      ctx.font='30px Arial'; ctx.fillText(t().gameOver, W/2, H/2-90);
+
+      const maxW = Math.max(200, W - 50);
+      let y = H/2 - 55;
 
       ctx.fillStyle='rgba(255,255,255,0.95)';
       ctx.font='14px Arial';
-      ctx.fillText(gameOverLines[0], W/2, H/2+5);
-      ctx.fillText(gameOverLines[1], W/2, H/2+28);
-      ctx.fillText(gameOverLines[2], W/2, H/2+51);
+
+      y += drawWrappedCentered(gameOverLines[0], W/2, y, maxW, 18) * 18 + 6;
+      y += drawWrappedCentered(gameOverLines[1], W/2, y, maxW, 18) * 18 + 6;
+      y += drawWrappedCentered(gameOverLines[2], W/2, y, maxW, 18) * 18 + 10;
+
+      ctx.fillStyle='rgba(255,105,180,0.95)';
+      ctx.font='bold 14px Arial';
+      drawWrappedCentered(`${t().aiFinal}: ${aiFinalLine}`, W/2, y, maxW, 18);
 
       ctx.fillStyle='#fff'; ctx.font='16px Arial';
-      ctx.fillText('タップ/クリックでリトライ', W/2, H/2+86);
+      ctx.fillText(t().retry, W/2, H/2+120);
       ctx.textAlign='left';
     }
   }
 
-  function applyAiAfterDeath(){
-    if(!ai.lastDeath) return;
-
-    ai.failStreak++; ai.passStreak=0;
-    ai.gapBoost = clamp(ai.gapBoost + 8 + ai.failStreak*2, 0, 45);
-    ai.speedBoost = clamp(ai.speedBoost - 0.08 - ai.failStreak*0.01, -0.6, 0);
-
-    if(ai.lastDeath==='TOP') ai.biasY = clamp(ai.biasY + 8, -80, 80);
-    if(ai.lastDeath==='BOTTOM') ai.biasY = clamp(ai.biasY - 8, -80, 80);
-    if(ai.lastDeath==='FLOOR') ai.biasY = clamp(ai.biasY - 12, -80, 80);
-
-    ai.msg = (ai.lastDeath==='TOP')?"上に当たりがち。ギャップを少し下へ。":
-             (ai.lastDeath==='BOTTOM')?"下に当たりがち。ギャップを少し上へ。":
-             "落ちやすい。少し優しくする。";
-
-    ai.lastDeath=null;
-  }
-
+  // =========================
+  // Reset / loop
+  // =========================
   function resetGame(){
     applyDifficultyNow();
     ({w:W,h:H}=resizeCanvas());
-    applyAiAfterDeath();
-
     buunosuke.y=H/2; buunosuke.velocity=0;
     pipes.length=0; popups.length=0;
     score=0; frames=0;
@@ -582,7 +836,6 @@
     updateHud();
   }
 
-  // Loop
   function loop(){
     ctx.clearRect(0,0,W,H);
     drawBackground();
@@ -602,7 +855,9 @@
     requestAnimationFrame(loop);
   }
 
-  // Input
+  // =========================
+  // Input (pressure無し)
+  // =========================
   function pressStartOrFly(){
     if(gameState==='PLAYING') buunosuke.isFlying=true;
     else resetGame();
@@ -620,7 +875,53 @@
     if(gameState!=='PLAYING') buunosuke.y=H/2;
   });
 
-  // 初期HUD
+  // =========================
+  // Language apply
+  // =========================
+  function applyLanguage(){
+    hintLine.textContent = t().hint;
+
+    tabLevel.textContent = t().tabLevel;
+    tabHowto.textContent = t().tabHowto;
+    tabFeedback.textContent = t().tabFeedback;
+    tabLang.textContent = t().tabLang;
+    btnClose.textContent = t().close;
+
+    lblPreset.textContent = t().preset;
+    lblSpeed.textContent = t().speed;
+    lblGap.textContent = t().gap;
+    lblSpawn.textContent = t().spawn;
+    lblAccel.textContent = t().accel;
+
+    btnApply.textContent = t().apply;
+    btnRestart.textContent = t().restart;
+
+    lblLang.textContent = t().lang;
+    langNote.textContent = t().langNote;
+
+    howtoBox.innerHTML = t().howtoHtml;
+    feedbackText.innerHTML = t().feedbackText;
+
+    btnBug.textContent = t().bug;
+    btnReq.textContent = t().req;
+
+    // AI文言再同期
+    setAiMode(ai.mode);
+    updateHud();
+  }
+
+  // lang selector init
+  langSel.value = LANG;
+  langSel.addEventListener('change', ()=>{
+    LANG = langSel.value;
+    saveLang(LANG);
+    applyLanguage();
+  });
+
+  // Initial
+  applyLanguage();
+  syncVals();
+  setAiMode('normal');
   updateHud();
   loop();
 </script>
