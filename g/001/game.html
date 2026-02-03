@@ -12,24 +12,113 @@
       font-family: system-ui, -apple-system, "Noto Sans JP", sans-serif; color:#fff;
     }
     .wrap{ position:relative; display:flex; flex-direction:column; align-items:center; gap:10px; }
+
     canvas{
       border:2px solid var(--pink);
       box-shadow:0 0 20px var(--pink);
       display:block;
       border-radius:12px;
     }
+
+    /* ===== HUD（常に画面内）===== */
+    .hud{
+      position:absolute;
+      top:10px;
+      left:10px;
+      right:10px;
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-start;
+      gap:10px;
+      pointer-events:none;
+    }
+    .hudBox{
+      background:rgba(0,0,0,.45);
+      border:1px solid rgba(255,255,255,.15);
+      border-radius:12px;
+      padding:8px 10px;
+      backdrop-filter: blur(6px);
+      max-width:min(360px, 70vw);
+    }
+    .hudLine{ font-size:12px; opacity:.95; line-height:1.25; }
+    .hudScore{ font-size:14px; font-weight:700; }
+    .hudSmall{ font-size:11px; opacity:.85; }
+
+    /* ===== ⚙️ボタン ===== */
+    .menuBtn{
+      position:absolute;
+      top:10px;
+      right:10px;
+      z-index:20;
+      pointer-events:auto;
+      appearance:none;
+      border:1px solid rgba(255,255,255,.25);
+      background:rgba(255,255,255,.10);
+      color:#fff;
+      padding:8px 10px;
+      border-radius:999px;
+      cursor:pointer;
+      font-size:13px;
+    }
+    .menuBtn:active{ transform: translateY(1px); }
+
+    /* ===== ドロワー（下から出る）===== */
+    .drawer{
+      position:fixed;
+      left:0; right:0; bottom:0;
+      z-index:30;
+      background:rgba(0,0,0,.78);
+      backdrop-filter: blur(10px);
+      border-top:1px solid rgba(255,105,180,.35);
+      transform: translateY(110%);
+      transition: transform .22s ease;
+      padding:12px 12px 14px;
+    }
+    .drawer.open{ transform: translateY(0); }
+
+    .drawerHeader{
+      display:flex; justify-content:space-between; align-items:center; gap:10px;
+      max-width:520px; margin:0 auto 10px;
+    }
+    .tabs{
+      display:flex; gap:8px; flex-wrap:wrap;
+    }
+    .tab{
+      appearance:none; cursor:pointer;
+      border:1px solid rgba(255,255,255,.22);
+      background:rgba(255,255,255,.08);
+      color:#fff; padding:7px 10px;
+      border-radius:999px; font-size:12px;
+    }
+    .tab.active{
+      border-color: rgba(255,105,180,.7);
+      box-shadow: 0 0 0 2px rgba(255,105,180,.18) inset;
+    }
+    .closeBtn{
+      appearance:none; cursor:pointer;
+      border:1px solid rgba(255,255,255,.25);
+      background:rgba(255,255,255,.08);
+      color:#fff; padding:7px 10px;
+      border-radius:10px; font-size:12px;
+    }
+
+    .drawerBody{
+      max-width:520px; margin:0 auto;
+      display:none;
+    }
+    .drawerBody.active{ display:block; }
+
     .panel{
-      width:min(480px, calc(100vw - 20px));
+      width:100%;
       box-sizing:border-box;
       display:flex; flex-wrap:wrap; gap:8px 12px;
       align-items:center; justify-content:space-between;
       padding:10px 12px;
-      border:1px solid rgba(255,105,180,.35);
+      border:1px solid rgba(255,255,255,.16);
       border-radius:12px;
-      background:rgba(0,0,0,.35);
-      backdrop-filter: blur(6px);
+      background:rgba(255,255,255,.06);
     }
-    .row{ display:flex; align-items:center; gap:8px; flex:1 1 210px; min-width:210px; }
+    .row{ display:flex; align-items:center; gap:8px; flex:1 1 220px; min-width:220px; }
     label{ font-size:12px; opacity:.9; white-space:nowrap; }
     select, input[type="range"]{ width:100%; }
     .value{ font-size:12px; opacity:.9; min-width:52px; text-align:right; }
@@ -45,70 +134,97 @@
       font-size:13px;
       white-space:nowrap;
     }
-    .btn:active{ transform: translateY(1px); }
+
     .hint{ font-size:12px; opacity:.85; margin-top:2px; text-align:center; }
-    .pill{
-      display:inline-flex; align-items:center; gap:6px;
-      border:1px solid rgba(255,255,255,.18);
-      background:rgba(255,255,255,.08);
-      padding:6px 10px; border-radius:999px;
-      font-size:12px; opacity:.95;
+
+    /* スマホでキャンバス優先（縦を食い過ぎない） */
+    @media (max-height: 720px){
+      .hint{ display:none; }
     }
-    .small2{ font-size:11px; opacity:.85; }
   </style>
 </head>
 <body>
   <div class="wrap">
     <canvas id="gameCanvas"></canvas>
 
-    <div class="panel" aria-label="difficulty-panel">
-      <div class="row">
-        <label for="preset">レベル</label>
-        <select id="preset">
-          <option value="easy">EASY</option>
-          <option value="normal" selected>NORMAL</option>
-          <option value="hard">HARD</option>
-          <option value="custom">CUSTOM</option>
-        </select>
-      </div>
-
-      <div class="row">
-        <label for="speedBase">速度</label>
-        <input id="speedBase" type="range" min="2" max="6" step="0.1" value="3">
-        <div class="value" id="speedBaseVal">3.0</div>
-      </div>
-
-      <div class="row">
-        <label for="gapBase">間隔（上下の木）</label>
-        <input id="gapBase" type="range" min="130" max="260" step="1" value="200">
-        <div class="value" id="gapBaseVal">200</div>
-      </div>
-
-      <div class="row">
-        <label for="spawnEvery">間隔（出現）</label>
-        <input id="spawnEvery" type="range" min="70" max="170" step="1" value="115">
-        <div class="value" id="spawnEveryVal">115</div>
-      </div>
-
-      <div class="row">
-        <label for="accelEvery">加速（頻度）</label>
-        <input id="accelEvery" type="range" min="0" max="900" step="10" value="650">
-        <div class="value" id="accelEveryVal">650</div>
-      </div>
-
-      <div class="row" style="justify-content:flex-end; gap:10px;">
-        <span class="pill" id="aiModePill">AI: 普通</span>
-        <button class="btn" id="btnApply">適用（次から）</button>
-        <button class="btn" id="btnRestart">即リトライ</button>
-      </div>
-
-      <div class="row" style="flex:1 1 100%; min-width:100%; justify-content:space-between; gap:10px;">
-        <div class="small2" id="aiStatsLine">stats…</div>
-        <div class="small2" id="aiMsgLine">AI…</div>
+    <!-- HUD（常に見える） -->
+    <div class="hud" aria-label="hud">
+      <div class="hudBox">
+        <div class="hudLine hudScore" id="hudScore">Score: 0</div>
+        <div class="hudLine" id="hudAiMsg">AI: …</div>
+        <div class="hudSmall" id="hudStats">癖: …</div>
       </div>
     </div>
 
+    <!-- ⚙️ -->
+    <button class="menuBtn" id="btnMenu" type="button">⚙️</button>
+
     <div class="hint">操作：長押しで上昇 / 離すと落下　｜　タップで開始・リトライ</div>
+  </div>
+
+  <!-- Drawer -->
+  <div class="drawer" id="drawer">
+    <div class="drawerHeader">
+      <div class="tabs">
+        <button class="tab active" data-pane="pane-level" type="button">レベル</button>
+        <button class="tab" data-pane="pane-ai" type="button">AI表示</button>
+      </div>
+      <button class="closeBtn" id="btnClose" type="button">閉じる</button>
+    </div>
+
+    <div class="drawerBody active" id="pane-level">
+      <div class="panel">
+        <div class="row">
+          <label for="preset">プリセット</label>
+          <select id="preset">
+            <option value="easy">EASY</option>
+            <option value="normal" selected>NORMAL</option>
+            <option value="hard">HARD</option>
+            <option value="custom">CUSTOM</option>
+          </select>
+        </div>
+
+        <div class="row">
+          <label for="speedBase">速度</label>
+          <input id="speedBase" type="range" min="2" max="6" step="0.1" value="3">
+          <div class="value" id="speedBaseVal">3.0</div>
+        </div>
+
+        <div class="row">
+          <label for="gapBase">間隔（上下の木）</label>
+          <input id="gapBase" type="range" min="130" max="260" step="1" value="200">
+          <div class="value" id="gapBaseVal">200</div>
+        </div>
+
+        <div class="row">
+          <label for="spawnEvery">間隔（出現）</label>
+          <input id="spawnEvery" type="range" min="70" max="170" step="1" value="115">
+          <div class="value" id="spawnEveryVal">115</div>
+        </div>
+
+        <div class="row">
+          <label for="accelEvery">加速（頻度）</label>
+          <input id="accelEvery" type="range" min="0" max="900" step="10" value="650">
+          <div class="value" id="accelEveryVal">650</div>
+        </div>
+
+        <div class="row" style="justify-content:flex-end; gap:10px;">
+          <button class="btn" id="btnApply" type="button">適用（次から）</button>
+          <button class="btn" id="btnRestart" type="button">即リトライ</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="drawerBody" id="pane-ai">
+      <div class="panel">
+        <div class="row" style="flex:1 1 100%; min-width:100%;">
+          <div style="font-size:12px; opacity:.9;">
+            AIコメントと統計は <b>画面左上のHUD</b> に常時表示されます。<br>
+            ここは今後「モード固定（癒し/普通/地獄）」などの設定を置く枠です。
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 
 <script>
@@ -124,88 +240,75 @@
     canvas.style.height = cssH + 'px';
     canvas.width = Math.floor(cssW * dpr);
     canvas.height = Math.floor(cssH * dpr);
-
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     return { w: cssW, h: cssH };
   }
 
   let { w: W, h: H } = resizeCanvas();
+  let frames = 0, score = 0, gameState = 'START', gameSpeed = 3;
 
-  let frames = 0;
-  let score = 0;
-  let gameState = 'START';
-  let gameSpeed = 3;
-
-  // ===== util =====
   const clamp = (v,a,b)=>Math.max(a,Math.min(b,v));
   const lerp = (a,b,t)=>a+(b-a)*t;
 
-  // ======================
-  // Difficulty system
-  // ======================
-  const difficulty = {
-    preset: 'normal',
-    speedBase: 3.0,
-    gapBase: 200,
-    spawnEvery: 115,
-    accelEvery: 650
-  };
-  let pendingDifficulty = { ...difficulty };
+  // HUD
+  const hudScore = document.getElementById('hudScore');
+  const hudAiMsg = document.getElementById('hudAiMsg');
+  const hudStats = document.getElementById('hudStats');
 
+  // Drawer UI
+  const drawer = document.getElementById('drawer');
+  const btnMenu = document.getElementById('btnMenu');
+  const btnClose = document.getElementById('btnClose');
+
+  btnMenu.addEventListener('click', ()=> drawer.classList.add('open'));
+  btnClose.addEventListener('click', ()=> drawer.classList.remove('open'));
+  drawer.addEventListener('click', (e)=>{
+    if(e.target === drawer) drawer.classList.remove('open');
+  });
+
+  document.querySelectorAll('.tab').forEach(t=>{
+    t.addEventListener('click', ()=>{
+      document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+      t.classList.add('active');
+      const pane = t.dataset.pane;
+      document.querySelectorAll('.drawerBody').forEach(p=>p.classList.remove('active'));
+      document.getElementById(pane).classList.add('active');
+    });
+  });
+
+  // Difficulty
+  const difficulty = { preset:'normal', speedBase:3.0, gapBase:200, spawnEvery:115, accelEvery:650 };
+  let pendingDifficulty = { ...difficulty };
   const PRESETS = {
     easy:   { speedBase: 2.6, gapBase: 220, spawnEvery: 130, accelEvery: 720 },
     normal: { speedBase: 3.0, gapBase: 200, spawnEvery: 115, accelEvery: 650 },
     hard:   { speedBase: 3.6, gapBase: 170, spawnEvery:  98, accelEvery: 520 }
   };
+  const applyDifficultyNow = ()=>Object.assign(difficulty, pendingDifficulty);
 
-  function applyDifficultyNow() { Object.assign(difficulty, pendingDifficulty); }
+  const $ = (id)=>document.getElementById(id);
+  const presetEl=$('preset'), speedBaseEl=$('speedBase'), gapBaseEl=$('gapBase'), spawnEveryEl=$('spawnEvery'), accelEveryEl=$('accelEvery');
+  const speedBaseVal=$('speedBaseVal'), gapBaseVal=$('gapBaseVal'), spawnEveryVal=$('spawnEveryVal'), accelEveryVal=$('accelEveryVal');
 
-  // ======================
-  // UI
-  // ======================
-  const $ = (id) => document.getElementById(id);
-
-  const presetEl = $('preset');
-  const speedBaseEl = $('speedBase');
-  const gapBaseEl = $('gapBase');
-  const spawnEveryEl = $('spawnEvery');
-  const accelEveryEl = $('accelEvery');
-
-  const speedBaseVal = $('speedBaseVal');
-  const gapBaseVal = $('gapBaseVal');
-  const spawnEveryVal = $('spawnEveryVal');
-  const accelEveryVal = $('accelEveryVal');
-
-  const aiModePill = $('aiModePill');
-  const aiStatsLine = $('aiStatsLine');
-  const aiMsgLine = $('aiMsgLine');
-
-  function syncVals() {
+  function syncVals(){
     speedBaseVal.textContent = Number(speedBaseEl.value).toFixed(1);
     gapBaseVal.textContent = String(gapBaseEl.value);
     spawnEveryVal.textContent = String(spawnEveryEl.value);
     accelEveryVal.textContent = String(accelEveryEl.value);
   }
-  function setControlsFrom(obj) {
-    speedBaseEl.value = obj.speedBase;
-    gapBaseEl.value = obj.gapBase;
-    spawnEveryEl.value = obj.spawnEvery;
-    accelEveryEl.value = obj.accelEvery;
+  function setControlsFrom(obj){
+    speedBaseEl.value=obj.speedBase; gapBaseEl.value=obj.gapBase; spawnEveryEl.value=obj.spawnEvery; accelEveryEl.value=obj.accelEvery;
     syncVals();
   }
-
-  presetEl.addEventListener('change', () => {
-    const p = presetEl.value;
-    if (p !== 'custom') setControlsFrom(PRESETS[p]);
+  presetEl.addEventListener('change', ()=>{
+    const p=presetEl.value;
+    if(p!=='custom') setControlsFrom(PRESETS[p]);
   });
-  [speedBaseEl, gapBaseEl, spawnEveryEl, accelEveryEl].forEach(el => {
-    el.addEventListener('input', () => {
-      presetEl.value = 'custom';
-      syncVals();
-    });
+  [speedBaseEl,gapBaseEl,spawnEveryEl,accelEveryEl].forEach(el=>{
+    el.addEventListener('input', ()=>{ presetEl.value='custom'; syncVals(); });
   });
 
-  $('btnApply').addEventListener('click', () => {
+  $('btnApply').addEventListener('click', ()=>{
     pendingDifficulty = {
       preset: presetEl.value,
       speedBase: Number(speedBaseEl.value),
@@ -214,8 +317,7 @@
       accelEvery: Number(accelEveryEl.value)
     };
   });
-
-  $('btnRestart').addEventListener('click', () => {
+  $('btnRestart').addEventListener('click', ()=>{
     pendingDifficulty = {
       preset: presetEl.value,
       speedBase: Number(speedBaseEl.value),
@@ -224,162 +326,116 @@
       accelEvery: Number(accelEveryEl.value)
     };
     resetGame();
+    drawer.classList.remove('open');
   });
 
-  // 初期：NORMALを反映
-  presetEl.value = 'normal';
+  presetEl.value='normal';
   setControlsFrom(PRESETS.normal);
-  pendingDifficulty = { preset: 'normal', ...PRESETS.normal };
+  pendingDifficulty = { preset:'normal', ...PRESETS.normal };
   applyDifficultyNow();
   gameSpeed = difficulty.speedBase;
 
-  // ======================
   // Images
-  // ======================
-  const imgBody = new Image();
-  imgBody.src = './images/buunosuke_body.png';
+  const imgBody = new Image(); imgBody.src = './images/buunosuke_body.png';
+  const imgProp = new Image(); imgProp.src = './images/buunosuke_propeller.png';
+  let imagesReady=false, loaded=0;
+  [imgBody,imgProp].forEach(im=>im.onload=()=>{ if(++loaded===2) imagesReady=true; });
 
-  const imgProp = new Image();
-  imgProp.src = './images/buunosuke_propeller.png';
-
-  let imagesReady = false;
-  let loadedCount = 0;
-  [imgBody, imgProp].forEach(img => {
-    img.onload = () => { if (++loadedCount === 2) imagesReady = true; };
-  });
-
-  // ======================
-  // AIっぽい適応制御（API不要）
-  // ======================
+  // AI
   const ai = {
-    mode: 'normal', // soothe | normal | hell
-    // 介入（ゆっくり変化）
-    biasY: 0,        // ギャップ位置バイアス（-上 +下）
-    gapBoost: 0,     // ギャップ救済（+広げる）
-    speedBoost: 0,   // 速度救済（-遅くする：負）
-    // 連続
-    passStreak: 0,
-    failStreak: 0,
-    lastDeath: null, // TOP | BOTTOM | FLOOR
-    // 表示
-    msg: "最初は様子見。"
+    mode:'normal', biasY:0, gapBoost:0, speedBoost:0,
+    passStreak:0, failStreak:0, lastDeath:null, msg:"最初は様子見。"
   };
-
-  // プレイ癖（可視化）
   const stats = {
-    emaY: 0.5,          // 0..1 （画面のどの高さに居がちか：0上/1下）
-    emaPress: 0.0,      // 押下率
-    deaths: { TOP:0, BOTTOM:0, FLOOR:0 },
-    lastPassFrame: 0
+    emaY:0.5, emaPress:0.0,
+    deaths:{TOP:0,BOTTOM:0,FLOOR:0},
+    lastPassFrame:0
   };
+  let gameOverLines=["","",""];
 
-  // ゲームオーバー分析（3行）
-  let gameOverLines = ["", "", ""];
-
-  function setAiMode(nextMode){
-    if (ai.mode === nextMode) return;
-    ai.mode = nextMode;
-    if (nextMode === 'soothe') ai.msg = "癒しモード：少し優しくする。";
-    if (nextMode === 'normal') ai.msg = "普通モード：普段通り。";
-    if (nextMode === 'hell')   ai.msg = "地獄モード：容赦しない。";
+  function setAiMode(m){
+    if(ai.mode===m) return;
+    ai.mode=m;
+    ai.msg = (m==='soothe')?"癒しモード：少し優しくする。":(m==='hell'?"地獄モード：容赦しない。":"普通モード：普段通り。");
   }
-
-  // 成績で“気分”を切り替える（露骨に頻繁に変えない）
   function maybeUpdateAiMode(){
-    if (ai.failStreak >= 3) setAiMode('soothe');
-    else if (ai.passStreak >= 6) setAiMode('hell');
+    if(ai.failStreak>=3) setAiMode('soothe');
+    else if(ai.passStreak>=6) setAiMode('hell');
     else setAiMode('normal');
   }
-
   function modeDeltas(){
-    if (ai.mode === 'soothe') return { gap:+22, spd:-0.25, spawn:+10 };
-    if (ai.mode === 'hell')   return { gap:-18, spd:+0.35, spawn:-10 };
+    if(ai.mode==='soothe') return { gap:+22, spd:-0.25, spawn:+10 };
+    if(ai.mode==='hell') return { gap:-18, spd:+0.35, spawn:-10 };
     return { gap:0, spd:0, spawn:0 };
   }
-
-  // ======================
-  // +1 演出
-  // ======================
-  const popups = [];
-  function addPopup(text, x, y){
-    popups.push({ text, x, y, life: 40 });
+  function buildGameOverAnalysis(){
+    const top=stats.deaths.TOP, bot=stats.deaths.BOTTOM, flo=stats.deaths.FLOOR;
+    let main="原因：";
+    main += (ai.lastDeath==='TOP')?"上に当たりやすい":(ai.lastDeath==='BOTTOM'?"下に当たりやすい":"落ちやすい");
+    let habit="癖：";
+    habit += (stats.emaY<0.35)?"高めで粘る":(stats.emaY>0.65?"低めに沈む":"中央維持");
+    habit += `／押下率≈${Math.round(stats.emaPress*100)}%`;
+    let tip="次：";
+    tip += (ai.lastDeath==='TOP')?"“下側”を通す。長押しを短く。":
+           (ai.lastDeath==='BOTTOM')?"“上側”に逃がす。落ち始める前に1回。":
+           "落ちる前に小刻み。長押しで救わない。";
+    const sum = `内訳：上${top}/下${bot}/落${flo}`;
+    gameOverLines=[main, habit, tip+" "+sum];
   }
+
+  // +1 popup
+  const popups=[];
+  function addPopup(text,x,y){ popups.push({text,x,y,life:40}); }
   function drawPopups(){
-    for (let i=0;i<popups.length;i++){
-      const p = popups[i];
-      p.life--;
-      p.y -= 0.6;
+    for(let i=0;i<popups.length;i++){
+      const p=popups[i]; p.life--; p.y-=0.6;
       ctx.save();
-      ctx.globalAlpha = clamp(p.life/40, 0, 1);
-      ctx.fillStyle = '#fff';
-      ctx.font = '14px Arial';
-      ctx.fillText(p.text, p.x, p.y);
+      ctx.globalAlpha=clamp(p.life/40,0,1);
+      ctx.fillStyle='#fff'; ctx.font='14px Arial';
+      ctx.fillText(p.text,p.x,p.y);
       ctx.restore();
-      if (p.life<=0){ popups.splice(i,1); i--; }
+      if(p.life<=0){ popups.splice(i,1); i--; }
     }
   }
 
-  // ======================
   // Player
-  // ======================
   const buunosuke = {
-    x: 60,
-    y: H / 2,
-    width: 56,
-    height: 56,
-    velocity: 0,
-    gravity: 0.28,
-    thrust: -0.35,
-    maxUpSpeed: -4.6,
-    maxDownSpeed: 6.5,
-    isFlying: false,
+    x:60,y:H/2,width:56,height:56,velocity:0,
+    gravity:0.28, thrust:-0.35, maxUp:-4.6, maxDown:6.5,
+    isFlying:false,
+    propOffsetX:28, propOffsetY:8, propSize:20,
 
-    // ★確定：今回の画像でズレない座標
-    propOffsetX: 28,
-    propOffsetY: 8,
-    propSize: 20,
-
-    update() {
-      if (gameState !== 'PLAYING') return;
+    update(){
+      if(gameState!=='PLAYING') return;
 
       this.velocity += this.isFlying ? this.thrust : this.gravity;
-      this.velocity = clamp(this.velocity, this.maxUpSpeed, this.maxDownSpeed);
+      this.velocity = clamp(this.velocity, this.maxUp, this.maxDown);
       this.y += this.velocity;
 
-      if (this.y < 0) { this.y = 0; this.velocity = 0; }
-
-      if (this.y + this.height > H) {
-        this.y = H - this.height;
-        ai.lastDeath = 'FLOOR';
-        stats.deaths.FLOOR++;
-        gameState = 'GAMEOVER';
-        buildGameOverAnalysis();
+      if(this.y<0){ this.y=0; this.velocity=0; }
+      if(this.y+this.height>H){
+        this.y=H-this.height;
+        ai.lastDeath='FLOOR'; stats.deaths.FLOOR++;
+        gameState='GAMEOVER'; buildGameOverAnalysis();
       }
     },
-
-    draw() {
-      if (!imagesReady) return;
-
-      // 本体
-      ctx.drawImage(imgBody, this.x, this.y, this.width, this.height);
-
-      // プロペラ（回転中心ズレなし）
+    draw(){
+      if(!imagesReady) return;
+      const tilt = clamp(this.velocity*0.02, -0.10, 0.14);
+      const spin = 0.25 + Math.abs(this.velocity)*0.12;
       const px = this.x + this.propOffsetX;
       const py = this.y + this.propOffsetY;
 
-      // 上昇中だけ少し前傾（“風を受ける感”）
-      const tilt = clamp(this.velocity * 0.02, -0.10, 0.14);
-      const spin = 0.25 + Math.abs(this.velocity) * 0.12;
-
       ctx.save();
-      ctx.translate(this.x + this.width/2, this.y + this.height/2);
+      ctx.translate(this.x+this.width/2, this.y+this.height/2);
       ctx.rotate(tilt);
-      ctx.translate(-(this.x + this.width/2), -(this.y + this.height/2));
+      ctx.translate(-(this.x+this.width/2), -(this.y+this.height/2));
 
-      // プロペラ：本体の傾きに追従させるため、傾き後に描く
+      ctx.drawImage(imgBody, this.x, this.y, this.width, this.height);
+
       ctx.save();
-      ctx.translate(px, py);
-      ctx.rotate(frames * spin);
+      ctx.translate(px,py);
+      ctx.rotate(frames*spin);
       ctx.drawImage(imgProp, -this.propSize/2, -this.propSize/2, this.propSize, this.propSize);
       ctx.restore();
 
@@ -387,221 +443,154 @@
     }
   };
 
-  // ======================
   // Obstacles
-  // ======================
-  const pipes = [];
-  function handleObstacles() {
-    if (gameState !== 'PLAYING') return;
+  const pipes=[];
+  function handleObstacles(){
+    if(gameState!=='PLAYING') return;
 
-    // AIモードの微調整
     maybeUpdateAiMode();
     const md = modeDeltas();
 
-    // gap：ユーザー設定 + AI救済 + mode
     const baseGap = difficulty.gapBase + md.gap;
-    const gapHeight = clamp(
-      (baseGap + ai.gapBoost) - (gameSpeed - difficulty.speedBase) * 6,
-      120,
-      300
-    );
-
-    // spawn：ユーザー設定 + mode
+    const gapHeight = clamp((baseGap + ai.gapBoost) - (gameSpeed - difficulty.speedBase)*6, 120, 300);
     const spawnEvery = clamp(difficulty.spawnEvery + md.spawn, 70, 180);
-
-    // ギャップ中心の上下寄せ（AI）
-    if (frames % spawnEvery === 0) {
-      const margin = 34;
-      let gapTop = Math.random() * (H - gapHeight - margin * 2) + margin;
-      gapTop = clamp(gapTop + ai.biasY * 0.4, margin, H - gapHeight - margin);
-      pipes.push({ x: W, w: 54, gapTop, gapHeight, passed: false });
-    }
-
-    // effective speed：ユーザー速度 + AI救済 + mode
     const effectiveSpeed = clamp(gameSpeed + ai.speedBoost + md.spd, 2.0, 8.0);
 
-    for (let i = 0; i < pipes.length; i++) {
-      const p = pipes[i];
+    if(frames % spawnEvery === 0){
+      const margin=34;
+      let gapTop = Math.random()*(H-gapHeight-margin*2)+margin;
+      gapTop = clamp(gapTop + ai.biasY*0.4, margin, H-gapHeight-margin);
+      pipes.push({x:W,w:54,gapTop,gapHeight,passed:false});
+    }
+
+    for(let i=0;i<pipes.length;i++){
+      const p=pipes[i];
       p.x -= effectiveSpeed;
 
-      // 見た目
-      ctx.fillStyle = '#551a1a';
-      ctx.fillRect(p.x, 0, p.w, p.gapTop);
-      ctx.fillRect(p.x, p.gapTop + p.gapHeight, p.w, H - (p.gapTop + p.gapHeight));
+      ctx.fillStyle='#551a1a';
+      ctx.fillRect(p.x,0,p.w,p.gapTop);
+      ctx.fillRect(p.x,p.gapTop+p.gapHeight,p.w,H-(p.gapTop+p.gapHeight));
 
-      // collision
-      const overlapX = (buunosuke.x < p.x + p.w) && (buunosuke.x + buunosuke.width > p.x);
+      const overlapX = (buunosuke.x < p.x+p.w) && (buunosuke.x+buunosuke.width > p.x);
       const hitTop = overlapX && (buunosuke.y < p.gapTop);
-      const hitBottom = overlapX && (buunosuke.y + buunosuke.height > p.gapTop + p.gapHeight);
-      if (hitTop || hitBottom) {
+      const hitBottom = overlapX && (buunosuke.y+buunosuke.height > p.gapTop+p.gapHeight);
+      if(hitTop || hitBottom){
         ai.lastDeath = hitTop ? 'TOP' : 'BOTTOM';
         stats.deaths[ai.lastDeath]++;
-        gameState = 'GAMEOVER';
+        gameState='GAMEOVER';
         buildGameOverAnalysis();
       }
 
-      // score（安定版）：中心越え
-      const buuCenterX = buunosuke.x + buunosuke.width / 2;
-      const pipeCenterX = p.x + p.w / 2;
-
-      if (!p.passed && buuCenterX > pipeCenterX) {
-        p.passed = true;
+      // score（中心越え）
+      const buuCenterX = buunosuke.x + buunosuke.width/2;
+      const pipeCenterX = p.x + p.w/2;
+      if(!p.passed && buuCenterX > pipeCenterX){
+        p.passed=true;
         score++;
-        stats.lastPassFrame = frames;
+        stats.lastPassFrame=frames;
 
-        // 成功学習：介入を少し減らす（自然に戻す）
-        ai.passStreak++;
-        ai.failStreak = 0;
+        ai.passStreak++; ai.failStreak=0;
         ai.gapBoost = clamp(ai.gapBoost - 1.5, 0, 45);
         ai.speedBoost = clamp(ai.speedBoost + 0.03, -0.6, 0);
 
-        // +1演出
-        addPopup("+1", buunosuke.x + 20, buunosuke.y - 6);
+        addPopup("+1", buunosuke.x+20, buunosuke.y-6);
       }
 
-      // 画面外
-      if (p.x + p.w < 0) {
-        pipes.splice(i, 1);
-        i--;
-      }
+      if(p.x+p.w<0){ pipes.splice(i,1); i--; }
     }
   }
 
-  // ======================
-  // Background & UI
-  // ======================
-  function drawBackground() {
-    const g = ctx.createLinearGradient(0, 0, 0, H);
-    g.addColorStop(0, "#0a0a2a");
-    g.addColorStop(1, "#2a0a1a");
-    ctx.fillStyle = g;
-    ctx.fillRect(0, 0, W, H);
-
-    // 桜
-    ctx.fillStyle = '#ffb7c5';
-    for (let i = 0; i < 20; i++) {
-      const x = (frames * 2 + i * 50) % W;
-      const y = (Math.sin(frames / 50 + i) * H / 2) + H / 2;
-      ctx.beginPath();
-      ctx.arc(x, y, (i % 3) + 2, 0, Math.PI * 2);
-      ctx.fill();
+  // Background
+  function drawBackground(){
+    const g=ctx.createLinearGradient(0,0,0,H);
+    g.addColorStop(0,"#0a0a2a"); g.addColorStop(1,"#2a0a1a");
+    ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
+    ctx.fillStyle='#ffb7c5';
+    for(let i=0;i<20;i++){
+      const x=(frames*2 + i*50)%W;
+      const y=(Math.sin(frames/50+i)*H/2)+H/2;
+      ctx.beginPath(); ctx.arc(x,y,(i%3)+2,0,Math.PI*2); ctx.fill();
     }
   }
 
-  function updateStatsLine(){
-    // emaY：ブー之助の中心（0..1）
-    const cy = (buunosuke.y + buunosuke.height/2) / Math.max(1, H);
+  function updateHud(){
+    // stats
+    const cy = (buunosuke.y + buunosuke.height/2) / Math.max(1,H);
     stats.emaY = lerp(stats.emaY, clamp(cy,0,1), 0.03);
     stats.emaPress = lerp(stats.emaPress, buunosuke.isFlying ? 1 : 0, 0.05);
 
     const yLabel = stats.emaY < 0.35 ? "高め" : (stats.emaY > 0.65 ? "低め" : "中央");
-    const pressPct = Math.round(stats.emaPress * 100);
+    const pressPct = Math.round(stats.emaPress*100);
 
-    aiStatsLine.textContent =
-      `癖：高度=${yLabel} / 押下率≈${pressPct}% / 死因 上:${stats.deaths.TOP} 下:${stats.deaths.BOTTOM} 落:${stats.deaths.FLOOR}`;
+    hudScore.textContent = "Score: " + score;
+    hudAiMsg.textContent = "AI: " + ai.msg;
+    hudStats.textContent = `癖：高度=${yLabel} / 押下率≈${pressPct}% / 死因 上:${stats.deaths.TOP} 下:${stats.deaths.BOTTOM} 落:${stats.deaths.FLOOR}`;
   }
 
-  function updateAiLines(){
-    // AIモード表示
-    const modeText = ai.mode === 'soothe' ? "癒し" : (ai.mode === 'hell' ? "地獄" : "普通");
-    aiModePill.textContent = `AI: ${modeText}`;
+  function drawUI(){
+    if(gameState==='START'){
+      ctx.fillStyle='rgba(0,0,0,0.55)'; ctx.fillRect(0,0,W,H);
+      ctx.fillStyle='#fff'; ctx.textAlign='center';
+      ctx.font='24px Arial'; ctx.fillText('SAMURAI ROAD', W/2, H/2-20);
+      ctx.font='16px Arial'; ctx.fillText('タップ/クリックでスタート', W/2, H/2+30);
+      ctx.textAlign='left';
+    }else if(gameState==='GAMEOVER'){
+      ctx.fillStyle='rgba(0,0,0,0.68)'; ctx.fillRect(0,0,W,H);
+      ctx.fillStyle='red'; ctx.textAlign='center';
+      ctx.font='30px Arial'; ctx.fillText('GAME OVER', W/2, H/2-30);
 
-    // AIの一言は“うるさくしない”（10秒に1回くらいで更新）
-    if (frames - (ai._lastMsgFrame||0) > 600) {
-      ai._lastMsgFrame = frames;
-      // 直近の状況から短文更新
-      const sincePass = frames - stats.lastPassFrame;
-      if (gameState !== 'PLAYING') return;
-      if (sincePass > 600 && ai.failStreak >= 1) ai.msg = "焦らない。高さを一定に。";
-      else if (stats.emaY > 0.7) ai.msg = "低め傾向。少し上を意識。";
-      else if (stats.emaY < 0.3) ai.msg = "高め傾向。余裕を残す。";
-      else ai.msg = (ai.mode === 'hell') ? "いいね。そのまま攻める。" : "リズムが出てきた。";
-    }
-    aiMsgLine.textContent = `AI: ${ai.msg}`;
-  }
+      ctx.fillStyle='rgba(255,255,255,0.95)';
+      ctx.font='14px Arial';
+      ctx.fillText(gameOverLines[0], W/2, H/2+5);
+      ctx.fillText(gameOverLines[1], W/2, H/2+28);
+      ctx.fillText(gameOverLines[2], W/2, H/2+51);
 
-  function buildGameOverAnalysis(){
-    // 3行だけ：短く、刺さる
-    const top = stats.deaths.TOP, bot = stats.deaths.BOTTOM, flo = stats.deaths.FLOOR;
-    let main = "原因：";
-    if (ai.lastDeath === 'TOP') main += "上に当たりやすい";
-    else if (ai.lastDeath === 'BOTTOM') main += "下に当たりやすい";
-    else main += "落ちやすい";
-
-    let habit = "癖：";
-    habit += (stats.emaY < 0.35) ? "高めで粘る" : (stats.emaY > 0.65 ? "低めに沈む" : "中央維持");
-    habit += `／押下率≈${Math.round(stats.emaPress*100)}%`;
-
-    let tip = "次：";
-    if (ai.lastDeath === 'TOP') tip += "気持ち“下側”を通す。長押しを短く。";
-    else if (ai.lastDeath === 'BOTTOM') tip += "“上側”に逃がす。落ち始める前に1回だけ押す。";
-    else tip += "落ちる前に“軽く小刻み”。長押しで救おうとしない。";
-
-    // 死因内訳も軽く混ぜる（3行を超えない）
-    const summary = `内訳：上${top}/下${bot}/落${flo}`;
-
-    gameOverLines = [main, habit, tip + " " + summary];
-  }
-
-  function drawUI() {
-    // スコア（左上）
-    ctx.fillStyle = 'white';
-    ctx.font = '18px Arial';
-    ctx.textAlign = 'left';
-    ctx.fillText('Score: ' + score, 10, 26);
-
-    // 小さめAI表示（画面内にも）
-    if (gameState === 'PLAYING') {
-      ctx.font = '12px Arial';
-      ctx.fillStyle = 'rgba(255,255,255,0.9)';
-      ctx.fillText('AI: ' + ai.msg, 10, 46);
-    }
-
-    if (gameState === 'START') {
-      ctx.fillStyle = 'rgba(0,0,0,0.55)';
-      ctx.fillRect(0, 0, W, H);
-      ctx.fillStyle = 'white';
-      ctx.font = '24px Arial';
-      ctx.textAlign = 'center';
-      ctx.fillText('SAMURAI ROAD', W / 2, H / 2 - 20);
-      ctx.font = '16px Arial';
-      ctx.fillText('タップ/クリックでスタート', W / 2, H / 2 + 30);
-      ctx.textAlign = 'left';
-    } else if (gameState === 'GAMEOVER') {
-      ctx.fillStyle = 'rgba(0,0,0,0.68)';
-      ctx.fillRect(0, 0, W, H);
-
-      ctx.fillStyle = 'red';
-      ctx.font = '30px Arial';
-      ctx.textAlign = 'center';
-      ctx.fillText('GAME OVER', W / 2, H / 2 - 30);
-
-      // 3行分析（短く）
-      ctx.fillStyle = 'rgba(255,255,255,0.95)';
-      ctx.font = '14px Arial';
-      ctx.fillText(gameOverLines[0], W/2, H/2 + 5);
-      ctx.fillText(gameOverLines[1], W/2, H/2 + 28);
-      ctx.fillText(gameOverLines[2], W/2, H/2 + 51);
-
-      ctx.fillStyle = 'white';
-      ctx.font = '16px Arial';
-      ctx.fillText('タップ/クリックでリトライ', W / 2, H / 2 + 86);
-      ctx.textAlign = 'left';
+      ctx.fillStyle='#fff'; ctx.font='16px Arial';
+      ctx.fillText('タップ/クリックでリトライ', W/2, H/2+86);
+      ctx.textAlign='left';
     }
   }
 
-  // ======================
+  function applyAiAfterDeath(){
+    if(!ai.lastDeath) return;
+
+    ai.failStreak++; ai.passStreak=0;
+    ai.gapBoost = clamp(ai.gapBoost + 8 + ai.failStreak*2, 0, 45);
+    ai.speedBoost = clamp(ai.speedBoost - 0.08 - ai.failStreak*0.01, -0.6, 0);
+
+    if(ai.lastDeath==='TOP') ai.biasY = clamp(ai.biasY + 8, -80, 80);
+    if(ai.lastDeath==='BOTTOM') ai.biasY = clamp(ai.biasY - 8, -80, 80);
+    if(ai.lastDeath==='FLOOR') ai.biasY = clamp(ai.biasY - 12, -80, 80);
+
+    ai.msg = (ai.lastDeath==='TOP')?"上に当たりがち。ギャップを少し下へ。":
+             (ai.lastDeath==='BOTTOM')?"下に当たりがち。ギャップを少し上へ。":
+             "落ちやすい。少し優しくする。";
+
+    ai.lastDeath=null;
+  }
+
+  function resetGame(){
+    applyDifficultyNow();
+    ({w:W,h:H}=resizeCanvas());
+    applyAiAfterDeath();
+
+    buunosuke.y=H/2; buunosuke.velocity=0;
+    pipes.length=0; popups.length=0;
+    score=0; frames=0;
+    gameSpeed=difficulty.speedBase;
+    gameState='PLAYING';
+    updateHud();
+  }
+
   // Loop
-  // ======================
-  function loop() {
-    ctx.clearRect(0, 0, W, H);
-
+  function loop(){
+    ctx.clearRect(0,0,W,H);
     drawBackground();
 
-    if (gameState === 'PLAYING') {
-      // stats更新（癖可視化）
-      updateStatsLine();
-      updateAiLines();
+    if(gameState==='PLAYING'){
+      updateHud();
+      frames++;
+      if(difficulty.accelEvery>0 && frames % difficulty.accelEvery === 0) gameSpeed += 0.5;
     }
 
     buunosuke.update();
@@ -610,84 +599,29 @@
     drawPopups();
     drawUI();
 
-    if (gameState === 'PLAYING') {
-      frames++;
-      if (difficulty.accelEvery > 0 && frames % difficulty.accelEvery === 0) gameSpeed += 0.5;
-    }
-
     requestAnimationFrame(loop);
   }
 
-  // ======================
-  // Reset（AI学習を反映）
-  // ======================
-  function applyAiAfterDeath(){
-    if (!ai.lastDeath) return;
-
-    ai.failStreak++;
-    ai.passStreak = 0;
-
-    // 連敗ほど救済（ただし上限）
-    ai.gapBoost = clamp(ai.gapBoost + 8 + ai.failStreak * 2, 0, 45);
-    ai.speedBoost = clamp(ai.speedBoost - 0.08 - ai.failStreak * 0.01, -0.6, 0);
-
-    // 死因でギャップ位置を寄せる（少しずつ）
-    if (ai.lastDeath === 'TOP')    ai.biasY = clamp(ai.biasY + 8, -80, 80);   // 上に当たる→少し下へ
-    if (ai.lastDeath === 'BOTTOM') ai.biasY = clamp(ai.biasY - 8, -80, 80);   // 下に当たる→少し上へ
-    if (ai.lastDeath === 'FLOOR')  ai.biasY = clamp(ai.biasY - 12, -80, 80);  // 落下→上へ寄せる
-
-    // 一言
-    if (ai.lastDeath === 'TOP')    ai.msg = "上に当たりがち。ギャップを少し下へ。";
-    if (ai.lastDeath === 'BOTTOM') ai.msg = "下に当たりがち。ギャップを少し上へ。";
-    if (ai.lastDeath === 'FLOOR')  ai.msg = "落ちやすい。少し優しくする。";
-
-    ai.lastDeath = null;
-  }
-
-  function resetGame() {
-    applyDifficultyNow();
-    ({ w: W, h: H } = resizeCanvas());
-
-    // AI学習を反映（直前の死因から）
-    applyAiAfterDeath();
-
-    buunosuke.y = H / 2;
-    buunosuke.velocity = 0;
-    pipes.length = 0;
-    popups.length = 0;
-
-    score = 0;
-    frames = 0;
-    gameSpeed = difficulty.speedBase;
-    gameState = 'PLAYING';
-  }
-
-  // ======================
   // Input
-  // ======================
-  function pressStartOrFly() {
-    if (gameState === 'PLAYING') {
-      buunosuke.isFlying = true;
-    } else {
-      // START/GAMEOVER
-      resetGame();
-    }
+  function pressStartOrFly(){
+    if(gameState==='PLAYING') buunosuke.isFlying=true;
+    else resetGame();
   }
-  function releaseFly() { buunosuke.isFlying = false; }
+  function releaseFly(){ buunosuke.isFlying=false; }
 
   canvas.addEventListener('mousedown', pressStartOrFly);
   canvas.addEventListener('mouseup', releaseFly);
+  canvas.addEventListener('touchstart', (e)=>{ e.preventDefault(); pressStartOrFly(); }, {passive:false});
+  canvas.addEventListener('touchend', (e)=>{ e.preventDefault(); releaseFly(); }, {passive:false});
+  canvas.addEventListener('touchcancel', (e)=>{ e.preventDefault(); releaseFly(); }, {passive:false});
 
-  canvas.addEventListener('touchstart', (e) => { e.preventDefault(); pressStartOrFly(); }, { passive: false });
-  canvas.addEventListener('touchend', (e) => { e.preventDefault(); releaseFly(); }, { passive: false });
-  canvas.addEventListener('touchcancel', (e) => { e.preventDefault(); releaseFly(); }, { passive: false });
-
-  window.addEventListener('resize', () => {
-    ({ w: W, h: H } = resizeCanvas());
-    if (gameState !== 'PLAYING') buunosuke.y = H / 2;
+  window.addEventListener('resize', ()=>{
+    ({w:W,h:H}=resizeCanvas());
+    if(gameState!=='PLAYING') buunosuke.y=H/2;
   });
 
-  // start loop
+  // 初期HUD
+  updateHud();
   loop();
 </script>
 </body>
