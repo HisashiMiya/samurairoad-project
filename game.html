@@ -20,12 +20,10 @@
       border-radius:12px;
     }
 
-    /* ===== HUD（常に画面内）===== */
+    /* HUD */
     .hud{
-      position:absolute;
-      top:10px; left:10px; right:10px;
-      display:flex; justify-content:space-between; align-items:flex-start;
-      gap:10px;
+      position:absolute; top:10px; left:10px; right:10px;
+      display:flex; justify-content:space-between; align-items:flex-start; gap:10px;
       pointer-events:none;
     }
     .hudBox{
@@ -40,12 +38,10 @@
     .hudScore{ font-size:14px; font-weight:700; }
     .hudSmall{ font-size:11px; opacity:.85; }
 
-    /* ===== ⚙️ボタン ===== */
+    /* ⚙️ */
     .menuBtn{
-      position:absolute;
-      top:10px; right:10px;
-      z-index:20;
-      pointer-events:auto;
+      position:absolute; top:10px; right:10px;
+      z-index:20; pointer-events:auto;
       appearance:none;
       border:1px solid rgba(255,255,255,.25);
       background:rgba(255,255,255,.10);
@@ -57,11 +53,9 @@
     }
     .menuBtn:active{ transform: translateY(1px); }
 
-    /* ===== ドロワー（下から出る）===== */
+    /* Drawer */
     .drawer{
-      position:fixed;
-      left:0; right:0; bottom:0;
-      z-index:30;
+      position:fixed; left:0; right:0; bottom:0; z-index:30;
       background:rgba(0,0,0,.78);
       backdrop-filter: blur(10px);
       border-top:1px solid rgba(255,105,180,.35);
@@ -124,7 +118,6 @@
       font-size:13px;
       white-space:nowrap;
     }
-
     .btnPrimary{
       border-color: rgba(255,105,180,.55);
       box-shadow: 0 0 0 2px rgba(255,105,180,.12) inset;
@@ -132,9 +125,7 @@
 
     .hint{ font-size:12px; opacity:.85; margin-top:2px; text-align:center; }
 
-    .howto{
-      font-size:13px; line-height:1.6; opacity:.95;
-    }
+    .howto{ font-size:13px; line-height:1.6; opacity:.95; }
     .howto h3{ margin:6px 0 6px; font-size:14px; }
     .howto ul{ margin:6px 0 6px 18px; padding:0; }
     .note{
@@ -153,7 +144,6 @@
   <div class="wrap">
     <canvas id="gameCanvas"></canvas>
 
-    <!-- HUD -->
     <div class="hud" aria-label="hud">
       <div class="hudBox">
         <div class="hudLine hudScore" id="hudScore">Score: 0</div>
@@ -166,7 +156,6 @@
     <div class="hint" id="hintLine">操作：長押しで上昇 / 離すと落下　｜　タップで開始・リトライ</div>
   </div>
 
-  <!-- Drawer -->
   <div class="drawer" id="drawer">
     <div class="drawerHeader">
       <div class="tabs">
@@ -180,6 +169,14 @@
 
     <div class="drawerBody active" id="pane-level">
       <div class="panel">
+        <div class="row">
+          <label for="flightMode" id="lblMode">飛行タイプ</label>
+          <select id="flightMode">
+            <option value="fly">FLY（普通）</option>
+            <option value="ground">GROUND（地を這う）</option>
+          </select>
+        </div>
+
         <div class="row">
           <label for="preset" id="lblPreset">プリセット</label>
           <select id="preset">
@@ -236,6 +233,9 @@
           <button class="btn btnPrimary" id="btnBug" type="button">🐛 バグ報告</button>
           <button class="btn btnPrimary" id="btnReq" type="button">✨ 要望</button>
         </div>
+        <div class="row" style="flex:1 1 100%; min-width:100%;">
+          <div class="note" id="fbNote">※ GitHubのIssueテンプレート画面に移動します（投稿にはログインが必要です）</div>
+        </div>
       </div>
     </div>
 
@@ -266,6 +266,9 @@
       hint: "操作：長押しで上昇 / 離すと落下　｜　タップで開始・リトライ",
       tabLevel: "レベル", tabHowto: "使い方", tabFeedback: "フィードバック", tabLang: "言語",
       close: "閉じる",
+      mode: "飛行タイプ",
+      modeFly: "FLY（普通）",
+      modeGround: "GROUND（地を這う）",
       preset: "プリセット", speed: "速度", gap: "間隔（上下の木）", spawn: "間隔（出現）", accel: "加速（頻度）",
       apply: "適用（次から）", restart: "即リトライ",
       lang: "言語",
@@ -276,7 +279,7 @@
       retry: "タップ/クリックでリトライ",
       score: "Score",
       ai: "AI",
-      aiFinal: "AI最終評価",
+      next: "次の一手",
       feedbackText: `
         <h3>バグ報告・要望</h3>
         <ul>
@@ -289,12 +292,19 @@
       `,
       bug: "🐛 バグ報告",
       req: "✨ 要望",
+      fbNote: "※ GitHubのIssueテンプレート画面に移動します（投稿にはログインが必要です）",
       howtoHtml: `
         <h3>基本操作</h3>
         <ul>
           <li><b>長押し</b>：上昇（押している間、少しずつ上がります）</li>
           <li><b>離す</b>：落下（重力で下がります）</li>
           <li><b>タップ</b>：スタート / リトライ</li>
+        </ul>
+
+        <h3>モード</h3>
+        <ul>
+          <li><b>FLY</b>：普通に飛べる（フラッピー系）</li>
+          <li><b>GROUND</b>：基本は地を這う。溜めが貯まったときだけ短く浮く</li>
         </ul>
 
         <h3>ゲームオーバー（底）</h3>
@@ -309,12 +319,6 @@
           <li>「木の真ん中を越えた」タイミングで加点します</li>
         </ul>
 
-        <h3>レベル調整</h3>
-        <ul>
-          <li>⚙️ → 「レベル」タブで調整できます</li>
-          <li><b>間隔（上下の木）</b>を広げると簡単になります</li>
-        </ul>
-
         <div class="note">
           ※スマホの「タップの強さ（圧力）」では上昇量は変わりません。<br>
           上昇は「押している時間」で決まります。
@@ -325,6 +329,9 @@
       hint: "Controls: Hold to rise / Release to fall | Tap to start & retry",
       tabLevel: "Level", tabHowto: "How to play", tabFeedback: "Feedback", tabLang: "Language",
       close: "Close",
+      mode: "Flight type",
+      modeFly: "FLY (normal)",
+      modeGround: "GROUND (crawl)",
       preset: "Preset", speed: "Speed", gap: "Gap (top/bottom)", spawn: "Spawn interval", accel: "Acceleration",
       apply: "Apply (next run)", restart: "Restart now",
       lang: "Language",
@@ -335,7 +342,7 @@
       retry: "Tap/click to retry",
       score: "Score",
       ai: "AI",
-      aiFinal: "AI final",
+      next: "Next move",
       feedbackText: `
         <h3>Bug reports & requests</h3>
         <ul>
@@ -348,12 +355,19 @@
       `,
       bug: "🐛 Report a bug",
       req: "✨ Request a feature",
+      fbNote: "You will be redirected to a GitHub Issue template (login required).",
       howtoHtml: `
         <h3>Basic controls</h3>
         <ul>
           <li><b>Hold</b>: Rise (keeps pushing upward)</li>
           <li><b>Release</b>: Fall (gravity)</li>
           <li><b>Tap</b>: Start / Retry</li>
+        </ul>
+
+        <h3>Modes</h3>
+        <ul>
+          <li><b>FLY</b>: regular flappy-style flight</li>
+          <li><b>GROUND</b>: mostly crawling near the floor, short float only when “charged”</li>
         </ul>
 
         <h3>Game over (the “bottom”)</h3>
@@ -366,12 +380,6 @@
         <ul>
           <li><b>+1</b> when you pass <b>one pair</b> of trees without crashing</li>
           <li>We count it when you cross the center of the obstacle</li>
-        </ul>
-
-        <h3>Difficulty</h3>
-        <ul>
-          <li>Open ⚙️ → “Level” tab</li>
-          <li>Wider <b>Gap</b> makes it easier</li>
         </ul>
 
         <div class="note">
@@ -388,8 +396,69 @@
   }
   function saveLang(v){ localStorage.setItem('sr_lang', v); }
 
+  function getSavedMode(){
+    const v = localStorage.getItem('sr_flight_mode');
+    return (v === 'ground' || v === 'fly') ? v : 'fly';
+  }
+  function saveMode(v){ localStorage.setItem('sr_flight_mode', v); }
+
   let LANG = getSavedLang();
   function t(){ return I18N[LANG]; }
+
+  // =========================
+  // GameOver lines (humor + next move) with rare tier
+  // =========================
+  // Each entry: { quip: "...", next: "..." }
+  const GAMEOVER_LINES = {
+    ja: {
+      common: [
+        { quip:"……今の、ちょっと欲張ったよね。", next:"一拍おいて、短く押そう。" },
+        { quip:"ブー之助、飛ばないつもりだったらしい。", next:"一度だけ、思い切って。" },
+        { quip:"空は広いけど、今日は低めだった。", next:"下から抜ける意識で。" },
+        { quip:"今のは飛行というより、覚悟だった。", next:"刻んで、様子見。" },
+        { quip:"ブー之助、考えすぎて地面を選んだ。", next:"迷ったら、軽く一回。" },
+        { quip:"飛ぶ前に、人生を考えてしまった。", next:"考えずに、先に押す。" },
+        { quip:"飛ばない選択も、ひとつの道。", next:"でも次は、少しだけ上へ。" },
+        { quip:"慎重すぎると、道は狭くなる。", next:"早めに一度、押す。" },
+        { quip:"空を見すぎた結果、足元を忘れた。", next:"下を見て、低く通ろう。" },
+        { quip:"……今日は、地面と仲良くなった。", next:"次は、ほどほどに。" }
+      ],
+      rare: [
+        { quip:"伝説：いまの落下、芸術点が高い。", next:"同じ手を、もう一回だけ“丁寧に”やろう。" },
+        { quip:"ブー之助「やった。やってないけど、やった」", next:"“押さない勇気”を3秒だけ試そう。" },
+        { quip:"空「来い」／ブー之助「今日はやめとく」", next:"飛ぶ気配だけ見せて、引き返そう。" }
+      ],
+      rareChance: 0.10 // 10%
+    },
+    en: {
+      common: [
+        { quip:"That was a little too ambitious.", next:"Pause, then short taps." },
+        { quip:"Bunosuke chose the ground today.", next:"One bold tap — just once." },
+        { quip:"The sky is wide, but today was low.", next:"Take the lower path." },
+        { quip:"That wasn’t flight. That was commitment.", next:"Tap in small steps." },
+        { quip:"He overthought it — and picked the floor.", next:"If unsure, one light tap." },
+        { quip:"He started thinking about life… mid-air.", next:"Don’t think. Tap first." },
+        { quip:"Not flying is also a route.", next:"Next time, just a little higher." },
+        { quip:"Too careful makes the road narrower.", next:"Tap earlier — once." },
+        { quip:"He stared at the sky and forgot his feet.", next:"Stay low and slip through." },
+        { quip:"Today, he made friends with the ground.", next:"Next time: moderation." }
+      ],
+      rare: [
+        { quip:"Legend: that fall had style points.", next:"Repeat it — but slower and cleaner." },
+        { quip:"Bunosuke: “I did it.” (He didn’t.)", next:"Try 3 seconds of courage — don’t tap." },
+        { quip:"Sky: “Come.” / Bunosuke: “Not today.”", next:"Show the intent to fly, then retreat." }
+      ],
+      rareChance: 0.10
+    }
+  };
+
+  function pickGameOverLine(){
+    const pool = GAMEOVER_LINES[LANG] || GAMEOVER_LINES.ja;
+    const useRare = Math.random() < pool.rareChance;
+    const arr = useRare ? pool.rare : pool.common;
+    const idx = Math.floor(Math.random() * arr.length);
+    return { ...arr[idx], isRare: useRare };
+  }
 
   // =========================
   // Canvas setup
@@ -422,7 +491,6 @@
   const hudScore = document.getElementById('hudScore');
   const hudAiMsg = document.getElementById('hudAiMsg');
   const hudStats = document.getElementById('hudStats');
-
   const hintLine = document.getElementById('hintLine');
 
   const drawer = document.getElementById('drawer');
@@ -434,6 +502,7 @@
   const tabFeedback = document.getElementById('tabFeedback');
   const tabLang = document.getElementById('tabLang');
 
+  const lblMode = document.getElementById('lblMode');
   const lblPreset = document.getElementById('lblPreset');
   const lblSpeed = document.getElementById('lblSpeed');
   const lblGap = document.getElementById('lblGap');
@@ -441,8 +510,10 @@
   const lblAccel = document.getElementById('lblAccel');
   const lblLang = document.getElementById('lblLang');
   const langNote = document.getElementById('langNote');
+
   const howtoBox = document.getElementById('howtoBox');
   const feedbackText = document.getElementById('feedbackText');
+  const fbNote = document.getElementById('fbNote');
 
   const langSel = document.getElementById('langSel');
   const btnBug = document.getElementById('btnBug');
@@ -451,12 +522,9 @@
   btnBug.addEventListener('click', ()=> window.open(ISSUE_URL, '_blank', 'noopener,noreferrer'));
   btnReq.addEventListener('click', ()=> window.open(ISSUE_URL, '_blank', 'noopener,noreferrer'));
 
-  // =========================
   // Drawer behavior
-  // =========================
   btnMenu.addEventListener('click', ()=> drawer.classList.add('open'));
   btnClose.addEventListener('click', ()=> drawer.classList.remove('open'));
-
   document.querySelectorAll('.tab').forEach(tbtn=>{
     tbtn.addEventListener('click', ()=>{
       document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
@@ -481,6 +549,7 @@
   const applyDifficultyNow = ()=>Object.assign(difficulty, pendingDifficulty);
 
   const $ = (id)=>document.getElementById(id);
+  const flightModeEl = $('flightMode');
   const presetEl=$('preset'), speedBaseEl=$('speedBase'), gapBaseEl=$('gapBase'), spawnEveryEl=$('spawnEvery'), accelEveryEl=$('accelEvery');
   const speedBaseVal=$('speedBaseVal'), gapBaseVal=$('gapBaseVal'), spawnEveryVal=$('spawnEveryVal'), accelEveryVal=$('accelEveryVal');
   const btnApply=$('btnApply'), btnRestart=$('btnRestart');
@@ -501,6 +570,15 @@
   });
   [speedBaseEl,gapBaseEl,spawnEveryEl,accelEveryEl].forEach(el=>{
     el.addEventListener('input', ()=>{ presetEl.value='custom'; syncVals(); });
+  });
+
+  let FLIGHT_MODE = getSavedMode(); // 'fly' | 'ground'
+  flightModeEl.value = FLIGHT_MODE;
+  flightModeEl.addEventListener('change', ()=>{
+    FLIGHT_MODE = flightModeEl.value;
+    saveMode(FLIGHT_MODE);
+    setAiMsgForMode();
+    updateHud();
   });
 
   btnApply.addEventListener('click', ()=>{
@@ -539,66 +617,109 @@
   [imgBody,imgProp].forEach(im=>im.onload=()=>{ if(++loaded===2) imagesReady=true; });
 
   // =========================
-  // AI & stats (死因表示は出さない)
+  // "AIっぽい" 自動調整（壊れない最小構成）
   // =========================
   const ai = {
-    mode:'normal', biasY:0, gapBoost:0, speedBoost:0,
-    passStreak:0, failStreak:0, lastDeath:null,
-    msg:"…"
+    msg: "…",
+    mode: "normal", // soothe | normal | hell
+    passStreak: 0,
+    failStreak: 0,
+    // current deltas (smoothed)
+    gapBoost: 0,
+    speedBoost: 0,
+    spawnBoost: 0,
+    biasY: 0,
+    // internal
+    target: { gap:0, spd:0, spawn:0, biasY:0 }
   };
-  const stats = {
-    emaY:0.5,
-    emaPress:0.0
-  };
-  let gameOverLines=["","",""];
-  let aiFinalLine="";
 
-  function setAiMode(m){
-    if(ai.mode===m) return;
-    ai.mode=m;
-    if(m==='soothe') ai.msg = (LANG==='ja')?"癒しモード：少し優しくする。":"Soothe mode: easing it a bit.";
-    else if(m==='hell') ai.msg = (LANG==='ja')?"地獄モード：容赦しない。":"Hell mode: no mercy.";
-    else ai.msg = (LANG==='ja')?"普通モード：普段通り。":"Normal mode.";
+  function setAiMode(mode){
+    ai.mode = mode;
+    // よしなに：極端に振れない範囲で調整
+    if(mode === 'soothe'){
+      ai.target.gap = +24;   // 隙間広げる
+      ai.target.spd = -0.20; // 少し遅く
+      ai.target.spawn = +10; // 出現間隔を少し長く
+    } else if(mode === 'hell'){
+      ai.target.gap = -18;   // 隙間狭く
+      ai.target.spd = +0.25; // 速く
+      ai.target.spawn = -8;  // 出現間隔短く
+    } else {
+      ai.target.gap = 0;
+      ai.target.spd = 0;
+      ai.target.spawn = 0;
+    }
   }
   function maybeUpdateAiMode(){
-    if(ai.failStreak>=3) setAiMode('soothe');
-    else if(ai.passStreak>=6) setAiMode('hell');
+    // 連続失敗 → 優しく / 連続成功 → 厳しく
+    if(ai.failStreak >= 2) setAiMode('soothe');
+    else if(ai.passStreak >= 6) setAiMode('hell');
     else setAiMode('normal');
   }
-  function modeDeltas(){
-    if(ai.mode==='soothe') return { gap:+22, spd:-0.25, spawn:+10 };
-    if(ai.mode==='hell') return { gap:-18, spd:+0.35, spawn:-10 };
-    return { gap:0, spd:0, spawn:0 };
+
+  function tickAi(){
+    // 目標値にじわっと寄せる（壊れない）
+    const k = 0.02;
+    ai.gapBoost   = lerp(ai.gapBoost,   ai.target.gap,   k);
+    ai.speedBoost = lerp(ai.speedBoost, ai.target.spd,   k);
+    ai.spawnBoost = lerp(ai.spawnBoost, ai.target.spawn, k);
+    ai.biasY      = lerp(ai.biasY,      ai.target.biasY, 0.03);
+
+    // プレイヤーの位置に “少しだけ” 寄せる（救済）
+    // ※露骨にするとチート感が出るので「ちょい手助け」レベルにする
+    const buuCy = buunosuke.y + buunosuke.height/2;
+    const centerY = H/2;
+    const desire = clamp((buuCy - centerY) * 0.15, -40, 40);
+    // fail streak が多い時だけ寄せる
+    const help = clamp(ai.failStreak / 3, 0, 1);
+    ai.target.biasY = desire * help;
   }
 
-  function buildGameOverAnalysis(){
-    // 死因は表示しない版：プレイ癖と次の一手だけ
-    if (LANG==='ja'){
-      const habit = (stats.emaY<0.35)?"高めで粘る":(stats.emaY>0.65?"低めに沈む":"中央維持");
-      const press = Math.round(stats.emaPress*100);
-      gameOverLines = [
-        `癖：${habit}（押下率≈${press}%）`,
-        "次の一手：落ちる前に1回だけ押す（救わない）",
-        "狙い：同じ高さを保ったまま、木の中心を抜ける"
-      ];
+  function setAiMsgForMode(){
+    // HUDは "AI: " を付けるので、ここは短く
+    let modeText;
+    if (LANG === 'ja'){
+      modeText = (ai.mode==='soothe') ? "癒し（少し優しく）"
+              : (ai.mode==='hell')   ? "地獄（容赦なし）"
+              : "普通（^^）";
+      ai.msg = (FLIGHT_MODE==='ground')
+        ? `GROUND / ${modeText}`
+        : `${modeText}`;
     } else {
-      const habit = (stats.emaY<0.35)?"stays high":(stats.emaY>0.65?"sinks low":"stays mid");
-      const press = Math.round(stats.emaPress*100);
-      gameOverLines = [
-        `Tendency: ${habit} (hold≈${press}%)`,
-        "Next move: one small press BEFORE you drop (don’t “save”)",
-        "Goal: keep the same altitude and pass the center"
-      ];
+      modeText = (ai.mode==='soothe') ? "Soothe (easier)"
+              : (ai.mode==='hell')   ? "Hell (harder)"
+              : "Normal (auto)";
+      ai.msg = (FLIGHT_MODE==='ground')
+        ? `GROUND / ${modeText}`
+        : `${modeText}`;
     }
   }
 
-  function buildAiFinalLine(){
-    // HUDのAI文言と異なる「最終評価」1行（短く）
-    if (LANG==='ja'){
-      aiFinalLine = "勝つ気持ちが先に出てる。高さを決めて、同じリズムで通れ。";
-    } else {
-      aiFinalLine = "You’re chasing the win. Commit to an altitude and pass with the same rhythm.";
-    }
+  // =========================
+  // GameOver display content (2 lines only)
+  // =========================
+  let goQuip = "";
+  let goNext = "";
+  let goIsRare = false;
+
+  function buildGameOverLine(){
+    const picked = pickGameOverLine();
+    goQuip = picked.quip;
+    goNext = picked.next;
+    goIsRare = !!picked.isRare;
+  }
+
+  function onFail(){
+    ai.failStreak++;
+    ai.passStreak = 0;
+    maybeUpdateAiMode();
+    setAiMsgForMode();
+  }
+  function onPass(){
+    ai.passStreak++;
+    ai.failStreak = 0;
+    maybeUpdateAiMode();
+    setAiMsgForMode();
   }
 
   // =========================
@@ -619,30 +740,104 @@
   }
 
   // =========================
-  // Player
+  // Player physics with mode switch
   // =========================
   const buunosuke = {
-    x:60,y:H/2,width:56,height:56,velocity:0,
-    gravity:0.28, thrust:-0.35, maxUp:-4.6, maxDown:6.5,
+    x:60, y:H/2, width:56, height:56,
+    velocity:0,
     isFlying:false,
+
     propOffsetX:28, propOffsetY:8, propSize:20,
+
+    // GROUND helpers
+    charge:0,
+    burstFrames:0,
+    lastPressFrames:0,
+
+    applyModeParams(){
+      if (FLIGHT_MODE==='ground'){
+        this.gravity = 0.42;
+        this.thrust = -0.18;
+        this.maxUp = -2.0;
+        this.maxDown = 7.0;
+        this.floorStickY = 0.78;
+      } else {
+        this.gravity = 0.28;
+        this.thrust = -0.35;
+        this.maxUp = -4.6;
+        this.maxDown = 6.5;
+        this.floorStickY = 0.0;
+      }
+    },
 
     update(){
       if(gameState!=='PLAYING') return;
 
-      // 圧力対応なし：長押しだけで上昇
-      this.velocity += this.isFlying ? this.thrust : this.gravity;
-      this.velocity = clamp(this.velocity, this.maxUp, this.maxDown);
-      this.y += this.velocity;
+      const inGround = (FLIGHT_MODE==='ground');
 
-      if(this.y<0){ this.y=0; this.velocity=0; }
-      if(this.y+this.height>H){
-        this.y=H-this.height;
+      if (inGround){
+        const yNorm = (this.y + this.height/2)/Math.max(1,H);
+        const nearGround = yNorm > this.floorStickY;
+
+        if (this.isFlying) this.lastPressFrames++;
+        else this.lastPressFrames = 0;
+
+        if (this.isFlying && nearGround && this.burstFrames<=0){
+          this.charge = clamp(this.charge + 0.015, 0, 1);
+        } else {
+          this.charge = clamp(this.charge - 0.004, 0, 1);
+        }
+
+        if (this.charge >= 1 && this.burstFrames<=0){
+          this.burstFrames = 55;
+          this.charge = 0;
+        }
+
+        let g = this.gravity;
+        let t = this.thrust;
+        let maxUp = this.maxUp;
+
+        if (this.burstFrames>0){
+          this.burstFrames--;
+          g = 0.22;
+          t = -0.30;
+          maxUp = -3.4;
+        }
+
+        this.velocity += (this.isFlying ? t : g);
+
+        // anti-spam: long hold gets punished
+        if (this.isFlying && this.lastPressFrames > 24){
+          this.velocity += 0.06;
+        }
+
+        this.velocity = clamp(this.velocity, maxUp, this.maxDown);
+        this.y += this.velocity;
+
+        // ground stick
+        const floorZone = H * 0.80;
+        if (this.y + this.height > floorZone){
+          if (this.velocity > 0) this.velocity *= 0.86;
+          this.y = Math.min(this.y, H - this.height);
+        }
+      } else {
+        this.velocity += (this.isFlying ? this.thrust : this.gravity);
+        this.velocity = clamp(this.velocity, this.maxUp, this.maxDown);
+        this.y += this.velocity;
+      }
+
+      // ceiling
+      if(this.y < 0){ this.y = 0; this.velocity = 0; }
+
+      // floor => game over
+      if(this.y + this.height > H){
+        this.y = H - this.height;
         gameState='GAMEOVER';
-        buildGameOverAnalysis();
-        buildAiFinalLine();
+        buildGameOverLine();
+        onFail();
       }
     },
+
     draw(){
       if(!imagesReady) return;
       const tilt = clamp(this.velocity*0.02, -0.10, 0.14);
@@ -663,35 +858,48 @@
       ctx.drawImage(imgProp, -this.propSize/2, -this.propSize/2, this.propSize, this.propSize);
       ctx.restore();
 
+      // charge meter in GROUND
+      if (FLIGHT_MODE==='ground'){
+        const barW=48, barH=6;
+        const bx=this.x + (this.width-barW)/2;
+        const by=this.y - 10;
+        ctx.globalAlpha = 0.75;
+        ctx.fillStyle = 'rgba(255,255,255,0.25)';
+        ctx.fillRect(bx, by, barW, barH);
+        ctx.fillStyle = 'rgba(255,105,180,0.85)';
+        ctx.fillRect(bx, by, barW * this.charge, barH);
+        ctx.globalAlpha = 1.0;
+      }
+
       ctx.restore();
     }
   };
 
   // =========================
-  // Obstacles
+  // Obstacles / scoring
   // =========================
   const pipes=[];
   function handleObstacles(){
     if(gameState!=='PLAYING') return;
 
-    maybeUpdateAiMode();
-    const md = modeDeltas();
+    // AI auto-tune (applied here only; keep physics independent)
+    tickAi();
 
-    const baseGap = difficulty.gapBase + md.gap;
-    const gapHeight = clamp((baseGap + ai.gapBoost) - (gameSpeed - difficulty.speedBase)*6, 120, 300);
-    const spawnEvery = clamp(difficulty.spawnEvery + md.spawn, 70, 180);
-    const effectiveSpeed = clamp(gameSpeed + ai.speedBoost + md.spd, 2.0, 8.0);
+    const effSpeed = clamp(gameSpeed + ai.speedBoost, 2.0, 8.0);
+    const baseGap = difficulty.gapBase + ai.gapBoost;
+    const gapHeight = clamp(baseGap - (effSpeed - difficulty.speedBase)*6, 120, 300);
+    const spawnEvery = clamp(difficulty.spawnEvery + ai.spawnBoost, 70, 180);
 
     if(frames % spawnEvery === 0){
       const margin=34;
       let gapTop = Math.random()*(H-gapHeight-margin*2)+margin;
-      gapTop = clamp(gapTop + ai.biasY*0.4, margin, H-gapHeight-margin);
+      gapTop = clamp(gapTop + ai.biasY, margin, H-gapHeight-margin);
       pipes.push({x:W,w:54,gapTop,gapHeight,passed:false});
     }
 
     for(let i=0;i<pipes.length;i++){
       const p=pipes[i];
-      p.x -= effectiveSpeed;
+      p.x -= effSpeed;
 
       ctx.fillStyle='#551a1a';
       ctx.fillRect(p.x,0,p.w,p.gapTop);
@@ -702,18 +910,18 @@
       const hitBottom = overlapX && (buunosuke.y+buunosuke.height > p.gapTop+p.gapHeight);
       if(hitTop || hitBottom){
         gameState='GAMEOVER';
-        buildGameOverAnalysis();
-        buildAiFinalLine();
+        buildGameOverLine();
+        onFail();
       }
 
-      // score（中心越え）
+      // score when crossing center
       const buuCenterX = buunosuke.x + buunosuke.width/2;
       const pipeCenterX = p.x + p.w/2;
       if(!p.passed && buuCenterX > pipeCenterX){
         p.passed=true;
         score++;
-        ai.passStreak++; ai.failStreak=0;
         addPopup("+1", buunosuke.x+20, buunosuke.y-6);
+        onPass();
       }
 
       if(p.x+p.w<0){ pipes.splice(i,1); i--; }
@@ -737,26 +945,30 @@
   }
 
   // =========================
-  // HUD update（死因カウント表示なし）
+  // HUD update
   // =========================
+  const stats = { emaPress:0.0 };
   function updateHud(){
-    const cy = (buunosuke.y + buunosuke.height/2) / Math.max(1,H);
-    stats.emaY = lerp(stats.emaY, clamp(cy,0,1), 0.03);
     stats.emaPress = lerp(stats.emaPress, buunosuke.isFlying ? 1 : 0, 0.05);
-
-    const yLabel = stats.emaY < 0.35 ? (LANG==='ja'?"高め":"high") : (stats.emaY > 0.65 ? (LANG==='ja'?"低め":"low") : (LANG==='ja'?"中央":"mid"));
     const pressPct = Math.round(stats.emaPress*100);
 
     hudScore.textContent = `${t().score}: ${score}`;
     hudAiMsg.textContent = `${t().ai}: ${ai.msg}`;
-    hudStats.textContent =
-      (LANG==='ja')
-        ? `癖：高度=${yLabel} / 押下率≈${pressPct}%`
-        : `Tendency: ${yLabel} / hold≈${pressPct}%`;
+
+    if (FLIGHT_MODE==='ground'){
+      const ch = Math.round(buunosuke.charge*100);
+      hudStats.textContent = (LANG==='ja')
+        ? `押下率≈${pressPct}% / 溜め=${ch}%`
+        : `hold≈${pressPct}% / charge=${ch}%`;
+    } else {
+      hudStats.textContent = (LANG==='ja')
+        ? `押下率≈${pressPct}%`
+        : `hold≈${pressPct}%`;
+    }
   }
 
   // =========================
-  // Canvas wrapping (GameOver 文字切れ対策)
+  // Wrap for GameOver
   // =========================
   function drawWrappedCentered(text, cx, y, maxWidth, lineHeight){
     let lines;
@@ -786,9 +998,6 @@
     return lines.length;
   }
 
-  // =========================
-  // UI (start/gameover)
-  // =========================
   function drawUI(){
     if(gameState==='START'){
       ctx.fillStyle='rgba(0,0,0,0.55)'; ctx.fillRect(0,0,W,H);
@@ -796,26 +1005,27 @@
       ctx.font='24px Arial'; ctx.fillText(t().startTitle, W/2, H/2-20);
       ctx.font='16px Arial'; ctx.fillText(t().startSub, W/2, H/2+30);
       ctx.textAlign='left';
-    }else if(gameState==='GAMEOVER'){
+    } else if(gameState==='GAMEOVER'){
       ctx.fillStyle='rgba(0,0,0,0.70)'; ctx.fillRect(0,0,W,H);
 
       ctx.fillStyle='red'; ctx.textAlign='center';
       ctx.font='30px Arial'; ctx.fillText(t().gameOver, W/2, H/2-90);
 
-      const maxW = Math.max(200, W - 50);
-      let y = H/2 - 55;
+      const maxW = Math.max(220, W - 50);
 
+      // 1) quip
+      let y = H/2 - 40;
       ctx.fillStyle='rgba(255,255,255,0.95)';
-      ctx.font='14px Arial';
+      ctx.font = goIsRare ? 'bold 15px Arial' : '14px Arial';
+      y += drawWrappedCentered(goQuip || "…", W/2, y, maxW, 18) * 18 + 12;
 
-      y += drawWrappedCentered(gameOverLines[0], W/2, y, maxW, 18) * 18 + 6;
-      y += drawWrappedCentered(gameOverLines[1], W/2, y, maxW, 18) * 18 + 6;
-      y += drawWrappedCentered(gameOverLines[2], W/2, y, maxW, 18) * 18 + 10;
-
+      // 2) next move (GPT feel)
       ctx.fillStyle='rgba(255,105,180,0.95)';
       ctx.font='bold 14px Arial';
-      drawWrappedCentered(`${t().aiFinal}: ${aiFinalLine}`, W/2, y, maxW, 18);
+      const nextLine = `${t().next}: ${goNext || ""}`;
+      drawWrappedCentered(nextLine, W/2, y, maxW, 18);
 
+      // retry
       ctx.fillStyle='#fff'; ctx.font='16px Arial';
       ctx.fillText(t().retry, W/2, H/2+120);
       ctx.textAlign='left';
@@ -828,11 +1038,29 @@
   function resetGame(){
     applyDifficultyNow();
     ({w:W,h:H}=resizeCanvas());
-    buunosuke.y=H/2; buunosuke.velocity=0;
+    buunosuke.applyModeParams();
+
     pipes.length=0; popups.length=0;
     score=0; frames=0;
+
+    // manual base
     gameSpeed=difficulty.speedBase;
     gameState='PLAYING';
+
+    // AI auto: new run resets streak so it doesn't snowball
+    ai.passStreak = 0;
+    ai.failStreak = 0;
+    setAiMode('normal');
+    ai.gapBoost = ai.speedBoost = ai.spawnBoost = ai.biasY = 0;
+    ai.target.biasY = 0;
+
+    buunosuke.y = (FLIGHT_MODE==='ground') ? (H - buunosuke.height - 8) : (H/2);
+    buunosuke.velocity=0;
+    buunosuke.charge=0;
+    buunosuke.burstFrames=0;
+    buunosuke.lastPressFrames=0;
+
+    setAiMsgForMode();
     updateHud();
   }
 
@@ -841,9 +1069,12 @@
     drawBackground();
 
     if(gameState==='PLAYING'){
-      updateHud();
       frames++;
+      // base acceleration (manual)
       if(difficulty.accelEvery>0 && frames % difficulty.accelEvery === 0) gameSpeed += 0.5;
+
+      // keep AI message fresh (mode can change on pass/fail)
+      updateHud();
     }
 
     buunosuke.update();
@@ -856,7 +1087,7 @@
   }
 
   // =========================
-  // Input (pressure無し)
+  // Input
   // =========================
   function pressStartOrFly(){
     if(gameState==='PLAYING') buunosuke.isFlying=true;
@@ -887,6 +1118,10 @@
     tabLang.textContent = t().tabLang;
     btnClose.textContent = t().close;
 
+    lblMode.textContent = t().mode;
+    flightModeEl.options[0].textContent = t().modeFly;
+    flightModeEl.options[1].textContent = t().modeGround;
+
     lblPreset.textContent = t().preset;
     lblSpeed.textContent = t().speed;
     lblGap.textContent = t().gap;
@@ -901,16 +1136,16 @@
 
     howtoBox.innerHTML = t().howtoHtml;
     feedbackText.innerHTML = t().feedbackText;
+    fbNote.textContent = t().fbNote;
 
     btnBug.textContent = t().bug;
     btnReq.textContent = t().req;
 
-    // AI文言再同期
-    setAiMode(ai.mode);
+    setAiMsgForMode();
     updateHud();
   }
 
-  // lang selector init
+  // init lang
   langSel.value = LANG;
   langSel.addEventListener('change', ()=>{
     LANG = langSel.value;
@@ -918,10 +1153,17 @@
     applyLanguage();
   });
 
-  // Initial
-  applyLanguage();
+  // init mode
+  flightModeEl.value = FLIGHT_MODE;
+
+  // init difficulty UI
   syncVals();
+
+  // initial
+  buunosuke.applyModeParams();
   setAiMode('normal');
+  setAiMsgForMode();
+  applyLanguage();
   updateHud();
   loop();
 </script>
