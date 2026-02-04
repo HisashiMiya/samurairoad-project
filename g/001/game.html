@@ -37,6 +37,7 @@
     .hudLine{ font-size:12px; opacity:.95; line-height:1.25; }
     .hudScore{ font-size:14px; font-weight:700; }
     .hudSmall{ font-size:11px; opacity:.85; }
+    #hudStats{ display:none; }
 
     /* ⚙️ */
     .menuBtn{
@@ -160,6 +161,8 @@
     <div class="drawerHeader">
       <div class="tabs">
         <button class="tab active" data-pane="pane-level" type="button" id="tabLevel">レベル</button>
+        <button class="tab" data-pane="pane-sound" type="button" id="tabSound">音</button>
+        <button class="tab" data-pane="pane-dev" type="button" id="tabDev">開発者</button>
         <button class="tab" data-pane="pane-howto" type="button" id="tabHowto">使い方</button>
         <button class="tab" data-pane="pane-feedback" type="button" id="tabFeedback">フィードバック</button>
         <button class="tab" data-pane="pane-lang" type="button" id="tabLang">言語</button>
@@ -218,6 +221,47 @@
       </div>
     </div>
 
+    <div class="drawerBody" id="pane-sound">
+      <div class="panel">
+                <div class="row">
+                  <label for="soundToggle" id="lblSound">音楽</label>
+                  <select id="soundToggle">
+                    <option value="on">ON</option>
+                    <option value="off">OFF</option>
+                  </select>
+                </div>
+
+                <div class="row">
+                  <label for="soundVol" id="lblVol">音量</label>
+                  <input id="soundVol" type="range" min="0" max="1" step="0.01" value="0.35">
+                  <div class="value" id="soundVolVal">0.35</div>
+                </div>
+        <div class="row">
+          <div class="small" style="opacity:.9; line-height:1.4;">
+            ※ ブラウザ仕様で、最初の1回はクリック/タップ後に音が有効になることがあります。
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="drawerBody" id="pane-dev">
+      <div class="panel">
+        <div class="row">
+          <label for="debugToggle" id="lblDebug">Debug表示</label>
+          <select id="debugToggle">
+            <option value="off" selected>OFF（通常）</option>
+            <option value="on">ON（開発者）</option>
+          </select>
+        </div>
+        <div class="row">
+          <div class="small" style="opacity:.9; line-height:1.4;">
+            ※ ONにすると、画面右上にデバッグ情報（押下率・画像/音の状態など）が表示されます。
+          </div>
+        </div>
+      </div>
+    </div>
+
+
     <div class="drawerBody" id="pane-howto">
       <div class="panel">
         <div class="howto" id="howtoBox"></div>
@@ -275,6 +319,7 @@
       modeFly: "FLY（普通）",
       modeGround: "GROUND（地を這う）",
       preset: "プリセット", speed: "速度", gap: "間隔（上下の木）", spawn: "間隔（出現）", accel: "加速（頻度）",
+      sound: "音楽", soundOn: "ON", soundOff: "OFF", vol: "音量",
       apply: "適用（次から）", restart: "即リトライ",
       lang: "言語",
       langNote: "言語は端末に保存されます（次回も維持）。",
@@ -338,6 +383,7 @@
       modeFly: "FLY (normal)",
       modeGround: "GROUND (crawl)",
       preset: "Preset", speed: "Speed", gap: "Gap (top/bottom)", spawn: "Spawn interval", accel: "Acceleration",
+      sound: "Music", soundOn: "ON", soundOff: "OFF", vol: "Volume",
       apply: "Apply (next run)", restart: "Restart now",
       lang: "Language",
       langNote: "Language is saved on this device.",
@@ -406,6 +452,192 @@
     return (v === 'ground' || v === 'fly') ? v : 'fly';
   }
   function saveMode(v){ localStorage.setItem('sr_flight_mode', v); }
+
+  function getSavedSoundOn(){
+    const v = localStorage.getItem('sr_sound_on');
+    return (v === '0') ? false : true; // default ON
+  }
+  function saveSoundOn(on){ localStorage.setItem('sr_sound_on', on ? '1' : '0'); }
+
+  function getSavedSoundVol(){
+    const v = Number(localStorage.getItem('sr_sound_vol'));
+    return Number.isFinite(v) ? Math.max(0, Math.min(1, v)) : 0.35;
+  }
+  function saveSoundVol(vol){ localStorage.setItem('sr_sound_vol', String(Math.max(0, Math.min(1, vol)))); }
+
+  function getSavedDebugOn(){
+    const v = localStorage.getItem('sr_debug_on');
+    return v === '1';
+  }
+  function saveDebugOn(on){ localStorage.setItem('sr_debug_on', on ? '1' : '0'); }
+
+  // =========================
+  // Music (WebAudio, lightweight, no external files)
+  // =========================
+  const Music = (() => {
+    let ctx = null;
+    let master = null;
+    let filter = null;
+    let isOn = true;
+    let vol = 0.35;
+
+    let playing = false;
+    let nextNoteTime = 0;
+    let step = 0;
+    let timerId = null;
+
+    // vibe: gentle jp-fantasy / lo-fi-ish
+    const bpm = 112;
+    const stepDur = 60 / bpm / 4; // 16th
+    const scheduleAhead = 0.12;
+    const lookahead = 25; // ms
+
+    // chord roots (A minor-ish)
+    const chordRoots = [57, 53, 55, 52]; // A3, F3, G3, E3 (MIDI)
+    const bassPattern = [0, null, null, null, 0, null, null, null, 0, null, null, null, 0, null, null, null];
+    const leadPattern = [0, 2, 3, 2, 0, 2, 5, 3, 0, 2, 3, 7, 5, 3, 2, null]; // pentatonic-ish offsets
+    const scale = [0, 3, 5, 7, 10, 12, 15, 17]; // A minor pentatonic-ish in semitones
+
+    function ensure(){
+      if (ctx) return;
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return;
+      ctx = new AC();
+      master = ctx.createGain();
+      filter = ctx.createBiquadFilter();
+      filter.type = 'lowpass';
+      filter.frequency.value = 900;
+      filter.Q.value = 0.7;
+
+      master.gain.value = 0.0001;
+      filter.connect(master);
+      master.connect(ctx.destination);
+      applyVol();
+    }
+
+    function midiToHz(m){ return 440 * Math.pow(2, (m - 69) / 12); }
+
+    function playTone(freq, t0, dur, type, gain, detune=0){
+      if (!ctx) return;
+      const o = ctx.createOscillator();
+      const g = ctx.createGain();
+      o.type = type;
+      o.frequency.setValueAtTime(freq, t0);
+      if (detune) o.detune.setValueAtTime(detune, t0);
+
+      // simple envelope
+      g.gain.setValueAtTime(0.0001, t0);
+      g.gain.exponentialRampToValueAtTime(Math.max(0.0002, gain), t0 + 0.01);
+      g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+
+      o.connect(g);
+      g.connect(filter);
+
+      o.start(t0);
+      o.stop(t0 + dur + 0.02);
+    }
+
+    function playHat(t0){
+      if (!ctx) return;
+      const bufferSize = 2 * ctx.sampleRate;
+      const noiseBuffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+      const output = noiseBuffer.getChannelData(0);
+      for (let i = 0; i < bufferSize; i++) output[i] = Math.random() * 2 - 1;
+
+      const noise = ctx.createBufferSource();
+      noise.buffer = noiseBuffer;
+
+      const hp = ctx.createBiquadFilter();
+      hp.type = 'highpass';
+      hp.frequency.value = 6000;
+
+      const g = ctx.createGain();
+      g.gain.setValueAtTime(0.0001, t0);
+      g.gain.exponentialRampToValueAtTime(0.03, t0 + 0.005);
+      g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.03);
+
+      noise.connect(hp);
+      hp.connect(g);
+      g.connect(filter);
+
+      noise.start(t0);
+      noise.stop(t0 + 0.04);
+    }
+
+    function schedule(){
+      if (!ctx || !playing) return;
+      while (nextNoteTime < ctx.currentTime + scheduleAhead){
+        const bar = Math.floor(step / 16);
+        const chord = chordRoots[bar % chordRoots.length];
+
+        // bass on quarter notes (step 0,4,8,12)
+        const bp = bassPattern[step % 16];
+        if (bp !== null){
+          playTone(midiToHz(chord + 0), nextNoteTime, 0.20, 'triangle', 0.06);
+        }
+
+        // lead on selected 16ths
+        const lp = leadPattern[step % 16];
+        if (lp !== null){
+          const note = chord + scale[Math.min(scale.length-1, lp)];
+          playTone(midiToHz(note + 12), nextNoteTime, 0.12, 'sine', 0.035, (step%2===0)? -6 : 6);
+        }
+
+        // hats on offbeats
+        if ((step % 4) === 2) playHat(nextNoteTime);
+
+        step++;
+        nextNoteTime += stepDur;
+      }
+    }
+
+    function start(){
+      ensure();
+      if (!ctx) return;
+      if (!isOn) return;
+
+      if (ctx.state === 'suspended') ctx.resume();
+
+      if (playing) return;
+      playing = true;
+      step = 0;
+      nextNoteTime = ctx.currentTime + 0.05;
+      timerId = setInterval(schedule, lookahead);
+      // fade in
+      master.gain.cancelScheduledValues(ctx.currentTime);
+      master.gain.setValueAtTime(master.gain.value, ctx.currentTime);
+      master.gain.exponentialRampToValueAtTime(Math.max(0.0002, vol), ctx.currentTime + 0.25);
+    }
+
+    function stop(){
+      if (!ctx || !playing) return;
+      playing = false;
+      if (timerId) { clearInterval(timerId); timerId = null; }
+      // fade out
+      master.gain.cancelScheduledValues(ctx.currentTime);
+      master.gain.setValueAtTime(Math.max(0.0002, master.gain.value), ctx.currentTime);
+      master.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.20);
+    }
+
+    function applyVol(){
+      if (!ctx || !master) return;
+      master.gain.cancelScheduledValues(ctx.currentTime);
+      const target = isOn ? Math.max(0.0002, vol) : 0.0001;
+      master.gain.setValueAtTime(Math.max(0.0001, master.gain.value), ctx.currentTime);
+      master.gain.exponentialRampToValueAtTime(target, ctx.currentTime + 0.12);
+    }
+
+    function setOn(v){ isOn = !!v; applyVol(); if (!isOn) stop(); }
+    function setVol(v){ vol = Math.max(0, Math.min(1, Number(v)||0)); applyVol(); }
+
+    function userGesture(){
+      ensure();
+      if (ctx && ctx.state === 'suspended') ctx.resume();
+    }
+
+    return { start, stop, setOn, setVol, userGesture, _ctxState: ()=> ctx?ctx.state:'none' };
+  })();
+
 
   let LANG = getSavedLang();
   function t(){ return I18N[LANG]; }
@@ -513,6 +745,8 @@
   const lblGap = document.getElementById('lblGap');
   const lblSpawn = document.getElementById('lblSpawn');
   const lblAccel = document.getElementById('lblAccel');
+  const lblSound = document.getElementById('lblSound');
+  const lblVol = document.getElementById('lblVol');
   const lblLang = document.getElementById('lblLang');
   const langNote = document.getElementById('langNote');
 
@@ -557,6 +791,10 @@
   const flightModeEl = $('flightMode');
   const presetEl=$('preset'), speedBaseEl=$('speedBase'), gapBaseEl=$('gapBase'), spawnEveryEl=$('spawnEvery'), accelEveryEl=$('accelEvery');
   const speedBaseVal=$('speedBaseVal'), gapBaseVal=$('gapBaseVal'), spawnEveryVal=$('spawnEveryVal'), accelEveryVal=$('accelEveryVal');
+  const soundToggleEl = $('soundToggle');
+  const soundVolEl = $('soundVol');
+  const soundVolVal = $('soundVolVal');
+  const debugToggleEl = $('debugToggle');
   const btnApply=$('btnApply'), btnRestart=$('btnRestart');
 
   function syncVals(){
@@ -564,6 +802,7 @@
     gapBaseVal.textContent = String(gapBaseEl.value);
     spawnEveryVal.textContent = String(spawnEveryEl.value);
     accelEveryVal.textContent = String(accelEveryEl.value);
+    if (soundVolVal) soundVolVal.textContent = Number(soundVolEl.value).toFixed(2);
   }
   function setControlsFrom(obj){
     speedBaseEl.value=obj.speedBase; gapBaseEl.value=obj.gapBase; spawnEveryEl.value=obj.spawnEvery; accelEveryEl.value=obj.accelEvery;
@@ -578,6 +817,13 @@
   });
 
   let FLIGHT_MODE = getSavedMode(); // 'fly' | 'ground'
+
+  // dev settings
+  let DEBUG_ON = getSavedDebugOn();
+
+  // sound settings
+  let SOUND_ON = getSavedSoundOn();
+  let SOUND_VOL = getSavedSoundVol();
   flightModeEl.value = FLIGHT_MODE;
   flightModeEl.addEventListener('change', ()=>{
     FLIGHT_MODE = flightModeEl.value;
@@ -585,6 +831,40 @@
     setAiMsgForMode();
     updateHud();
   });
+
+  // Debug UI
+  if (debugToggleEl){
+    debugToggleEl.value = DEBUG_ON ? 'on' : 'off';
+    debugToggleEl.addEventListener('change', ()=>{
+      DEBUG_ON = (debugToggleEl.value === 'on');
+      saveDebugOn(DEBUG_ON);
+      updateHud();
+    });
+  }
+
+  // Sound UI
+  soundToggleEl.value = SOUND_ON ? 'on' : 'off';
+  soundVolEl.value = SOUND_VOL.toFixed(2);
+  syncVals();
+
+  soundToggleEl.addEventListener('change', ()=>{
+    SOUND_ON = (soundToggleEl.value === 'on');
+    saveSoundOn(SOUND_ON);
+    Music.setOn(SOUND_ON);
+    // if turning on during play, start immediately
+    if (SOUND_ON && gameState === 'PLAYING') Music.start();
+  });
+
+  soundVolEl.addEventListener('input', ()=>{
+    SOUND_VOL = Number(soundVolEl.value);
+    saveSoundVol(SOUND_VOL);
+    syncVals();
+    Music.setVol(SOUND_VOL);
+  });
+
+  // apply initial sound state
+  Music.setOn(SOUND_ON);
+  Music.setVol(SOUND_VOL);
 
   btnApply.addEventListener('click', ()=>{
     pendingDifficulty = {
@@ -618,6 +898,9 @@
   // =========================
   const imgBody = new Image(); imgBody.src = './images/buunosuke_body.png';
   const imgProp = new Image(); imgProp.src = './images/buunosuke_propeller.png';
+  let imgError = null;
+  imgBody.onerror = ()=>{ imgError = "buunosuke_body.png が読み込めません（./images/ を確認）"; console.error(imgError); };
+  imgProp.onerror = ()=>{ imgError = "buunosuke_propeller.png が読み込めません（./images/ を確認）"; console.error(imgError); };
   let imagesReady=false, loaded=0;
   [imgBody,imgProp].forEach(im=>im.onload=()=>{ if(++loaded===2) imagesReady=true; });
 
@@ -838,6 +1121,7 @@
       if(this.y + this.height > H){
         this.y = H - this.height;
         gameState='GAMEOVER';
+        Music.stop();
         buildGameOverLine();
         onFail();
       }
@@ -855,12 +1139,20 @@
       ctx.rotate(tilt);
       ctx.translate(-(this.x+this.width/2), -(this.y+this.height/2));
 
+      if (imagesReady) {
       ctx.drawImage(imgBody, this.x, this.y, this.width, this.height);
+    } else {
+      // placeholder (so you can still play even if images missing)
+      ctx.fillStyle = '#fff';
+      ctx.fillRect(this.x, this.y, this.width, this.height);
+    }
 
       ctx.save();
       ctx.translate(px,py);
       ctx.rotate(frames*spin);
-      ctx.drawImage(imgProp, -this.propSize/2, -this.propSize/2, this.propSize, this.propSize);
+      if (imagesReady) {
+        ctx.drawImage(imgProp, -this.propSize/2, -this.propSize/2, this.propSize, this.propSize);
+      }
       ctx.restore();
 
       // charge meter in GROUND
@@ -894,8 +1186,9 @@
     const baseGap = difficulty.gapBase + ai.gapBoost;
     const gapHeight = clamp(baseGap - (effSpeed - difficulty.speedBase)*6, 120, 300);
     const spawnEvery = clamp(difficulty.spawnEvery + ai.spawnBoost, 70, 180);
+    const spawnEveryInt = Math.max(1, Math.round(spawnEvery));
 
-    if(frames % spawnEvery === 0){
+    if(frames % spawnEveryInt === 0){
       const margin=34;
       let gapTop = Math.random()*(H-gapHeight-margin*2)+margin;
       gapTop = clamp(gapTop + ai.biasY, margin, H-gapHeight-margin);
@@ -915,6 +1208,7 @@
       const hitBottom = overlapX && (buunosuke.y+buunosuke.height > p.gapTop+p.gapHeight);
       if(hitTop || hitBottom){
         gameState='GAMEOVER';
+        Music.stop();
         buildGameOverLine();
         onFail();
       }
@@ -965,10 +1259,28 @@
       hudStats.textContent = (LANG==='ja')
         ? `押下率≈${pressPct}% / 溜め=${ch}%`
         : `hold≈${pressPct}% / charge=${ch}%`;
+      // asset/sound diagnostics (only when something is wrong)
+      if (imgError) hudStats.textContent += (LANG==='ja') ? ` / ⚠ ${imgError}` : ` / ⚠ ${imgError}`;
+      // WebAudio may remain suspended until a user gesture
+      try{
+        if (SOUND_ON && Music && Music._ctxState && Music._ctxState()==='suspended'){
+          hudStats.textContent += (LANG==='ja') ? ' / 🔇(クリックで音ON)' : ' / 🔇(click to enable sound)';
+        }
+      }catch(e){}
+
     } else {
       hudStats.textContent = (LANG==='ja')
         ? `押下率≈${pressPct}%`
         : `hold≈${pressPct}%`;
+      // asset/sound diagnostics (only when something is wrong)
+      if (imgError) hudStats.textContent += (LANG==='ja') ? ` / ⚠ ${imgError}` : ` / ⚠ ${imgError}`;
+      // WebAudio may remain suspended until a user gesture
+      try{
+        if (SOUND_ON && Music && Music._ctxState && Music._ctxState()==='suspended'){
+          hudStats.textContent += (LANG==='ja') ? ' / 🔇(クリックで音ON)' : ' / 🔇(click to enable sound)';
+        }
+      }catch(e){}
+
     }
   }
 
@@ -1052,6 +1364,9 @@
     gameSpeed=difficulty.speedBase;
     gameState='PLAYING';
 
+    // start music on play
+    if (SOUND_ON) Music.start();
+
     // AI auto: new run resets streak so it doesn't snowball
     ai.passStreak = 0;
     ai.failStreak = 0;
@@ -1095,6 +1410,7 @@
   // Input
   // =========================
   function pressStartOrFly(){
+    Music.userGesture();
     if(gameState==='PLAYING') buunosuke.isFlying=true;
     else resetGame();
   }
@@ -1132,6 +1448,12 @@
     lblGap.textContent = t().gap;
     lblSpawn.textContent = t().spawn;
     lblAccel.textContent = t().accel;
+
+    lblSound.textContent = t().sound;
+    // Keep ON/OFF but localize label if needed
+    soundToggleEl.options[0].textContent = t().soundOn;
+    soundToggleEl.options[1].textContent = t().soundOff;
+    lblVol.textContent = t().vol;
 
     btnApply.textContent = t().apply;
     btnRestart.textContent = t().restart;
