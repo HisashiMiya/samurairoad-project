@@ -220,6 +220,12 @@
   .promo-link { text-decoration: none; color: var(--accent); font-weight: 600; font-size: 0.9rem; }
   .promo-link:hover { text-decoration: underline; }
 
+
+/* Share / Tracking */
+.share-panel h2 { margin: 0 0 10px; font-size: 1rem; }
+.share-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+.share-note { margin: 10px 0 0; color: var(--sub); font-size: 0.9rem; }
+.copy-status { color: var(--sub); font-size: 0.85rem; }
 </style>
 </head>
 <body>
@@ -270,6 +276,21 @@
       </div>
     </div>
   </details>
+
+  <div class="panel share-panel" id="gptSharePanel" style="margin-top:0;">
+  <h2 data-i18n="share_title">Share / Tracking</h2>
+  <div class="share-row">
+    <a class="pill" href="?from=gpt" data-share="gpt" data-i18n="share_link_gpt">🔗 GPT Link</a>
+    <a class="pill" href="?from=discord_gpt" data-share="discord_gpt" data-i18n="share_link_discord">💬 Discord Link</a>
+    <a class="pill" href="?from=x_gpt" data-share="x_gpt" data-i18n="share_link_x">𝕏 X Link</a>
+    <button class="primary" type="button" id="btnCopyGptLink" data-i18n="share_copy_btn">Copy GPT Link</button>
+    <span class="copy-status" id="copyStatus" aria-live="polite"></span>
+  </div>
+
+  <p class="share-note" data-i18n="privacy_note">
+    ※このページは、入力したAPIキーを当サイト（SamuraiRoad Project）のサーバーへ送信しません。APIキーはブラウザ内でのみ利用され、GoogleのAPIエンドポイントへ直接送信してモデル一覧取得・疎通確認を行います。
+  </p>
+</div>
 
   <div class="panel">
     <div class="input-group">
@@ -374,6 +395,13 @@ const resources = {
     btn_ping: "接続テスト実行",
     log_wait: "// 待機中。モデルを選択してテストしてください。",
     promo_link: "🚀 アプリ「World Route」へ移動する",
+
+share_title: "共有リンク（from=...）",
+share_link_gpt: "🔗 GPT用リンク",
+share_link_discord: "💬 Discord用リンク",
+share_link_x: "𝕏 X用リンク",
+share_copy_btn: "GPT用リンクをコピー",
+privacy_note: "※このページは、入力したAPIキーを当サイト（SamuraiRoad Project）のサーバーへ送信しません。APIキーはブラウザ内でのみ利用され、GoogleのAPIエンドポイントへ直接送信してモデル一覧取得・疎通確認を行います。APIキーを保存・無断使用することはありません。"
     alert_key: "APIキーを入力してください",
     alert_err: "エラー: ",
     no_models: "権限のあるモデルが見つかりませんでした。",
@@ -418,6 +446,13 @@ const resources = {
     btn_ping: "Ping Test",
     log_wait: "// Ready. Select a model to test connection.",
     promo_link: "🚀 Open \"World Route\" App",
+
+share_title: "Share links (from=...)",
+share_link_gpt: "🔗 Link for GPT",
+share_link_discord: "💬 Link for Discord",
+share_link_x: "𝕏 Link for X",
+share_copy_btn: "Copy GPT link",
+privacy_note: "This page does NOT send your API key to SamuraiRoad Project servers. Your key is used only in your browser and is sent directly to Google's API endpoints to fetch the model list and run a ping test. We do not store or use your key without permission."
     alert_key: "Please enter API Key",
     alert_err: "Error: ",
     no_models: "No allowed models found.",
@@ -620,6 +655,84 @@ function showJson(index) {
 function closeModal() {
   document.getElementById('jsonModal').style.display = 'none';
 }
+
+/* --- Share / Tracking (Safe) --- */
+function safeTrack(eventName, params) {
+  try {
+    if (typeof window.gtag === "function") {
+      window.gtag("event", eventName, params || {});
+    }
+  } catch (e) {
+    // no-op
+  }
+}
+
+function getParam(name) {
+  try {
+    const url = new URL(window.location.href);
+    return url.searchParams.get(name);
+  } catch (e) {
+    return null;
+  }
+}
+
+(function trackReferralOnce() {
+  const from = getParam("from");
+  if (!from) return;
+
+  try {
+    const key = "sr_ref_tracked_" + from;
+    if (sessionStorage.getItem(key) === "1") return;
+    sessionStorage.setItem(key, "1");
+  } catch (e) {
+    // ignore
+  }
+
+  safeTrack("gemini_finder_referral", { from, page: "gemini_api_model_finder" });
+})();
+
+(function wireShareButtons() {
+  // Track share link clicks
+  document.querySelectorAll('a[data-share]').forEach(a => {
+    a.addEventListener('click', () => {
+      const from = a.getAttribute('data-share') || 'unknown';
+      safeTrack("gemini_finder_share_click", { from, page: "gemini_api_model_finder" });
+    });
+  });
+
+  // Copy button
+  const btn = document.getElementById("btnCopyGptLink");
+  if (!btn) return;
+
+  const statusEl = document.getElementById("copyStatus");
+
+  btn.addEventListener("click", async () => {
+    const url = new URL(window.location.href);
+    url.searchParams.set("from", "gpt");
+    const text = url.toString();
+
+    let copied = false;
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(text);
+        copied = true;
+      }
+    } catch (e) {
+      // ignore
+    }
+
+    if (!copied) {
+      try { window.prompt("Copy this link:", text); } catch (e) {}
+    }
+
+    if (statusEl) {
+      statusEl.textContent = copied ? "✓ Copied" : "✓ Link ready";
+      try { setTimeout(() => { statusEl.textContent = ""; }, 2500); } catch (e) {}
+    }
+
+    safeTrack("gemini_finder_copy_link", { from: "gpt", page: "gemini_api_model_finder" });
+  });
+})();
 
 // Init
 updateUIText(); // Load initial text (JA)
