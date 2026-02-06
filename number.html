@@ -2,97 +2,332 @@
 <html lang="ja">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
   <title>Number Duel</title>
   <style>
-    body{font-family:system-ui, sans-serif; padding:16px;}
-    .row{display:flex; gap:8px; flex-wrap:wrap; align-items:center;}
-    input,button{font-size:16px; padding:8px;}
-    #log{white-space:pre-wrap; background:#f6f6f6; padding:12px; border-radius:8px; margin-top:12px;}
-    .small{opacity:.7; font-size:12px;}
+    :root {
+      --primary: #007AFF;
+      --primary-dark: #0056b3;
+      --success: #34C759;
+      --danger: #FF3B30;
+      --bg-color: #F2F2F7;
+      --card-bg: #FFFFFF;
+      --text-color: #1C1C1E;
+      --border-radius: 12px;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      margin: 0;
+      padding: 16px;
+      line-height: 1.5;
+    }
+
+    h1 {
+      font-size: 24px;
+      text-align: center;
+      margin: 10px 0 20px;
+      color: var(--text-color);
+    }
+
+    /* レイアウトコンテナ */
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    /* カードスタイル */
+    .card {
+      background: var(--card-bg);
+      border-radius: var(--border-radius);
+      padding: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+
+    .card-title {
+      font-size: 14px;
+      font-weight: bold;
+      color: #8E8E93;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    /* 入力フォーム周り */
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    label {
+      display: block;
+      font-size: 13px;
+      margin-bottom: 6px;
+      font-weight: 500;
+    }
+
+    input {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 12px;
+      font-size: 16px; /* スマホでズームしないサイズ */
+      border: 1px solid #C7C7CC;
+      border-radius: 8px;
+      background: #fff;
+      -webkit-appearance: none;
+    }
+
+    input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(0,122,255,0.2);
+    }
+
+    /* 接続設定の2カラムレイアウト */
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    /* 数字入力の強調 */
+    .number-input input {
+      font-size: 32px;
+      text-align: center;
+      font-weight: bold;
+      letter-spacing: 2px;
+      padding: 16px;
+    }
+
+    /* ボタン共通スタイル */
+    button {
+      width: 100%;
+      padding: 14px;
+      font-size: 16px;
+      font-weight: bold;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background-color 0.2s, transform 0.1s;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    button:active {
+      transform: scale(0.98);
+    }
+
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    /* ボタン色設定 */
+    .btn-primary { background-color: var(--primary); color: white; }
+    .btn-submit { background-color: var(--success); color: white; font-size: 18px; }
+    .btn-danger { background-color: var(--bg-color); color: var(--danger); border: 1px solid var(--danger); }
+    .btn-secondary { background-color: #E5E5EA; color: var(--text-color); }
+    
+    .btn-group {
+      display: flex;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    /* ステータス表示 */
+    #status-indicator {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background-color: #ccc;
+      margin-right: 6px;
+    }
+    .connected #status-indicator { background-color: var(--success); box-shadow: 0 0 5px var(--success); }
+    .disconnected #status-indicator { background-color: #ccc; }
+
+    #presence {
+      font-size: 12px;
+      color: var(--primary);
+      text-align: right;
+    }
+
+    /* ログエリア */
+    #log {
+      background: #1C1C1E;
+      color: #34C759;
+      font-family: "Menlo", "Monaco", monospace;
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 12px;
+      height: 200px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      line-height: 1.6;
+    }
+
+    /* 勝者表示などの強調ログ */
+    .log-winner { color: #FFD60A; font-weight: bold; }
+    .log-info { color: #fff; }
   </style>
 </head>
 <body>
-  <h1>数字ゲーム（WebSocket）</h1>
 
-  <div class="row">
-    <label>room <input id="room" value="tX" /></label>
-    <label>name <input id="name" value="hisa" /></label>
-    <button id="btnConnect">Connect</button>
-    <button id="btnDisconnect" disabled>Disconnect</button>
+  <div class="container">
+    <h1>Number Duel</h1>
+
+    <div class="card">
+      <div class="card-title">
+        <span>Connection Setup</span>
+        <span id="status-text" class="disconnected"><span id="status-indicator"></span>Disconnected</span>
+      </div>
+      
+      <div class="grid-2">
+        <div class="form-group">
+          <label for="room">Room</label>
+          <input id="room" value="tX" placeholder="Room ID" />
+        </div>
+        <div class="form-group">
+          <label for="name">Name</label>
+          <input id="name" value="hisa" placeholder="Your Name" />
+        </div>
+      </div>
+
+      <div class="btn-group">
+        <button id="btnConnect" class="btn-primary">Connect</button>
+        <button id="btnDisconnect" class="btn-danger" disabled>Disconnect</button>
+      </div>
+      
+      <div style="margin-top:10px; display:flex; justify-content:flex-end;">
+        <span id="presence"></span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Game Action</div>
+      
+      <div class="form-group number-input">
+        <label for="num">Your Number (0-999)</label>
+        <input id="num" type="number" inputmode="numeric" pattern="[0-9]*" min="0" max="999" value="7" />
+      </div>
+
+      <button id="btnSubmit" class="btn-submit" disabled>Submit Number</button>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Controls & Log</div>
+      
+      <div class="btn-group">
+        <button id="btnRevealMax" class="btn-secondary">Open (Max)</button>
+        <button id="btnRevealMin" class="btn-secondary">Open (Min)</button>
+      </div>
+      <div class="btn-group">
+        <button id="btnReset" class="btn-secondary" style="background-color:#FF3B301A; color:var(--danger);">Reset Game</button>
+      </div>
+
+      <div id="log">Logs will appear here...</div>
+    </div>
   </div>
 
-  <div class="row" style="margin-top:10px;">
-    <label>number <input id="num" type="number" min="0" max="999" value="7" /></label>
-    <button id="btnSubmit" disabled>Submit</button>
-    <button id="btnReveal" disabled>Reveal</button>
-    <button id="btnReset" disabled>Reset</button>
-  </div>
+  <script>
+    const $ = (id) => document.getElementById(id);
+    let ws = null;
 
-  <div class="small" id="status">disconnected</div>
-  <div class="small" id="presence"></div>
-
-  <div id="log"></div>
-
-<script>
-let ws = null;
-
-const $ = (id)=>document.getElementById(id);
-const log = (s)=>{ $("log").textContent = (s + "\n" + $("log").textContent).slice(0, 5000); };
-
-function setConnected(on){
-  $("btnConnect").disabled = on;
-  $("btnDisconnect").disabled = !on;
-  $("btnSubmit").disabled = !on;
-  $("btnReveal").disabled = !on;
-  $("btnReset").disabled = !on;
-  $("status").textContent = on ? "connected" : "disconnected";
-}
-
-$("btnConnect").onclick = () => {
-  const room = encodeURIComponent($("room").value.trim() || "lobby");
-  const name = encodeURIComponent($("name").value.trim() || "guest");
-  const wsUrl = `${location.origin.replace(/^http/, "ws")}/ws?room=${room}&name=${name}`;
-
-  ws = new WebSocket(wsUrl);
-
-  ws.onopen = ()=>{ setConnected(true); log("WS open"); };
-  ws.onclose = ()=>{ setConnected(false); log("WS close"); ws=null; };
-  ws.onerror = ()=>{ log("WS error"); };
-  ws.onmessage = (ev)=>{
-    const msg = JSON.parse(ev.data);
-    if (msg.type === "presence") {
-      $("presence").textContent = `players: ${msg.players.join(", ")} / submissions: ${msg.submissionsCount}`;
+    function log(text, type="normal") {
+      const el = $("log");
+      // タイムスタンプを追加
+      const time = new Date().toLocaleTimeString('ja-JP', {hour12:false, hour:'2-digit', minute:'2-digit', second:'2-digit'});
+      
+      // ログの内容によってスタイルを変えるための簡易的なクラス付与（HTML文字列として追加）
+      let spanClass = "log-info";
+      if(text.includes("WINNER")) spanClass = "log-winner";
+      
+      el.innerHTML = `[${time}] <span class="${spanClass}">${text}</span>\n` + el.innerHTML;
     }
-    if (msg.type === "reveal") {
-      if (msg.winner) {
-        log(`🏆 WINNER: ${msg.winner.name} = ${msg.winner.value} (${msg.mode})`);
+
+    function setConnected(on) {
+      $("btnConnect").disabled = on;
+      $("btnDisconnect").disabled = !on;
+      $("btnSubmit").disabled = !on;
+      $("room").disabled = on;
+      $("name").disabled = on;
+
+      // ステータス表示の更新
+      const statusText = $("status-text");
+      if (on) {
+        statusText.className = "connected";
+        statusText.innerHTML = '<span id="status-indicator"></span>Connected';
       } else {
-        log(`🙅 winnerなし (${msg.mode})`);
+        statusText.className = "disconnected";
+        statusText.innerHTML = '<span id="status-indicator"></span>Disconnected';
+        $("presence").textContent = "";
       }
-      log("entries: " + msg.entries.map(e=>`${e.name}:${e.value}`).join(", "));
-    } else {
-      log(JSON.stringify(msg));
     }
-  };
-};
 
-$("btnDisconnect").onclick = () => {
-  if (ws) ws.close();
-};
+    $("btnConnect").onclick = () => {
+      const room = encodeURIComponent($("room").value.trim() || "lobby");
+      const name = encodeURIComponent($("name").value.trim() || "guest");
+      const wsUrl = `${location.origin.replace(/^http/, "ws")}/ws?room=${room}&name=${name}`;
 
-$("btnSubmit").onclick = () => {
-  const v = Number($("num").value);
-  ws?.send(JSON.stringify({type:"submit", value:v}));
-};
+      ws = new WebSocket(wsUrl);
 
-$("btnReveal").onclick = () => {
-  ws?.send(JSON.stringify({type:"reveal"}));
-};
+      ws.onopen = ()=>{ setConnected(true); log("Connected to server."); };
+      ws.onclose = ()=>{ setConnected(false); log("Disconnected from server."); ws=null; };
+      ws.onerror = ()=>{ log("WebSocket Error occurred."); };
+      ws.onmessage = (ev)=>{
+        const msg = JSON.parse(ev.data);
+        if (msg.type === "presence") {
+          // 参加者リストを見やすく表示
+          $("presence").textContent = `Players: ${msg.players.length} (${msg.players.join(", ")}) | Submits: ${msg.submissionsCount}`;
+        }
+        else if (msg.type === "reveal") {
+          if (msg.winner) {
+            log(`🏆 WINNER: ${msg.winner.name} [${msg.winner.value}] (${msg.mode})`);
+          } else {
+            log(`🙅 No Winner (${msg.mode})`);
+          }
+          log("Results: " + msg.entries.map(e=>`${e.name}:${e.value}`).join(", "));
+        } else {
+          log(JSON.stringify(msg));
+        }
+      };
+    };
 
-$("btnReset").onclick = () => {
-  ws?.send(JSON.stringify({type:"reset"}));
-};
-</script>
+    $("btnDisconnect").onclick = () => {
+      if (ws) ws.close();
+    };
+
+    $("btnSubmit").onclick = () => {
+      if (!ws) return;
+      const val = parseInt($("num").value, 10);
+      ws.send(JSON.stringify({ type: "submit", value: val }));
+      log(`You submitted: ${val}`);
+    };
+
+    $("btnRevealMax").onclick = () => {
+      if (!ws) return;
+      ws.send(JSON.stringify({ type: "reveal", mode: "max" }));
+    };
+
+    $("btnRevealMin").onclick = () => {
+      if (!ws) return;
+      ws.send(JSON.stringify({ type: "reveal", mode: "min" }));
+    };
+
+    $("btnReset").onclick = () => {
+      if (!ws) return;
+      if(confirm("Reset the game?")) {
+        ws.send(JSON.stringify({ type: "reset" }));
+      }
+    };
+  </script>
 </body>
 </html>
