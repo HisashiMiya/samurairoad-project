@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>SAMURAI DIE: KESSEN</title>
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;800&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@700&display=swap');
+
+    :root {
+        --bg: #111;
+        --paper: #e6e0d4;
+        --blood: #d90429;
+        --gold: #ffd700;
+        --mana: #4361ee;
+        --dmg: #ffba08;
+        --font-jp: 'Shippori Mincho', serif;
+        --font-en: 'Cinzel', serif;
+    }
+
+    body {
+        background: var(--bg);
+        color: var(--paper);
+        font-family: var(--font-jp);
+        margin: 0; padding: 0;
+        height: 100vh; overflow: hidden;
+        user-select: none;
+        display: flex; flex-direction: column;
+    }
+
+    /* --- 3D Scene --- */
+    .scene {
+        flex: 1; position: relative;
+        perspective: 1000px;
+        background: radial-gradient(circle at center, #222 0%, #000 90%);
+        display: flex; flex-direction: column;
+        align-items: center; justify-content: center;
+        overflow: hidden;
+    }
+
+    /* Enemy Area */
+    .enemy-container {
+        position: relative; width: 220px; height: 220px;
+        margin-bottom: 40px; transform-style: preserve-3d;
+        transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    .enemy-frame {
+        width: 100%; height: 100%;
+        border: 4px solid var(--gold); background: #000;
+        box-shadow: 0 0 30px rgba(0,0,0,0.8);
+        position: relative; overflow: hidden;
+        border-radius: 8px;
+    }
+    .enemy-img {
+        width: 100%; height: 100%; object-fit: cover;
+        filter: contrast(1.2) sepia(0.2);
+        transition: filter 0.2s;
+    }
+    .enemy-flash { position: absolute; inset: 0; background: #fff; opacity: 0; pointer-events: none; }
+    
+    /* Enemy UI */
+    .enemy-hp-bar {
+        position: absolute; top: -25px; left: 0; width: 100%;
+        height: 12px; background: #333; border: 2px solid #555; border-radius: 6px;
+    }
+    .enemy-hp-fill {
+        height: 100%; width: 100%; background: var(--blood);
+        transition: width 0.3s; box-shadow: 0 0 10px var(--blood);
+    }
+    .dmg-floater {
+        position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+        font-family: var(--font-en); font-size: 48px; color: var(--dmg);
+        font-weight: 900; text-shadow: 2px 2px 0 #000; pointer-events: none;
+        animation: floatUp 0.8s forwards; z-index: 50;
+    }
+    @keyframes floatUp { 0%{opacity:1; transform:translate(-50%,-50%) scale(0.5);} 20%{transform:translate(-50%,-80%) scale(1.5);} 100%{opacity:0; transform:translate(-50%,-150%) scale(1);} }
+
+    /* Dice Area */
+    .dice-container {
+        display: flex; gap: 20px; margin-top: 20px;
+        transform-style: preserve-3d;
+    }
+    .cube {
+        width: 75px; height: 75px; position: relative;
+        transform-style: preserve-3d;
+        transition: transform 0.4s;
+        cursor: pointer;
+    }
+    .cube.rolling { animation: shake 0.5s infinite; }
+    @keyframes shake { 0%{transform:rotate(0deg);} 25%{transform:rotate(10deg);} 75%{transform:rotate(-10deg);} 100%{transform:rotate(0deg);} }
+
+    .face {
+        position: absolute; width: 75px; height: 75px;
+        background: #e6e2d3; border: 2px solid #8b7d6b; border-radius: 8px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 36px; font-weight: 800; color: #111;
+        backface-visibility: hidden; box-shadow: inset 0 0 15px rgba(0,0,0,0.2);
+    }
+    .cube.locked .face { background: #222; color: #888; border-color: var(--gold); }
+    .cube.locked::after { content:"🔒"; position:absolute; top:-15px; left:30px; font-size:12px; color:var(--gold); }
+
+    .face.front { transform: translateZ(37.5px); }
+    .face.back { transform: rotateY(180deg) translateZ(37.5px); }
+    .face.right { transform: rotateY(90deg) translateZ(37.5px); }
+    .face.left { transform: rotateY(-90deg) translateZ(37.5px); }
+    .face.top { transform: rotateX(90deg) translateZ(37.5px); }
+    .face.bottom { transform: rotateX(-90deg) translateZ(37.5px); }
+
+    /* UI Layer */
+    .ui-layer {
+        position: absolute; inset: 0; pointer-events: none; z-index: 10;
+        display: flex; flex-direction: column; justify-content: space-between; padding: 15px;
+    }
+    .header { display: flex; justify-content: space-between; align-items: flex-start; pointer-events: auto; }
+    
+    .status-group { display: flex; flex-direction: column; gap: 5px; }
+    .bar-box {
+        width: 140px; height: 24px; background: rgba(0,0,0,0.6); border: 1px solid #555;
+        position: relative; border-radius: 4px; overflow: hidden;
+    }
+    .bar-label {
+        position: absolute; left: 5px; top: 0; line-height: 24px; font-size: 10px; z-index: 2; color: #fff; text-shadow: 1px 1px 0 #000;
+    }
+    .bar-val {
+        position: absolute; right: 5px; top: 0; line-height: 24px; font-size: 12px; z-index: 2; color: #fff; font-weight: bold;
+    }
+    .bar-fill { height: 100%; transition: width 0.3s; }
+    .hp-fill { background: var(--blood); }
+    .mp-fill { background: var(--mana); }
+
+    .settings-btn { font-size: 28px; background:none; border:none; color:#888; cursor:pointer; padding:0; }
+    .settings-btn:hover { color: var(--paper); transform: rotate(90deg); transition: 0.3s; }
+
+    /* Footer Controls */
+    .footer {
+        display: flex; flex-direction: column; align-items: center; gap: 10px; pointer-events: auto; padding-bottom: 20px;
+    }
+    
+    .combo-display {
+        font-size: 18px; font-weight: bold; color: var(--gold); text-shadow: 0 0 10px var(--gold);
+        height: 24px; font-family: var(--font-en); letter-spacing: 2px;
+    }
+
+    .btn-action {
+        width: 260px; padding: 16px;
+        background: linear-gradient(to bottom, #222, #000);
+        border: 2px solid var(--paper); color: var(--paper);
+        font-family: var(--font-jp); font-size: 20px; font-weight: 800;
+        cursor: pointer; position: relative; overflow: hidden;
+        box-shadow: 0 5px 15px #000; transition: transform 0.1s;
+    }
+    .btn-action:active { transform: scale(0.96); }
+    .btn-action span { font-size: 12px; color: #888; display: block; margin-top: 4px; }
+    
+    .btn-roll { border-color: var(--mana); color: var(--mana); }
+    .btn-attack { border-color: var(--blood); color: var(--blood); display: none; }
+    .btn-defend { border-color: var(--gold); color: var(--gold); display: none; }
+
+    .btn-upload {
+        position: absolute; top: 10px; left: 50%; transform: translateX(-50%);
+        background: #333; border: 1px solid #666; color: #ccc;
+        font-size: 10px; padding: 4px 12px; border-radius: 20px; cursor: pointer; pointer-events: auto;
+    }
+
+    /* Modal */
+    .modal-overlay {
+        position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 100;
+        display: none; align-items: center; justify-content: center;
+    }
+    .modal-box {
+        width: 85%; max-width: 400px; background: #111; border: 2px solid var(--gold);
+        display: flex; flex-direction: column; max-height: 80vh;
+    }
+    .modal-header {
+        display: flex; border-bottom: 1px solid #444;
+    }
+    .tab-btn {
+        flex: 1; padding: 15px; background: #222; border: none; color: #888; cursor: pointer;
+        font-family: var(--font-jp); font-weight: bold;
+    }
+    .tab-btn.active { background: #111; color: var(--gold); }
+    
+    .modal-content { padding: 20px; overflow-y: auto; text-align: left; }
+    .modal-close { padding: 15px; background: #222; border: none; color: #fff; cursor: pointer; border-top: 1px solid #444; }
+
+    /* Content Styles */
+    h3 { color: var(--gold); border-bottom: 1px solid #444; margin: 0 0 10px 0; padding-bottom: 5px; }
+    .help-row { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 14px; border-bottom: 1px dashed #333; padding-bottom: 4px;}
+    .help-key { color: var(--paper); }
+    .help-val { color: var(--gold); font-weight: bold; }
+    .setting-row { display: flex; justify-content: space-between; margin-bottom: 15px; align-items: center; }
+    .switch { background: #333; padding: 5px 10px; color: #aaa; border: 1px solid #555; cursor: pointer; }
+    .switch.on { background: var(--gold); color: #000; border-color: var(--gold); }
+
+</style>
+</head>
+<body>
+
+<input type="file" id="file-input" accept="image/*" style="display:none" onchange="handleFile(this)">
+<button class="btn-upload" onclick="document.getElementById('file-input').click()">📷 敵指定 (UPLOAD)</button>
+
+<div class="ui-layer">
+    <div class="header">
+        <div class="status-group">
+            <div class="bar-box">
+                <div class="bar-label">LIFE</div>
+                <div class="bar-val" id="ui-hp">20/20</div>
+                <div class="bar-fill hp-fill" id="bar-hp" style="width:100%"></div>
+            </div>
+            <div class="bar-box">
+                <div class="bar-label">KI (MP)</div>
+                <div class="bar-val" id="ui-mp">3/3</div>
+                <div class="bar-fill mp-fill" id="bar-mp" style="width:100%"></div>
+            </div>
+        </div>
+        <button class="settings-btn" onclick="openModal()">⚙</button>
+    </div>
+
+    <div class="footer">
+        <div class="combo-display" id="ui-combo"></div>
+        
+        <button class="btn-action btn-roll" id="btn-roll" onclick="actRoll()">
+            振る (ROLL) <span>-1 KI</span>
+        </button>
+        <button class="btn-action btn-attack" id="btn-attack" onclick="actAttack()">
+            攻撃 (ATTACK) <span id="atk-dmg">DMG: 0</span>
+        </button>
+    </div>
+</div>
+
+<div class="scene">
+    <div class="enemy-container" id="enemy-container">
+        <div class="enemy-hp-bar"><div class="enemy-hp-fill" id="bar-ehp"></div></div>
+        <div class="enemy-frame">
+            <img id="enemy-img" class="enemy-img" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIiBmaWxsPSIjMzMzIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiAvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjNTU1IiBmb250LXNpemU9IjIwIj5OTyBJTUFHRTwvdGV4dD48L3N2Zz4=">
+            <div class="enemy-flash" id="enemy-flash"></div>
+        </div>
+    </div>
+    
+    <div class="dice-container" id="dice-container"></div>
+</div>
+
+<div id="modal" class="modal-overlay">
+    <div class="modal-box">
+        <div class="modal-header">
+            <button class="tab-btn active" onclick="switchTab('help')">指南書 (HELP)</button>
+            <button class="tab-btn" onclick="switchTab('settings')">設定 (SETTING)</button>
+        </div>
+        <div class="modal-content" id="tab-help">
+            <h3>役一覧 (COMBOS)</h3>
+            <div class="help-row"><span class="help-key">連番 (Straight)</span><span class="help-val">回復+防御 (Heal)</span></div>
+            <div class="help-row"><span class="help-key">三連 (Triple)</span><span class="help-val">大攻撃 (Heavy)</span></div>
+            <div class="help-row"><span class="help-key">対 (Pair)</span><span class="help-val">小攻撃 (Light)</span></div>
+            <div class="help-row"><span class="help-key">役なし</span><span class="help-val">出目の合計 (Raw)</span></div>
+            <h3>基本 (BASIC)</h3>
+            <p style="font-size:12px; color:#aaa">
+                1. 1ターンにつき3回まで「気 (KI)」を使ってサイコロを振れます。<br>
+                2. サイコロをタップして固定(LOCK)できます。<br>
+                3. 役を作って「攻撃」すると敵のHPを減らせます。<br>
+                4. 連番(1-2-3など)はHPとKIを回復します。<br>
+                5. 敵の攻撃でHPが0になると敗北です。
+            </p>
+        </div>
+        <div class="modal-content" id="tab-settings" style="display:none">
+            <div class="setting-row">
+                <span>Language</span>
+                <button class="switch" id="sw-lang" onclick="toggleLang()">JP</button>
+            </div>
+            <div class="setting-row">
+                <span>Sound Effect</span>
+                <button class="switch on" id="sw-sound" onclick="toggleSound()">ON</button>
+            </div>
+        </div>
+        <button class="modal-close" onclick="closeModal()">閉じる (CLOSE)</button>
+    </div>
+</div>
+
+<script>
+    // --- Data ---
+    const KANJI = ["","壱","弐","参","四","伍","六"];
+    const ROMAN = ["","I","II","III","IV","V","VI"];
+    
+    let cfg = { lang: 'ja', sound: true };
+    let state = {
+        hp: 20, maxHp: 20,
+        mp: 3, maxMp: 3,
+        dice: [1,2,3], locks: [false, false, false],
+        turn: 0,
+        enemy: { hp: 50, maxHp: 50, atk: 5, name: "SHADOW" }
+    };
+
+    // --- Audio ---
+    const actx = new (window.AudioContext || window.webkitAudioContext)();
+    function playSnd(key) {
+        if(!cfg.sound) return;
+        if(actx.state==='suspended') actx.resume();
+        const t = actx.currentTime;
+        const o = actx.createOscillator();
+        const g = actx.createGain();
+        o.connect(g); g.connect(actx.destination);
+
+        if(key==='roll') {
+            o.type='square'; o.frequency.setValueAtTime(100,t); 
+            g.gain.setValueAtTime(0.05,t); g.gain.linearRampToValueAtTime(0,t+0.1);
+            o.start(t); o.stop(t+0.1);
+        } else if(key==='lock') {
+            o.frequency.setValueAtTime(800,t); g.gain.setValueAtTime(0.1,t);
+            g.gain.exponentialRampToValueAtTime(0.01,t+0.05);
+            o.start(t); o.stop(t+0.05);
+        } else if(key==='hit') {
+            // Noise
+            let b=actx.createBuffer(1,actx.sampleRate*0.2,actx.sampleRate);
+            let d=b.getChannelData(0); for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;
+            let s=actx.createBufferSource(); s.buffer=b;
+            s.connect(g); g.connect(actx.destination);
+            g.gain.setValueAtTime(0.5,t); g.gain.exponentialRampToValueAtTime(0,t+0.2);
+            s.start(t);
+        } else if(key==='heal') {
+            o.type='triangle'; o.frequency.setValueAtTime(400,t); o.frequency.linearRampToValueAtTime(800,t+0.3);
+            g.gain.setValueAtTime(0.2,t); g.gain.linearRampToValueAtTime(0,t+0.3);
+            o.start(t); o.stop(t+0.3);
+        }
+    }
+
+    // --- Core Logic ---
+    function initDice() {
+        const c = document.getElementById('dice-container');
+        c.innerHTML = '';
+        for(let i=0;i<3;i++){
+            let d = document.createElement('div'); d.className='cube';
+            d.onclick = ()=>toggleLock(i);
+            for(let f=0;f<6;f++){
+                let face=document.createElement('div');
+                face.className=`face ${['front','back','right','left','top','bottom'][f]}`;
+                d.appendChild(face);
+            }
+            c.appendChild(d);
+        }
+        updateDiceVisuals();
+    }
+
+    function updateDiceVisuals() {
+        const cubes = document.querySelectorAll('.cube');
+        cubes.forEach((c, i) => {
+            const v = state.dice[i];
+            const locked = state.locks[i];
+            c.querySelectorAll('.face').forEach((f,fi)=> f.innerText = cfg.lang=='ja'?KANJI[fi+1]:(fi+1));
+            const rots = [[0,0],[0,0],[0,180],[0,-90],[0,90],[-90,0],[90,0]];
+            const r = rots[v];
+            c.style.transform = `rotateX(${r[0]}deg) rotateY(${r[1]}deg)`;
+            if(locked) c.classList.add('locked'); else c.classList.remove('locked');
+        });
+        evaluateHand();
+    }
+
+    function toggleLock(i) {
+        state.locks[i] = !state.locks[i];
+        playSnd('lock');
+        updateDiceVisuals();
+    }
+
+    // --- Battle Logic ---
+    function actRoll() {
+        if(state.mp <= 0) {
+            // Desperate roll? Cost HP? For now, prevent.
+            alert("気(KI)が足りぬ！ (Not enough MP)");
+            return;
+        }
+        state.mp--;
+        playSnd('roll');
+        
+        // Anim
+        document.querySelectorAll('.cube').forEach((c,i)=>{
+            if(!state.locks[i]) c.style.transform += ` rotateX(360deg) rotateY(360deg)`;
+        });
+
+        setTimeout(()=>{
+            state.dice = state.dice.map((v,i)=> state.locks[i]?v : Math.ceil(Math.random()*6));
+            updateDiceVisuals();
+            updateUI();
+        }, 300);
+        updateUI();
+    }
+
+    function evaluateHand() {
+        const d = state.dice;
+        const counts = {}; d.forEach(x=>counts[x]=(counts[x]||0)+1);
+        const vals = Object.values(counts);
+        const s = [...d].sort().join('');
+        
+        let type = "";
+        let dmg = 0;
+        let isHeal = false;
+
+        if(s==='123' || s==='456') {
+            type = "連番 (STRAIGHT)";
+            dmg = 5; 
+            isHeal = true;
+        } else if(vals.includes(3)) {
+            type = "三連 (TRIPLE)";
+            dmg = d[0] * 4; // High Dmg
+        } else if(vals.includes(2)) {
+            type = "対 (PAIR)";
+            // Find pair val
+            let pVal = 0; for(let k in counts) if(counts[k]==2) pVal=k;
+            dmg = pVal * 2 + (d.reduce((a,b)=>a+b,0)-pVal*2);
+        } else {
+            type = "役なし (NO COMBO)";
+            dmg = d.reduce((a,b)=>a+b,0); // Sum
+        }
+
+        document.getElementById('ui-combo').innerText = type;
+        document.getElementById('atk-dmg').innerText = isHeal ? "HEAL + KI" : `DMG: ${dmg}`;
+        
+        // Button State
+        const btnAtk = document.getElementById('btn-attack');
+        const btnRoll = document.getElementById('btn-roll');
+        
+        // Show attack if MP is out or player wants to
+        btnAtk.style.display = 'block'; 
+        
+        // Store current potential
+        state.currentHand = { type, dmg, isHeal };
+    }
+
+    function actAttack() {
+        const hand = state.currentHand;
+        
+        if(hand.isHeal) {
+            // Heal Logic
+            playSnd('heal');
+            state.hp = Math.min(state.maxHp, state.hp + 5);
+            state.mp = state.maxMp; // Restore MP
+            showFloatText("HEAL!", "#4da6ff");
+        } else {
+            // Attack Logic
+            playSnd('hit');
+            state.enemy.hp -= hand.dmg;
+            showFloatText(hand.dmg, "#ffba08");
+            
+            // Shake Enemy
+            const ec = document.getElementById('enemy-container');
+            ec.style.transform = "translateX(-10px)";
+            setTimeout(()=>ec.style.transform="none", 100);
+            
+            // Flash
+            const ef = document.getElementById('enemy-flash');
+            ef.style.opacity = 0.5; setTimeout(()=>ef.style.opacity=0, 100);
+        }
+
+        // Check Win
+        if(state.enemy.hp <= 0) {
+            alert("VICTORY! (敵を撃破)");
+            state.enemy.maxHp += 20;
+            state.enemy.hp = state.enemy.maxHp;
+            state.enemy.atk += 2;
+            state.hp = state.maxHp;
+            state.mp = state.maxMp;
+        } else {
+            // Enemy Turn
+            setTimeout(enemyTurn, 800);
+        }
+        
+        // Reset locks for next turn
+        state.locks = [false,false,false];
+        state.mp = Math.min(state.maxMp, state.mp + 1); // Regen 1 MP
+        updateUI();
+    }
+
+    function enemyTurn() {
+        // Simple Attack
+        playSnd('hit');
+        // Visual shake screen
+        document.body.style.transform = "translate(0, 5px)";
+        setTimeout(()=>document.body.style.transform="none", 100);
+        
+        state.hp -= state.enemy.atk;
+        if(state.hp <= 0) {
+            alert("DEFEAT... (敗北)");
+            location.reload();
+        }
+        updateUI();
+    }
+
+    function showFloatText(txt, col) {
+        const el = document.createElement('div');
+        el.className = 'dmg-floater';
+        el.innerText = txt;
+        el.style.color = col;
+        document.getElementById('enemy-container').appendChild(el);
+        setTimeout(()=>el.remove(), 800);
+    }
+
+    // --- Image Upload ---
+    function handleFile(input) {
+        const file = input.files[0];
+        if(!file) return;
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const img = new Image();
+            img.src = e.target.result;
+            img.onload = () => {
+                // Generate stats based on image
+                const cvs = document.createElement('canvas'); cvs.width=50; cvs.height=50;
+                const ctx = cvs.getContext('2d'); ctx.drawImage(img,0,0,50,50);
+                const d = ctx.getImageData(0,0,50,50).data;
+                let r=0,g=0,b=0;
+                for(let i=0;i<d.length;i+=4){r+=d[i];g+=d[i+1];b+=d[i+2];}
+                
+                // Red = High Atk, Green = High HP, Blue = Balanced
+                let hp = 50; let atk = 5;
+                if(r>g && r>b) { atk=10; hp=40; }
+                else if(g>r && g>b) { atk=4; hp=80; }
+                
+                state.enemy.hp = hp; state.enemy.maxHp = hp; state.enemy.atk = atk;
+                document.getElementById('enemy-img').src = e.target.result;
+                updateUI();
+            };
+        };
+        reader.readAsDataURL(file);
+    }
+
+    // --- UI & Modal ---
+    function updateUI() {
+        // Bars
+        setBar('hp', state.hp, state.maxHp);
+        setBar('mp', state.mp, state.maxMp);
+        setBar('ehp', state.enemy.hp, state.enemy.maxHp);
+        
+        // Buttons
+        document.getElementById('btn-roll').style.opacity = state.mp > 0 ? 1 : 0.5;
+    }
+
+    function setBar(id, val, max) {
+        const pct = Math.max(0, (val/max)*100);
+        document.getElementById(`bar-${id}`).style.width = pct + "%";
+        if(id!=='ehp') document.getElementById(`ui-${id}`).innerText = `${val}/${max}`;
+    }
+
+    function openModal() { document.getElementById('modal').style.display='flex'; }
+    function closeModal() { document.getElementById('modal').style.display='none'; }
+    function switchTab(t) {
+        document.getElementById('tab-help').style.display = t==='help'?'block':'none';
+        document.getElementById('tab-settings').style.display = t==='settings'?'block':'none';
+        document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+        event.target.classList.add('active');
+    }
+    
+    function toggleLang() {
+        cfg.lang = cfg.lang==='ja'?'en':'ja';
+        document.getElementById('sw-lang').innerText = cfg.lang.toUpperCase();
+        updateDiceVisuals();
+    }
+    function toggleSound() {
+        cfg.sound = !cfg.sound;
+        const b = document.getElementById('sw-sound');
+        b.className = cfg.sound ? 'switch on' : 'switch';
+        b.innerText = cfg.sound ? 'ON' : 'OFF';
+    }
+
+    // Start
+    initDice();
+    updateUI();
+
+</script>
+</body>
+</html>

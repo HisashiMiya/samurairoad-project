@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>侍賽 SAMURAI DIE</title>
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;700;900&display=swap');
+
+    :root {
+        --bg: #111;
+        --paper: #e6e2d3;
+        --ink: #0a0a0a;
+        --blood: #cc0000;
+        --gold: #d4af37;
+        --ui-font: 'Noto Serif JP', serif;
+    }
+
+    body {
+        background-color: var(--bg);
+        color: var(--paper);
+        font-family: var(--ui-font);
+        margin: 0;
+        padding: 0;
+        height: 100vh;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        background-image: radial-gradient(circle at 50% 50%, #222 0%, #000 100%);
+    }
+
+    /* 墨のエフェクト（背景） */
+    .bg-ink {
+        position: absolute;
+        top: 0; left: 0; width: 100%; height: 100%;
+        opacity: 0.1;
+        pointer-events: none;
+        background: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIj48ZmlsdGVyIGlkPSJnoiPjxmZVR1cmJ1bGVuY2UgdHlwZT0iZnJhY3RhbE5vaXNlIiBiYXNlRnJlcXVlbmN5PSIwLjUiIG51bW9jdGF2ZXM9IjMiIHN0aXRjaFRpbGVzPSJzdGl0Y2giLz48L2ZpbHRlcj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWx0ZXI9InVybCgjZnIpIiBvcGFjaXR5PSIwLjUiLz48L3N2Zz4=');
+        z-index: 0;
+    }
+
+    /* 上部ステータス */
+    header {
+        width: 100%;
+        padding: 15px 20px;
+        box-sizing: border-box;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        border-bottom: 2px solid var(--paper);
+        z-index: 10;
+        background: rgba(0,0,0,0.8);
+    }
+    .level-box { text-align: left; }
+    .level-label { font-size: 12px; color: #888; }
+    .level-val { font-size: 24px; font-weight: 900; color: var(--gold); }
+    
+    .hp-box { text-align: right; }
+    .hp-bar-bg {
+        width: 120px; height: 8px; background: #333; margin-top: 5px; border: 1px solid #555;
+    }
+    .hp-bar-fill {
+        width: 100%; height: 100%; background: var(--blood);
+        transition: width 0.3s;
+    }
+    .hp-text { font-size: 14px; font-weight: bold; }
+
+    /* メイン戦場 */
+    main {
+        flex: 1;
+        width: 100%;
+        max-width: 400px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        z-index: 5;
+    }
+
+    /* 敵表示 */
+    .enemy-area {
+        text-align: center;
+        margin-bottom: 20px;
+        position: relative;
+    }
+    .enemy-name {
+        font-size: 28px;
+        font-weight: 900;
+        letter-spacing: 0.2em;
+        margin-bottom: 5px;
+        text-shadow: 0 0 10px var(--blood);
+    }
+    .enemy-req {
+        background: var(--paper);
+        color: var(--ink);
+        padding: 5px 15px;
+        font-size: 16px;
+        font-weight: bold;
+        display: inline-block;
+        border: 1px solid #000;
+        box-shadow: 4px 4px 0 rgba(255,255,255,0.2);
+    }
+    .req-desc { font-size: 12px; color: #aaa; margin-top: 5px; }
+
+    /* 賽（ダイス） */
+    .dice-area {
+        display: flex;
+        gap: 15px;
+        margin: 30px 0;
+    }
+    .die {
+        width: 70px; height: 70px;
+        background: var(--paper);
+        color: var(--ink);
+        font-size: 42px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 4px;
+        cursor: pointer;
+        user-select: none;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+        font-family: "HiraMinProN-W6", "YuMincho", serif;
+        position: relative;
+        transition: transform 0.1s;
+    }
+    .die.locked {
+        background: #555;
+        color: #aaa;
+        border: 2px solid var(--gold);
+        transform: scale(0.95);
+    }
+    .die.locked::after {
+        content: "止";
+        position: absolute;
+        font-size: 12px;
+        top: 2px; right: 2px;
+        color: var(--gold);
+        border: 1px solid var(--gold);
+        padding: 1px;
+        border-radius: 50%;
+        width: 14px; height: 14px;
+        line-height: 14px;
+        text-align: center;
+    }
+    .die.match {
+        color: var(--blood);
+        text-shadow: 0 0 5px var(--blood);
+        animation: pulse 1s infinite;
+    }
+    @keyframes pulse { 0%{transform:scale(1);} 50%{transform:scale(1.05);} 100%{transform:scale(1);} }
+
+    /* コマンド */
+    .actions {
+        width: 100%;
+        padding: 0 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+    }
+    .btn {
+        width: 100%;
+        padding: 18px;
+        font-size: 20px;
+        font-weight: 900;
+        font-family: var(--ui-font);
+        border: none;
+        cursor: pointer;
+        position: relative;
+        overflow: hidden;
+        clip-path: polygon(5% 0, 100% 0, 100% 90%, 95% 100%, 0 100%, 0 10%);
+        transition: all 0.2s;
+    }
+    .btn:active { transform: scale(0.98); }
+    
+    .btn-kiai {
+        background: transparent;
+        border: 2px solid var(--paper);
+        color: var(--paper);
+    }
+    .btn-kiai:disabled { opacity: 0.3; }
+    .hp-cost {
+        font-size: 12px; color: var(--blood); font-weight: bold;
+        position: absolute; right: 10px; bottom: 5px;
+    }
+
+    .btn-issen {
+        background: var(--blood);
+        color: #fff;
+        font-size: 28px;
+        letter-spacing: 0.5em;
+        box-shadow: 0 0 20px var(--blood);
+        display: none; /* 条件を満たすまで非表示 */
+        animation: flashRed 2s infinite;
+    }
+    @keyframes flashRed { 0%{box-shadow:0 0 10px var(--blood);} 50%{box-shadow:0 0 30px var(--blood);} 100%{box-shadow:0 0 10px var(--blood);} }
+
+    /* 斬撃エフェクト */
+    #slash-fx {
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background: #fff;
+        opacity: 0;
+        pointer-events: none;
+        z-index: 100;
+        transition: opacity 0.1s;
+    }
+    .blood-splatter {
+        position: fixed; font-size: 100px; color: rgba(180,0,0,0.8);
+        pointer-events: none; z-index: 90; opacity: 0;
+        font-family: serif; font-weight: bold;
+    }
+
+    /* 敗北画面 */
+    #dead-screen {
+        position: fixed; inset: 0; background: #000;
+        color: var(--blood);
+        z-index: 200;
+        display: none;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+    }
+    #dead-screen h1 { font-size: 60px; margin: 0; }
+    .seppuku-msg { color: #fff; margin-bottom: 30px; }
+
+</style>
+</head>
+<body>
+
+<div class="bg-ink"></div>
+
+<header>
+    <div class="level-box">
+        <div class="level-label">SAMURAI RANK</div>
+        <div class="level-val">Lv.<span id="ui-level">1</span></div>
+    </div>
+    <div class="hp-box">
+        <div class="hp-text">命 (HP) <span id="ui-hp-val">20</span>/<span id="ui-hp-max">20</span></div>
+        <div class="hp-bar-bg"><div class="hp-bar-fill" id="ui-hp-bar"></div></div>
+    </div>
+</header>
+
+<main>
+    <div class="enemy-area">
+        <div class="enemy-name" id="ui-enemy">野武士</div>
+        <div class="enemy-req" id="ui-req">弐のゾロ目 (Pair of 2)</div>
+        <div class="req-desc" id="ui-desc">賽を2つ、[弐]で揃えよ</div>
+    </div>
+
+    <div class="dice-area" id="dice-container">
+        </div>
+
+    <div class="actions">
+        <button class="btn btn-issen" id="btn-issen" onclick="issen()">
+            一閃
+        </button>
+
+        <button class="btn btn-kiai" id="btn-kiai" onclick="kiai()">
+            気合 (振直)
+            <span class="hp-cost">-1 命</span>
+        </button>
+    </div>
+</main>
+
+<div id="slash-fx"></div>
+<div id="dead-screen">
+    <h1>死</h1>
+    <div class="seppuku-msg">無念... <span id="dead-score">Lv.1</span>ニテ果テル</div>
+    <button class="btn btn-kiai" onclick="location.reload()" style="width:200px">転生 (RETRY)</button>
+</div>
+
+<script>
+    // --- 漢字マッピング ---
+    const KANJI_NUM = {1:"壱", 2:"弐", 3:"参", 4:"四", 5:"伍", 6:"六"};
+
+    // --- ゲーム設定 ---
+    const GAME = {
+        baseHp: 10,
+        diceCount: 3,
+        rerollCost: 1
+    };
+
+    // --- 状態 ---
+    let state = {
+        level: 1,
+        xp: 0,
+        nextXp: 5,
+        hp: 10,
+        maxHp: 10,
+        dice: [1, 2, 3], // 値
+        locked: [false, false, false], // ロック状態
+        enemy: null
+    };
+
+    // --- 敵の定義（ゾロ目条件） ---
+    // type: 0=AnyPair, 1=SpecificPair, 2=AnyTriple, 3=SpecificTriple, 4=Straight
+    function generateEnemy(level) {
+        const types = [
+            { name: "野盗", type: "pair_any", desc: "いずれかのゾロ目 (Pair)" },
+            { name: "浪人", type: "pair_fix", desc: "指定のゾロ目 (Target Pair)" },
+            { name: "足軽大将", type: "triple_any", desc: "三連ゾロ目 (Triple)" },
+            { name: "剣豪", type: "triple_fix", desc: "指定の三連 (Target Triple)" },
+            { name: "鬼神", type: "straight", desc: "連番 (1-2-3 / 4-5-6)" }
+        ];
+
+        // レベルに応じて強敵が出やすくなる
+        let difficulty = 0;
+        if (level < 3) difficulty = 0;
+        else if (level < 6) difficulty = Math.random() < 0.7 ? 1 : 0;
+        else if (level < 10) difficulty = Math.random() < 0.5 ? 2 : 1;
+        else difficulty = Math.floor(Math.random() * 4) + 1; // 鬼神まで出る
+
+        const base = types[difficulty];
+        let targetNum = Math.floor(Math.random() * 6) + 1;
+
+        return {
+            name: base.name,
+            mode: base.type,
+            targetVal: targetNum,
+            descText: base.desc
+        };
+    }
+
+    function init() {
+        state.level = 1;
+        state.xp = 0;
+        state.nextXp = 3;
+        state.maxHp = GAME.baseHp;
+        state.hp = state.maxHp;
+        
+        spawnEnemy();
+        updateUI();
+    }
+
+    function spawnEnemy() {
+        state.enemy = generateEnemy(state.level);
+        
+        // UI反映
+        document.getElementById('ui-enemy').innerText = state.enemy.name;
+        
+        // 条件テキスト生成
+        let reqText = "";
+        let subText = "";
+        const tVal = KANJI_NUM[state.enemy.targetVal];
+
+        switch(state.enemy.mode) {
+            case "pair_any":
+                reqText = "いずれかの対 (Any Pair)";
+                subText = "同じ目を2つ揃えよ";
+                break;
+            case "pair_fix":
+                reqText = `${tVal}の対 (Pair of ${state.enemy.targetVal})`;
+                subText = `[${tVal}] を2つ揃えよ`;
+                break;
+            case "triple_any":
+                reqText = "三連 (Any Triple)";
+                subText = "同じ目を3つ揃えよ";
+                break;
+            case "triple_fix":
+                reqText = `${tVal}の三連 (Triple ${state.enemy.targetVal})`;
+                subText = `[${tVal}] を3つ揃えよ`;
+                break;
+            case "straight":
+                reqText = "連番 (Straight)";
+                subText = "壱弐参 または 四伍六";
+                break;
+        }
+        document.getElementById('ui-req').innerText = reqText;
+        document.getElementById('ui-desc').innerText = subText;
+
+        // ダイスリセット
+        state.locked = [false, false, false];
+        rollDice(true); // 初回は無料
+    }
+
+    function rollDice(isFree) {
+        // 効果音入れたいところ
+        for(let i=0; i<3; i++) {
+            if(!state.locked[i] || isFree) {
+                state.dice[i] = Math.floor(Math.random() * 6) + 1;
+                if(isFree) state.locked[i] = false;
+            }
+        }
+        checkWinCondition();
+        renderDice();
+    }
+
+    function kiai() {
+        if(state.hp <= 1) {
+            // 死ぬ覚悟があるか？（ここではゲームオーバーにする）
+            state.hp = 0;
+            updateUI();
+            gameOver();
+            return;
+        }
+        state.hp -= GAME.rerollCost;
+        updateUI();
+        
+        // アニメーション
+        const dices = document.querySelectorAll('.die');
+        dices.forEach((d, i) => {
+            if(!state.locked[i]) d.style.transform = "rotate(360deg)";
+        });
+
+        setTimeout(() => {
+            rollDice(false);
+            dices.forEach(d => d.style.transform = "none");
+        }, 200);
+    }
+
+    function toggleLock(idx) {
+        state.locked[idx] = !state.locked[idx];
+        renderDice();
+    }
+
+    function checkWinCondition() {
+        const d = state.dice;
+        const counts = {};
+        d.forEach(x => { counts[x] = (counts[x] || 0) + 1; });
+        
+        let win = false;
+        const e = state.enemy;
+
+        switch(e.mode) {
+            case "pair_any":
+                win = Object.values(counts).some(c => c >= 2);
+                break;
+            case "pair_fix":
+                win = (counts[e.targetVal] >= 2);
+                break;
+            case "triple_any":
+                win = Object.values(counts).some(c => c >= 3);
+                break;
+            case "triple_fix":
+                win = (counts[e.targetVal] >= 3);
+                break;
+            case "straight":
+                const sorted = [...d].sort().join('');
+                win = (sorted === "123" || sorted === "456");
+                break;
+        }
+
+        const btnIssen = document.getElementById('btn-issen');
+        const btnKiai = document.getElementById('btn-kiai');
+        const diceEls = document.querySelectorAll('.die');
+
+        if(win) {
+            btnIssen.style.display = 'block';
+            btnKiai.style.display = 'none';
+            // マッチしたダイスを光らせる（簡易）
+            // 本当はロジックで判定すべきだが、簡易的に全員光らせる
+            document.getElementById('dice-container').classList.add('win-glow');
+        } else {
+            btnIssen.style.display = 'none';
+            btnKiai.style.display = 'block';
+            document.getElementById('dice-container').classList.remove('win-glow');
+        }
+    }
+
+    function issen() {
+        // 演出
+        const fx = document.getElementById('slash-fx');
+        fx.style.opacity = 1;
+        
+        // 経験値取得
+        let gainXp = 1;
+        if(state.enemy.mode.includes("triple")) gainXp = 3;
+        
+        state.xp += gainXp;
+        if(state.xp >= state.nextXp) {
+            levelUp();
+        }
+
+        // HP微回復 (とどめを刺すと少し回復するルール)
+        state.hp = Math.min(state.maxHp, state.hp + 1);
+
+        setTimeout(() => {
+            fx.style.opacity = 0;
+            spawnEnemy();
+            updateUI();
+        }, 300);
+    }
+
+    function levelUp() {
+        state.level++;
+        state.xp = 0;
+        state.nextXp = Math.floor(state.nextXp * 1.5);
+        state.maxHp += 2; // 最大HP増加
+        state.hp = state.maxHp; // 全回復
+        
+        // トースト通知（簡易）
+        alert(`昇進！ Lv.${state.level} になりました。\n最大命が増加しました。`);
+    }
+
+    function gameOver() {
+        document.getElementById('dead-screen').style.display = 'flex';
+        document.getElementById('dead-score').innerText = `Lv.${state.level}`;
+    }
+
+    // --- レンダリング ---
+    function renderDice() {
+        const container = document.getElementById('dice-container');
+        container.innerHTML = "";
+        
+        state.dice.forEach((val, i) => {
+            const el = document.createElement('div');
+            el.className = `die ${state.locked[i] ? 'locked' : ''}`;
+            el.innerText = KANJI_NUM[val];
+            el.onclick = () => toggleLock(i);
+            container.appendChild(el);
+        });
+    }
+
+    function updateUI() {
+        document.getElementById('ui-level').innerText = state.level;
+        document.getElementById('ui-hp-val').innerText = state.hp;
+        document.getElementById('ui-hp-max').innerText = state.maxHp;
+        
+        const pct = (state.hp / state.maxHp) * 100;
+        document.getElementById('ui-hp-bar').style.width = `${pct}%`;
+        
+        // HPピンチ演出
+        if(state.hp <= 3) {
+            document.getElementById('ui-hp-bar').style.background = "#ff0000";
+            document.body.style.boxShadow = "inset 0 0 50px #500";
+        } else {
+            document.getElementById('ui-hp-bar').style.background = "var(--blood)";
+            document.body.style.boxShadow = "none";
+        }
+    }
+
+    // 開始
+    init();
+
+</script>
+</body>
+</html>

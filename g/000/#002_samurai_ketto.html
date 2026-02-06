@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>SAMURAI DIE: KETTO</title>
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;800&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@700&display=swap');
+
+    :root {
+        --bg: #050505;
+        --paper: #eaddcf;
+        --blood: #e60000;
+        --gold: #d4af37;
+        --blue: #4da6ff;
+        --font-jp: 'Shippori Mincho', serif;
+        --font-en: 'Cinzel', serif;
+    }
+
+    body {
+        background: var(--bg);
+        color: var(--paper);
+        font-family: var(--font-jp);
+        margin: 0; padding: 0;
+        height: 100vh; overflow: hidden;
+        user-select: none;
+        display: flex; flex-direction: column;
+    }
+
+    /* Scene */
+    .scene {
+        flex: 1; position: relative;
+        perspective: 1000px;
+        background: radial-gradient(circle at center, #1a1a1a 0%, #000 100%);
+        display: flex; flex-direction: column;
+        align-items: center; justify-content: center;
+        overflow: hidden;
+    }
+
+    /* Enemy Area */
+    .enemy-container {
+        position: relative;
+        width: 180px; height: 180px;
+        margin-bottom: 20px;
+        transition: transform 0.1s;
+    }
+    .enemy-img-frame {
+        width: 100%; height: 100%;
+        border: 4px solid var(--gold);
+        background: #000;
+        box-shadow: 0 0 30px rgba(0,0,0,0.8);
+        position: relative;
+        overflow: hidden;
+    }
+    .enemy-img {
+        width: 100%; height: 100%; object-fit: cover;
+        filter: sepia(0.3) contrast(1.2);
+    }
+    .enemy-flash {
+        position: absolute; inset: 0; background: #fff; opacity: 0; pointer-events: none;
+    }
+
+    /* Rage & Guard UI */
+    .rage-bar-container {
+        position: absolute; bottom: -20px; left: 0; width: 100%;
+        height: 10px; background: #333; border: 1px solid #555;
+    }
+    .rage-fill {
+        height: 100%; width: 0%; background: var(--blood);
+        transition: width 0.2s;
+        box-shadow: 0 0 10px var(--blood);
+    }
+    .guard-indicator {
+        position: absolute; top: -40px; width: 100%;
+        text-align: center; font-family: var(--font-en);
+        text-shadow: 0 2px 5px #000;
+    }
+    .guard-req {
+        font-size: 14px; color: #aaa;
+    }
+    .guard-val {
+        font-size: 24px; font-weight: 800; color: var(--blue);
+        display: inline-block; background: rgba(0,0,0,0.8);
+        padding: 2px 10px; border: 1px solid var(--blue);
+        border-radius: 4px; margin-top: 2px;
+    }
+    .guard-ok {
+        color: #fff; background: var(--blue); box-shadow: 0 0 15px var(--blue);
+    }
+
+    /* Dice */
+    .dice-container {
+        display: flex; gap: 15px; margin-top: 40px;
+        transform-style: preserve-3d;
+    }
+    .cube {
+        width: 70px; height: 70px; position: relative;
+        transform-style: preserve-3d;
+        transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        cursor: pointer;
+    }
+    .face {
+        position: absolute; width: 70px; height: 70px;
+        background: #e6e2d3; border: 2px solid #8b7d6b; border-radius: 6px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 32px; font-weight: bold; color: #111;
+        backface-visibility: hidden;
+    }
+    .cube.locked .face { background: #333; color: #888; border-color: var(--gold); }
+    .cube.locked::after { content:"🔒"; position:absolute; top:-15px; left:25px; font-size:12px; }
+
+    /* Guard highlight on dice */
+    .cube.guard-match .face {
+        border-color: var(--blue); box-shadow: inset 0 0 10px var(--blue);
+    }
+
+    .face.front { transform: translateZ(35px); }
+    .face.back { transform: rotateY(180deg) translateZ(35px); }
+    .face.right { transform: rotateY(90deg) translateZ(35px); }
+    .face.left { transform: rotateY(-90deg) translateZ(35px); }
+    .face.top { transform: rotateX(90deg) translateZ(35px); }
+    .face.bottom { transform: rotateX(-90deg) translateZ(35px); }
+
+    /* UI Layer */
+    .ui-layer {
+        position: absolute; inset: 0; pointer-events: none; z-index: 10;
+        display: flex; flex-direction: column; justify-content: space-between; padding: 15px;
+    }
+    .header { display: flex; justify-content: space-between; pointer-events: auto; }
+    .status-box { background: rgba(0,0,0,0.7); padding: 5px 10px; border: 1px solid #555; border-radius: 4px; text-align: center; }
+    .status-label { font-size: 10px; color: #aaa; }
+    .status-val { font-size: 18px; font-weight: bold; color: var(--gold); }
+
+    .footer { text-align: center; pointer-events: auto; padding-bottom: 20px; }
+    
+    .btn {
+        background: rgba(0,0,0,0.8); border: 2px solid var(--paper);
+        color: var(--paper); font-family: var(--font-jp);
+        font-size: 18px; padding: 15px 40px; cursor: pointer;
+        transition: all 0.2s; position: relative; overflow: hidden;
+    }
+    .btn:active { transform: scale(0.95); background: #333; }
+    
+    .btn-issen {
+        background: var(--blood); border-color: var(--blood); color: #fff;
+        display: none; box-shadow: 0 0 20px var(--blood);
+        animation: pulse 1s infinite;
+    }
+    @keyframes pulse { 0%{transform:scale(1);} 50%{transform:scale(1.05);} 100%{transform:scale(1);} }
+
+    .btn-upload {
+        position: absolute; top: 10px; left: 50%; transform: translateX(-50%);
+        background: #222; border: 1px solid #666; color: #ccc;
+        font-size: 12px; padding: 5px 15px; cursor: pointer; pointer-events: auto;
+        z-index: 20; border-radius: 20px;
+    }
+    
+    /* Settings Modal */
+    .settings-btn { font-size: 24px; background:none; border:none; color:#666; cursor:pointer; }
+    .modal {
+        position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 100;
+        display: none; align-items: center; justify-content: center; flex-direction: column;
+    }
+
+    /* Effects */
+    #flash { position: fixed; inset: 0; background: #fff; opacity: 0; pointer-events: none; transition: opacity 0.1s; z-index: 50; }
+    #blood-particles { position: fixed; inset: 0; pointer-events: none; z-index: 51; }
+
+</style>
+</head>
+<body>
+
+<input type="file" id="file-input" accept="image/*" style="display:none" onchange="handleFile(this)">
+<button class="btn-upload" onclick="document.getElementById('file-input').click()">📷 敵指定 (UPLOAD)</button>
+
+<div id="flash"></div>
+<canvas id="blood-particles"></canvas>
+
+<div class="ui-layer">
+    <div class="header">
+        <div class="status-box">
+            <div class="status-label">LVL</div>
+            <div class="status-val" id="ui-lvl">1</div>
+        </div>
+        <div class="status-box" style="border-color:var(--blood)">
+            <div class="status-label">LIFE</div>
+            <div class="status-val" id="ui-hp" style="color:var(--blood)">10</div>
+        </div>
+        <button class="settings-btn" onclick="toggleSettings()">⚙</button>
+    </div>
+
+    <div class="footer">
+        <button class="btn btn-issen" id="btn-issen" onclick="actIssen()">一閃 (SLASH)</button>
+        <button class="btn btn-roll" id="btn-roll" onclick="actRoll()">
+            気合 (REROLL)<br><span style="font-size:10px; opacity:0.7">-1 HP / +RAGE</span>
+        </button>
+    </div>
+</div>
+
+<div class="scene">
+    <div class="enemy-container" id="enemy-container">
+        <div class="guard-indicator">
+            <div class="guard-req">⚠ INCOMING ATTACK</div>
+            <div class="guard-val" id="ui-guard">DEF: [1] or [2]</div>
+        </div>
+
+        <div class="enemy-img-frame">
+            <img id="enemy-img" class="enemy-img" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIiBmaWxsPSIjMzMzIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiAvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjNTU1IiBmb250LXNpemU9IjIwIj5OTAoJTUFHRTwvdGV4dD48L3N2Zz4=">
+            <div class="enemy-flash" id="enemy-flash"></div>
+        </div>
+        <div class="rage-bar-container"><div class="rage-fill" id="ui-rage"></div></div>
+    </div>
+
+    <div class="dice-container" id="dice-container"></div>
+</div>
+
+<div id="settings-modal" class="modal">
+    <h2 style="color:var(--gold)">SETTINGS</h2>
+    <div style="margin:20px; display:flex; gap:10px;">
+        <button class="btn" onclick="setLang('ja')">日本語</button>
+        <button class="btn" onclick="setLang('en')">ENGLISH</button>
+    </div>
+    <div style="margin:20px;">
+        <button class="btn" id="snd-btn" onclick="toggleSound()">SOUND: ON</button>
+    </div>
+    <button class="btn" style="border-color:#666" onclick="toggleSettings()">CLOSE</button>
+</div>
+
+<script>
+    // --- Config & State ---
+    const KANJI = ["","壱","弐","参","四","伍","六"];
+    let cfg = { lang: 'ja', sound: true };
+    let state = {
+        lvl: 1, hp: 10, maxHp: 10,
+        dice: [1,2,3], locks: [false, false, false],
+        enemy: { req: 'pair', rage: 0, rageRate: 20, guardTargets: [1,2] }
+    };
+
+    // --- Audio ---
+    const actx = new (window.AudioContext || window.webkitAudioContext)();
+    function playSnd(key) {
+        if(!cfg.sound) return;
+        if(actx.state==='suspended') actx.resume();
+        const t = actx.currentTime;
+        const o = actx.createOscillator();
+        const g = actx.createGain();
+        o.connect(g); g.connect(actx.destination);
+
+        if(key==='roll') {
+            for(let i=0;i<3;i++){
+                let n=actx.createOscillator(); let ng=actx.createGain();
+                n.connect(ng); ng.connect(actx.destination);
+                n.frequency.value=100+Math.random()*200; n.type='square';
+                ng.gain.setValueAtTime(0.05,t); ng.gain.linearRampToValueAtTime(0,t+0.1);
+                n.start(t); n.stop(t+0.1);
+            }
+        }
+        else if(key==='slash') {
+            let b=actx.createBuffer(1,actx.sampleRate*0.2,actx.sampleRate);
+            let d=b.getChannelData(0); for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;
+            let s=actx.createBufferSource(); s.buffer=b;
+            let f=actx.createBiquadFilter(); f.type='lowpass'; f.frequency.value=3000;
+            s.connect(f); f.connect(g); g.connect(actx.destination);
+            g.gain.setValueAtTime(0.5,t); g.gain.linearRampToValueAtTime(0,t+0.2);
+            s.start(t);
+        }
+        else if(key==='parry') {
+            o.type='triangle'; o.frequency.setValueAtTime(800,t); o.frequency.exponentialRampToValueAtTime(2000,t+0.1);
+            g.gain.setValueAtTime(0.3,t); g.gain.exponentialRampToValueAtTime(0.01,t+0.2);
+            o.start(t); o.stop(t+0.2);
+        }
+        else if(key==='dmg') {
+            o.type='sawtooth'; o.frequency.setValueAtTime(100,t); o.frequency.exponentialRampToValueAtTime(10,t+0.3);
+            g.gain.setValueAtTime(0.5,t); g.gain.linearRampToValueAtTime(0,t+0.3);
+            o.start(t); o.stop(t+0.3);
+        }
+    }
+
+    // --- Image Upload ---
+    function handleFile(input) {
+        const file = input.files[0];
+        if(!file) return;
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            document.getElementById('enemy-img').src = e.target.result;
+            // Reset game slightly
+            state.enemy.rage = 0;
+            updateUI();
+        };
+        reader.readAsDataURL(file);
+    }
+
+    // --- Dice ---
+    function initDice() {
+        const c = document.getElementById('dice-container');
+        c.innerHTML = '';
+        for(let i=0; i<3; i++){
+            let d = document.createElement('div'); d.className='cube';
+            d.onclick = ()=>toggleLock(i);
+            for(let f=0; f<6; f++){
+                let face=document.createElement('div');
+                face.className = `face ${['front','back','right','left','top','bottom'][f]}`;
+                d.appendChild(face);
+            }
+            c.appendChild(d);
+        }
+        updateDice();
+    }
+
+    function updateDice() {
+        const cubes = document.querySelectorAll('.cube');
+        const guardTargets = state.enemy.guardTargets;
+        
+        cubes.forEach((c, i) => {
+            const v = state.dice[i];
+            const locked = state.locks[i];
+            
+            // Text
+            c.querySelectorAll('.face').forEach((f,fi)=> f.innerText = cfg.lang=='ja'?KANJI[fi+1]:(fi+1));
+
+            // Rotation
+            const rots = [[0,0],[0,0],[0,180],[0,-90],[0,90],[-90,0],[90,0]];
+            const r = rots[v];
+            c.style.transform = `rotateX(${r[0]}deg) rotateY(${r[1]}deg)`;
+            
+            // Lock State
+            if(locked) c.classList.add('locked'); else c.classList.remove('locked');
+
+            // Guard Highlight (If die matches Guard requirement)
+            if(guardTargets.includes(v)) c.classList.add('guard-match');
+            else c.classList.remove('guard-match');
+        });
+    }
+
+    function toggleLock(i) {
+        state.locks[i] = !state.locks[i];
+        updateDice();
+        checkGuardStatus(); // Update guard UI
+    }
+
+    // --- Game Logic ---
+    function spawnEnemy() {
+        // Random Guard requirement
+        const g1 = Math.ceil(Math.random()*6);
+        let g2 = Math.ceil(Math.random()*6);
+        if(g1===g2) g2 = (g1%6)+1;
+
+        state.enemy = {
+            req: Math.random()>0.7 ? 'str' : 'pair',
+            rage: 0,
+            rageRate: 20 + (state.lvl * 2),
+            guardTargets: [g1, g2]
+        };
+        updateUI();
+    }
+
+    function actRoll() {
+        if(state.hp <= 1) return;
+        state.hp--;
+        state.enemy.rage = Math.min(100, state.enemy.rage + state.enemy.rageRate);
+        playSnd('roll');
+
+        // Spin anim
+        document.querySelectorAll('.cube').forEach((c,i)=>{
+            if(!state.locks[i]) c.style.transform += ` rotateX(360deg) rotateY(360deg)`;
+        });
+
+        setTimeout(()=>{
+            rollInternal();
+            
+            // Enemy Attack Check
+            if(state.enemy.rage >= 100) {
+                resolveEnemyTurn();
+            }
+            updateUI();
+        }, 400);
+        updateUI();
+    }
+
+    function rollInternal() {
+        state.dice = state.dice.map((v,i)=> state.locks[i]?v : Math.ceil(Math.random()*6));
+        updateDice();
+        checkWin();
+        checkGuardStatus();
+    }
+
+    function resolveEnemyTurn() {
+        // Check if player has at least one locked die matching guardTargets
+        // OR simply present on board? Let's say: MUST BE PRESENT (don't force lock to make it flow better, 
+        // OR force lock to make it strategic. Let's force PRESENCE is enough for flow).
+        // Actually, "Strategic" means you kept it. Let's require presence on board.
+        
+        const currentDice = state.dice;
+        const targets = state.enemy.guardTargets;
+        const hasGuard = currentDice.some(d => targets.includes(d));
+
+        if(hasGuard) {
+            // PARRY
+            playSnd('parry');
+            // Effect
+            const ef = document.getElementById('enemy-flash');
+            ef.style.background = 'var(--blue)'; ef.style.opacity=0.8;
+            setTimeout(()=>ef.style.opacity=0, 200);
+            
+            // Bonus: Rage Reset + Heal slightly?
+            state.enemy.rage = 0;
+            state.enemy.rageRate += 5; // Gets angrier
+            // Change Guard Targets
+            const g1 = Math.ceil(Math.random()*6);
+            state.enemy.guardTargets = [g1, (g1%6)+1];
+            
+        } else {
+            // DAMAGE
+            playSnd('dmg');
+            state.hp = Math.max(0, state.hp - 4);
+            state.enemy.rage = 0;
+            
+            const cont = document.getElementById('enemy-container');
+            cont.style.transform = "translate(5px, 10px)";
+            setTimeout(()=>cont.style.transform="none", 100);
+            
+            const ef = document.getElementById('enemy-flash');
+            ef.style.background = 'red'; ef.style.opacity=0.5;
+            setTimeout(()=>ef.style.opacity=0, 200);
+
+            if(state.hp <= 0) alert("GAME OVER - Lv."+state.lvl);
+        }
+        updateUI();
+    }
+
+    function checkWin() {
+        const d = state.dice;
+        const counts = {}; d.forEach(x=>counts[x]=(counts[x]||0)+1);
+        let win = false;
+        
+        if(state.enemy.req === 'pair') win = Object.values(counts).some(c=>c>=2);
+        if(state.enemy.req === 'str') { const s=[...d].sort().join(''); win=(s==='123'||s==='456'); }
+
+        const bi = document.getElementById('btn-issen');
+        const br = document.getElementById('btn-roll');
+        if(win) { bi.style.display='block'; br.style.display='none'; }
+        else { bi.style.display='none'; br.style.display='block'; }
+    }
+
+    function actIssen() {
+        playSnd('slash');
+        const f = document.getElementById('flash');
+        f.style.opacity=0.8; setTimeout(()=>f.style.opacity=0, 100);
+
+        state.hp = Math.min(state.maxHp, state.hp+2);
+        state.lvl++;
+        spawnEnemy();
+        
+        state.locks = [false,false,false];
+        rollInternal();
+        updateUI();
+    }
+
+    // --- UI Updates ---
+    function checkGuardStatus() {
+        const ui = document.getElementById('ui-guard');
+        const targets = state.enemy.guardTargets;
+        const tStr = cfg.lang==='ja' ? targets.map(t=>KANJI[t]).join('・') : targets.join(' or ');
+        
+        ui.innerHTML = (cfg.lang==='ja' ? "防御: " : "DEF: ") + `[${tStr}]`;
+        
+        // Check if safe
+        const hasGuard = state.dice.some(d => targets.includes(d));
+        if(hasGuard) ui.classList.add('guard-ok');
+        else ui.classList.remove('guard-ok');
+    }
+
+    function updateUI() {
+        document.getElementById('ui-lvl').innerText = state.lvl;
+        document.getElementById('ui-hp').innerText = state.hp;
+        document.getElementById('ui-rage').style.width = state.enemy.rage + "%";
+        checkGuardStatus();
+    }
+
+    function toggleSettings() {
+        const m = document.getElementById('settings-modal');
+        m.style.display = m.style.display==='flex'?'none':'flex';
+    }
+    function setLang(l) { cfg.lang = l; initDice(); updateUI(); }
+    function toggleSound() { 
+        cfg.sound = !cfg.sound; 
+        document.getElementById('snd-btn').innerText = cfg.sound ? "SOUND: ON" : "SOUND: OFF";
+    }
+
+    // Start
+    initDice();
+    spawnEnemy();
+    updateUI();
+
+</script>
+</body>
+</html>
