@@ -177,7 +177,18 @@
     /* 勝者表示などの強調ログ */
     .log-winner { color: #FFD60A; font-weight: bold; }
     .log-info { color: #fff; }
-  </style>
+  
+    /* Countdown */
+    #countdown.pulse { animation: pulse 0.6s ease-in-out infinite alternate; }
+    @keyframes pulse {
+      from { transform: scale(1); opacity: 0.85; }
+      to   { transform: scale(1.04); opacity: 1; }
+    }
+
+  
+  .tbl th, .tbl td{border-top:1px solid rgba(255,255,255,0.08);} 
+  .tbl tbody tr:hover{background:rgba(255,255,255,0.04);} 
+</style>
 </head>
 <body>
 
@@ -220,10 +231,17 @@
       </div>
 
       <button id="btnSubmit" class="btn-submit" disabled>Submit Number</button>
+      <div class="btn-group" style="margin-top:10px;">
+        <button id="btnQuickLow" class="btn-secondary" type="button">🎯 Quick Low (0-9)</button>
+        <button id="btnQuickRisk" class="btn-secondary" type="button">🔥 Risk (10-99)</button>
+      </div>
+
     </div>
 
     <div class="card">
       <div class="card-title">Controls & Log</div>
+
+      <div id="countdown" style="text-align:center;font-size:20px;font-weight:800;margin:6px 0 10px;color:var(--primary);"></div>
       
       <div class="btn-group">
         <button id="btnRevealMax" class="btn-secondary">Open (Max)</button>
@@ -240,6 +258,117 @@
   <script>
     const $ = (id) => document.getElementById(id);
     let ws = null;
+    let countdownTimer = null;
+    let currentRevealAt = null;
+
+    function setCountdown(text, pulsing=false) {
+      const el = $("countdown");
+      if (!el) return;
+      el.textContent = text || "";
+      el.classList.toggle("pulse", !!pulsing);
+    }
+
+    function startCountdown(revealAt) {
+      currentRevealAt = revealAt;
+      clearInterval(countdownTimer);
+      if (!revealAt) { setCountdown(""); return; }
+
+      countdownTimer = setInterval(() => {
+        const ms = revealAt - Date.now();
+        const s = Math.max(0, Math.ceil(ms / 1000));
+        if (s > 0) {
+          setCountdown(`Reveal in ${s}s`, true);
+        } else {
+          setCountdown("Revealing…", true);
+          clearInterval(countdownTimer);
+        }
+      }, 150);
+    }
+
+    function vibrate(ms) {
+      try { if (navigator.vibrate) navigator.vibrate(ms); } catch(_) {}
+    }
+
+    function randInt(min, max) {
+      return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+
+    function esc(s){ return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+    function renderRules(rules){
+      if (!rules) return;
+      const el = $("rulesText");
+      if (!el) return;
+
+      const lines = [];
+      lines.push(`<b>${esc(rules.title)}</b>`);
+      lines.push(`Range: ${esc(rules.valueRange)}`);
+      lines.push(`Countdown: ${esc(rules.countdown)}`);
+      lines.push(`Default mode: <b>${esc(rules.defaultMode)}</b>`);
+      lines.push(`<hr style="border:none;border-top:1px solid rgba(255,255,255,0.12);margin:8px 0;">`);
+      lines.push(`<b>Modes</b>`);
+      for (const m of (rules.modes||[])) lines.push(`• <b>${esc(m.label)}</b>: ${esc(m.desc)}`);
+      lines.push(`<hr style="border:none;border-top:1px solid rgba(255,255,255,0.12);margin:8px 0;">`);
+      lines.push(`<b>Scoring</b>`);
+      for (const s of (rules.scoring||[])) lines.push(`• ${esc(s.label)}: <b>+${s.points}</b> (${esc(s.note)})`);
+      lines.push(`<hr style="border:none;border-top:1px solid rgba(255,255,255,0.12);margin:8px 0;">`);
+      lines.push(`<b>Ranking</b>`);
+      for (const t of (rules.ranking||[])) lines.push(`• ${esc(t)}`);
+
+      el.innerHTML = lines.join("<br>");
+    }
+
+    function renderLeaderboard(lb){
+      const tbl = $("leaderboardTbl");
+      if (!tbl) return;
+      const tbody = tbl.querySelector("tbody");
+      tbody.innerHTML = "";
+
+      const arr = Array.isArray(lb) ? lb : [];
+      if (arr.length === 0){
+        const tr = document.createElement("tr");
+        tr.innerHTML = `<td colspan="7" style="padding:8px 4px; opacity:.7;">No games yet.</td>`;
+        tbody.appendChild(tr);
+        return;
+      }
+
+      arr.forEach((p, i) => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td style="padding:6px 4px; opacity:.8;">${i+1}</td>
+          <td style="padding:6px 4px;"><b>${esc(p.name)}</b></td>
+          <td style="padding:6px 4px; text-align:right;"><b>${p.points ?? 0}</b></td>
+          <td style="padding:6px 4px; text-align:right;">${p.wins ?? 0}</td>
+          <td style="padding:6px 4px; text-align:right;">${p.streak ?? 0}</td>
+          <td style="padding:6px 4px; text-align:right;">${p.bestStreak ?? 0}</td>
+          <td style="padding:6px 4px; text-align:right;">${p.games ?? 0}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function renderRecent(recent){
+      const el = $("recentText");
+      if (!el) return;
+      const arr = Array.isArray(recent) ? recent : [];
+      if (arr.length === 0){ el.textContent = ""; return; }
+
+      const fmt = (ts) => {
+        try{
+          const d = new Date(ts);
+          return d.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit', second:'2-digit'});
+        }catch{ return ""; }
+      };
+
+      const top = arr.slice(0,5).map(r => {
+        const w = r.winnerName ? `${r.winnerName}=${r.winnerValue}` : "no-winner";
+        return `${r.roundId}｜${r.mode}｜${w}｜${fmt(r.ts)}`;
+      }).join(" / ");
+
+      el.textContent = `Recent: ${top}`;
+    }
+
 
     function log(text, type="normal") {
       const el = $("log");
@@ -275,7 +404,7 @@
     $("btnConnect").onclick = () => {
       const room = encodeURIComponent($("room").value.trim() || "lobby");
       const name = encodeURIComponent($("name").value.trim() || "guest");
-      const wsUrl = `${location.origin.replace(/^http/, "ws")}/ws?room=${room}&name=${name}`;
+      const wsUrl = `wss://samurairoad-ws.korokorokororintyo.workers.dev/number/ws?room=${room}&name=${name}`;
 
       ws = new WebSocket(wsUrl);
 
@@ -287,8 +416,22 @@
         if (msg.type === "presence") {
           // 参加者リストを見やすく表示
           $("presence").textContent = `Players: ${msg.players.length} (${msg.players.join(", ")}) | Submits: ${msg.submissionsCount}`;
+          if (msg.revealAt) startCountdown(msg.revealAt);
+          else if (currentRevealAt) { currentRevealAt = null; setCountdown(""); }
+          if (msg.leaderboard) renderLeaderboard(msg.leaderboard);
+          if (msg.recent) renderRecent(msg.recent);
+        }
+        else if (msg.type === "mode") {
+          log(`Mode set: ${msg.mode}`);
+        }
+        else if (msg.type === "countdown") {
+          startCountdown(msg.revealAt);
+          log(`⏳ Countdown started (${msg.mode})`);
+          vibrate(20);
         }
         else if (msg.type === "reveal") {
+          setCountdown("");
+          vibrate(40);
           if (msg.winner) {
             log(`🏆 WINNER: ${msg.winner.name} [${msg.winner.value}] (${msg.mode})`);
           } else {
@@ -312,6 +455,17 @@
       log(`You submitted: ${val}`);
     };
 
+    $("btnQuickLow").onclick = () => {
+      $("num").value = String(randInt(0, 9));
+      vibrate(10);
+    };
+
+    $("btnQuickRisk").onclick = () => {
+      $("num").value = String(randInt(10, 99));
+      vibrate(15);
+    };
+
+
     $("btnRevealMax").onclick = () => {
       if (!ws) return;
       ws.send(JSON.stringify({ type: "reveal", mode: "max" }));
@@ -325,6 +479,9 @@
     $("btnReset").onclick = () => {
       if (!ws) return;
       if(confirm("Reset the game?")) {
+        setCountdown("");
+        currentRevealAt = null;
+        clearInterval(countdownTimer);
         ws.send(JSON.stringify({ type: "reset" }));
       }
     };
