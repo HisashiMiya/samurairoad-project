@@ -182,15 +182,38 @@
   </div>
 </div>
 
-      <div class="card feature">
-        <div class="tag" data-i18n="tag_legacy">Legacy</div>
-        <h4 data-i18n="legacy_title">Original Index</h4>
-        <p data-i18n="legacy_desc">Previous top page.</p>
-        <div class="actions">
-          <a class="btn" data-link="index_original" data-i18n="open">Open</a>
-        </div>
-      </div>
-    </div>
+<!-- GAME : Samurai Series -->
+<div class="card feature">
+  <div class="tag" data-i18n="tag_game">Game</div>
+  <h4 data-i18n="samurai_series_title">Samurai Series</h4>
+  <p data-i18n="samurai_series_desc">
+    Experimental game series inspired by samurai themes.
+  </p>
+  <div class="actions" style="flex-direction:column; gap:6px;">
+    <a class="btn" href="./g/000/#000_samurai.html" data-i18n="samurai_000">#000 Samurai</a>
+    <a class="btn" href="./g/000/#001_samurai_kengo.html" data-i18n="samurai_001">#001 Samurai – Kengo</a>
+    <a class="btn" href="./g/000/#002_samurai_ketto.html" data-i18n="samurai_002">#002 Samurai – Ketto</a>
+    <a class="btn" href="./g/000/#003_samurai_garyo.html" data-i18n="samurai_003">#003 Samurai – Garyo</a>
+    <a class="btn" href="./g/000/#004_samurai_kessen.html" data-i18n="samurai_004">#004 Samurai – Kessen</a>
+    <a class="btn primary" href="./g/001/game.html" data-i18n="samurai_hub">Game Hub</a>
+  </div>
+</div>
+
+<!-- GAME / CHARACTER : Bunosuke -->
+<div class="card feature">
+  <div class="tag" data-i18n="tag_game">Game</div>
+  <h4 data-i18n="bunosuke_title">Bunosuke</h4>
+  <p data-i18n="bunosuke_desc">
+    A flying pig wandering historic roads.<br>
+    Mascot game of SAMURAI ROAD.
+  </p>
+  <div class="actions">
+    <a class="btn primary" href="./g/001/game.html" data-i18n="bunosuke_play">
+      🐷 Fly! Bunosuke
+    </a>
+  </div>
+</div>
+
   </section>
 
   <!-- ABOUT -->
@@ -206,7 +229,6 @@
 </main>
 <!-- Footer mount -->
 <div data-include="./includes/footer.html" aria-label="Footer"></div>
-
 <!-- 共通JS（defer必須） -->
 <script src="./assets/js/sr-common.js" defer></script>
 <script>
@@ -283,9 +305,21 @@ window.SR_I18N = {
     tag_rt: "Real-time",
     shogi_title: "Shogi",
     shogi_desc: "Online Shogi interface.",
-    tag_legacy: "Legacy",
-    legacy_title: "Original Index",
-    legacy_desc: "Previous top page.",
+tag_game: "Game",
+
+samurai_series_title: "Samurai Series",
+samurai_series_desc: "Experimental game series inspired by samurai themes.",
+
+samurai_000: "#000 Samurai",
+samurai_001: "#001 Samurai – Kengo",
+samurai_002: "#002 Samurai – Ketto",
+samurai_003: "#003 Samurai – Garyo",
+samurai_004: "#004 Samurai – Kessen",
+samurai_hub: "Game Hub",
+
+bunosuke_title: "Bunosuke",
+bunosuke_desc: "A flying pig wandering historic roads.<br>Mascot game of SAMURAI ROAD.",
+bunosuke_play: "🐷 Fly! Bunosuke",
     about_title: "About",
     about_body: "SamuraiRoad is designed as a personal exploration OS. Pages connect organically, and the platform evolves as content grows.",
     foot_home: "Home",
@@ -339,9 +373,21 @@ window.SR_I18N = {
     tag_rt: "リアルタイム",
     shogi_title: "将棋",
     shogi_desc: "オンライン将棋UI。",
-    tag_legacy: "旧版",
-    legacy_title: "旧トップ",
-    legacy_desc: "以前のトップページ。",
+tag_game: "ゲーム",
+
+samurai_series_title: "侍シリーズ",
+samurai_series_desc: "侍をテーマにした実験的ゲームシリーズ。",
+
+samurai_000: "#000 侍",
+samurai_001: "#001 侍 剣豪",
+samurai_002: "#002 侍 血闘",
+samurai_003: "#003 侍 画龍",
+samurai_004: "#004 侍 決戦",
+samurai_hub: "ゲームハブ",
+
+bunosuke_title: "ブ～の介",
+bunosuke_desc: "空を飛ぶブタ、ブ～の介。<br>SAMURAI ROADのマスコットゲーム。",
+bunosuke_play: "🐷 飛べ！ブー之助",
     about_title: "概要",
     about_body: "SamuraiRoadは「個人探索OS」として設計しています。ページは有機的につながり、コンテンツが増えるほど進化します。",
     foot_home: "ホーム",
