@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Samurai Icon Generator | SamuraiRoad Tools</title>
+    <meta name="description" content="Create Android-ready app icons (512px) from text or images. Supports themes, rounded preview, and quick exports.">
+    <meta name="keywords" content="SamuraiRoad, icon generator, app icon, Android icon 512px, Play Store icon, canvas, image tool, Japanese, English, prototype">
+
+
+
+    
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Samurai Icon Generator">
+    <meta property="og:description" content="Create Android-ready app icons (512px) from text or images. Themes, rounded preview, and quick exports.">
+    <meta property="og:url" content="./icon_maker.html">
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="Samurai Icon Generator">
+    <meta name="twitter:description" content="Create Android-ready app icons (512px) from text or images.">
+<style>
+        body { font-family: sans-serif; text-align: center; background: #f0f0f0; padding: 20px; color: #333; }
+        
+        /* タイトルと説明文 */
+        h1 { margin-bottom: 5px; color: #333; }
+        .description {
+            color: #666;
+            font-size: 0.95rem;
+            margin-bottom: 30px;
+            line-height: 1.5;
+        }
+
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 30px;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .preview-area {
+            flex: 1;
+            min-width: 300px;
+        }
+
+        .controls-area {
+            flex: 1;
+            min-width: 300px;
+            text-align: left;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        canvas { 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3); 
+            width: 100%; 
+            max-width: 400px; 
+            height: auto; 
+            background-image: linear-gradient(45deg, #ccc 25%, transparent 25%), linear-gradient(-45deg, #ccc 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #ccc 75%), linear-gradient(-45deg, transparent 75%, #ccc 75%);
+            background-size: 20px 20px;
+            border-radius: 10px;
+        }
+
+        .control-group { margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 15px; }
+        .control-group:last-child { border-bottom: none; }
+        
+        h3 { margin-top: 0; font-size: 16px; color: #0066cc; }
+        
+        label { display: inline-block; margin-right: 15px; cursor: pointer; padding: 5px 0; }
+        input[type="radio"] { margin-right: 5px; }
+        input[type="range"] { width: 100%; }
+        
+        /* テキスト入力欄 */
+        input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            font-size: 1.2rem;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+
+        .btn-primary {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            font-size: 16px;
+            cursor: pointer;
+            background: #0066cc;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            margin-top: 10px;
+            font-weight: bold;
+            transition: background 0.3s;
+        }
+        .btn-primary:hover { background: #0055aa; }
+
+        .btn-secondary {
+            display: inline-block;
+            padding: 8px 15px;
+            font-size: 14px;
+            cursor: pointer;
+            background: #666;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            margin-top: 5px;
+            transition: background 0.3s;
+        }
+        .btn-secondary:hover { background: #555; }
+
+        /* モード切替ボタン */
+        .mode-switch { display: flex; gap: 10px; margin-bottom: 15px; }
+        .mode-btn { 
+            flex: 1; padding: 10px; border: 1px solid #ccc; background: #f9f9f9; cursor: pointer; text-align: center; border-radius: 5px;
+            transition: all 0.2s;
+        }
+        .mode-btn:hover { background: #eee; }
+        .mode-btn.active { background: #0066cc; color: white; border-color: #0066cc; }
+
+        /* AIモード用ボタン（無効状態） */
+        .mode-btn.disabled-look {
+            background: #f0f0f0; color: #888; border-style: dashed;
+        }
+        .mode-btn.disabled-look.active {
+             background: #666; color: white; border-style: solid;
+        }
+
+        .hidden { display: none; }
+
+        /* 案内メッセージボックス */
+        .info-box {
+            background: #eef6fc;
+            border: 1px solid #d0e3f0;
+            padding: 15px;
+            border-radius: 5px;
+            color: #555;
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+
+        /* フッター（サポートリンク） */
+        footer {
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 1px solid #ddd;
+            font-size: 0.9rem;
+        }
+        .support-link {
+            display: inline-block;
+            color: #0066cc;
+            text-decoration: none;
+            font-weight: bold;
+            padding: 5px 10px;
+            border: 1px solid #0066cc;
+            border-radius: 20px;
+            transition: all 0.3s;
+        }
+        .support-link:hover {
+            background: #0066cc;
+            color: white;
+        }
+
+    </style>
+    <script type="application/ld+json">{"@context": "https://schema.org", "@type": "SoftwareApplication", "name": "Samurai Icon Generator", "applicationCategory": "DeveloperApplication", "operatingSystem": "Web", "description": "Create Android-ready app icons (512px) from text or images. Includes background themes and rounded preview.", "keywords": ["SamuraiRoad", "icon generator", "Android app icon", "512px", "Play Store", "canvas"]}</script>
+</head>
+<body>
+
+    <div class="topbar" style="display:flex; justify-content:flex-end; gap:10px; max-width:1000px; margin:0 auto 10px;">
+        <button class="btn-secondary" type="button" id="langBtn" aria-label="Switch language">EN</button>
+    </div>
+
+
+    <h1 data-i18n="title">Samurai Icon Generator</h1>
+    
+    <p class="description" data-i18n="desc">Androidアプリ開発の画像作成用に自作したツールです。<br>Google Playストア提出用の高解像度アイコン(512px)や、アプリアイコンのプロトタイプを簡単に作成できます。</p>
+
+    <div class="container">
+        <div class="preview-area">
+            <canvas id="canvas" width="512" height="512"></canvas>
+            <div style="margin-top:10px; text-align: center;">
+                <label><input type="checkbox" id="roundedPreview" onchange="toggleRoundedPreview()"> <span data-i18n="rounded">Android-style preview (rounded)</span></label>
+            </div>
+        </div>
+
+        <div class="controls-area">
+            
+            <div class="control-group">
+                <h3 data-i18n="h_mode">1. Mode</h3>
+                <div class="mode-switch">
+                    <div class="mode-btn active" id="btnModeText" onclick="setMode('text')"><span data-i18n="mode_text">Text</span></div>
+                    <div class="mode-btn" id="btnModeImage" onclick="setMode('image')"><span data-i18n="mode_image">Image</span></div>
+                    <div class="mode-btn disabled-look" id="btnModeAI" onclick="setMode('ai')"><span data-i18n="mode_ai">✨AI</span></div>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <h3 data-i18n="h_bg">2. Background</h3>
+                <div style="margin-bottom:10px;">
+                    <label><input type="radio" name="bgStyle" value="original" checked onclick="draw()"> <span data-i18n="bg_original">Navy (Original)</span></label>
+                    <label><input type="radio" name="bgStyle" value="dawn" onclick="draw()"> <span data-i18n="bg_dawn">Crimson (Dawn)</span></label>
+                    <label><input type="radio" name="bgStyle" value="black" onclick="draw()"> <span data-i18n="bg_black">Black (Solid)</span></label>
+                </div>
+                <div>
+                    <label><input type="radio" name="bgStyle" value="white" onclick="draw()"> <span data-i18n="bg_white">White</span></label>
+                    <label><input type="radio" name="bgStyle" value="transparent" onclick="draw()"> <span data-i18n="bg_clear">Transparent</span></label>
+                </div>
+            </div>
+
+            <div id="controls-text" class="control-group">
+                <h3 data-i18n="h_text">3. Text</h3>
+                <div style="margin-bottom: 15px;">
+                    <input type="text" id="textInput" value="侍道" oninput="draw()" placeholder="Enter text">
+                </div>
+                <div>
+                    <label><span data-i18n="font_size">Font size:</span> <span id="fontSizeValue">200px</span></label>
+                    <input type="range" id="fontSizeSlider" min="50" max="400" value="200" oninput="draw()">
+                </div>
+            </div>
+
+            <div id="controls-image" class="control-group hidden">
+                <h3 data-i18n="h_image">3. Image</h3>
+                <input type="file" id="imageInput" accept="image/*" onchange="handleImageUpload(event)">
+                <div style="margin-top: 15px;">
+                    <label><span data-i18n="scale">Scale:</span> <span id="scaleValue">100%</span></label>
+                    <input type="range" id="scaleSlider" min="10" max="200" value="100" oninput="draw()">
+                </div>
+                <p style="font-size:0.8rem; color:#888;"><span data-i18n="image_tip">Tip: Transparent PNG blends nicely.</span></p>
+            </div>
+
+            <div id="controls-ai" class="control-group hidden">
+                <h3 data-i18n="h_ai">3. AI</h3>
+                <div class="info-box">
+                    <p><strong><span data-i18n="ai_disabled_title">⚠️ AI generation is currently disabled</span></strong></p>
+                    <p><span data-i18n="ai_disabled_body">An AI image generation mode exists, but it is disabled due to API costs.</span></p>
+                    <p><span data-i18n="ai_disabled_cta">If you need this feature, please share your use case via the support link below.</span></p>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <h3 data-i18n="h_save">4. Export</h3>
+                <button class="btn-primary" onclick="downloadIcon(512)" data-i18n="export_512">⬇️ 512px (Play Store)</button>
+                <div style="display:flex; gap:10px; margin-top:10px;">
+                    <button class="btn-secondary" style="flex:1" onclick="downloadIcon(192)">192px</button>
+                    <button class="btn-secondary" style="flex:1" onclick="downloadIcon(144)">144px</button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+<!-- Footer mount -->
+<div data-include="./includes/footer.html" aria-label="Footer"></div>
+<!-- 共通JS（defer必須） -->
+<script src="./assets/js/sr-common.js" defer></script>
+
+    
+    <script>
+      // ===== i18n (JP/EN) =====
+      const I18N = {
+        ja: {
+          title: "侍アイコン生成ツール",
+          desc: "Androidアプリ開発の画像作成用に自作したツールです。<br>Google Playストア提出用の高解像度アイコン(512px)や、アプリアイコンのプロトタイプを簡単に作成できます。",
+          h_mode: "1. 作成モード",
+          mode_text: "文字入力",
+          mode_image: "画像アップ",
+          mode_ai: "✨AI生成",
+          h_bg: "2. 背景・テーマ",
+          bg_original: "紺 (Original)",
+          bg_dawn: "紅 (Dawn)",
+          bg_black: "黒 (Solid)",
+          bg_white: "白 (White)",
+          bg_clear: "透過 (Clear)",
+          h_text: "3. 文字入力",
+          font_size: "文字サイズ:",
+          rounded: "Android風プレビュー（角丸）",
+          h_image: "3. 画像アップロード",
+          scale: "サイズ調整:",
+          image_tip: "※背景が透過のPNG画像を使うと綺麗に合成できます",
+          h_ai: "3. AI画像生成について",
+          ai_disabled_title: "⚠️ 現在、AI生成機能は無効化されています",
+          ai_disabled_body: "AI画像生成モードはありますが、API利用コストが発生するため現在は停止しています。",
+          ai_disabled_cta: "必要があれば、下のサポートリンクから用途を送ってください。",
+          h_save: "4. 保存",
+          export_512: "⬇️ 512px (ストア提出用)",
+          foot_msg: "不具合報告・機能要望はこちらから",
+          foot_link: "🛠️ サポート・お問い合わせ",
+          js_upload_prompt: "画像をアップロードしてください",
+          js_ai_not_available: "Not Available",
+          js_ai_req: "実装リクエスト受付中"
+        },
+        en: {
+          title: "Samurai Icon Generator",
+          desc: "A lightweight tool for Android app icon creation.<br>Create high-resolution Play Store icons (512px) and quick prototypes.",
+          h_mode: "1. Mode",
+          mode_text: "Text",
+          mode_image: "Image",
+          mode_ai: "✨AI",
+          h_bg: "2. Background",
+          bg_original: "Navy (Original)",
+          bg_dawn: "Crimson (Dawn)",
+          bg_black: "Black (Solid)",
+          bg_white: "White",
+          bg_clear: "Transparent",
+          h_text: "3. Text",
+          font_size: "Font size:",
+          rounded: "Android-style preview (rounded)",
+          h_image: "3. Image upload",
+          scale: "Scale:",
+          image_tip: "Tip: Transparent PNG blends nicely.",
+          h_ai: "3. AI image generation",
+          ai_disabled_title: "⚠️ AI generation is currently disabled",
+          ai_disabled_body: "An AI generation mode exists, but it is disabled due to API costs.",
+          ai_disabled_cta: "If you need it, share your use case via the support link below.",
+          h_save: "4. Export",
+          export_512: "⬇️ 512px (Play Store)",
+          foot_msg: "Report bugs / request features",
+          foot_link: "🛠️ Support / Contact",
+          js_upload_prompt: "Please upload an image",
+          js_ai_not_available: "Not Available",
+          js_ai_req: "Feature requests welcome"
+        }
+      };
+
+      function getLang() {
+        const saved = localStorage.getItem("sr_lang");
+        if (saved === "ja" || saved === "en") return saved;
+        const nav = (navigator.language || "").toLowerCase();
+        return nav.startsWith("ja") ? "ja" : "en";
+      }
+
+      let CURRENT_LANG = getLang();
+
+      function t(key) {
+        return (I18N[CURRENT_LANG] && I18N[CURRENT_LANG][key]) || (I18N.en[key] ?? key);
+      }
+
+      function applyI18n() {
+        document.documentElement.lang = CURRENT_LANG;
+        document.querySelectorAll("[data-i18n]").forEach(el => {
+          const key = el.getAttribute("data-i18n");
+          if (!key) return;
+          const val = t(key);
+          el.innerHTML = val;
+        });
+
+        // placeholders that are not innerHTML
+        const textInput = document.getElementById("textInput");
+        if (textInput) textInput.placeholder = CURRENT_LANG === "ja" ? "好きな文字を入力" : "Enter text";
+
+        const langBtn = document.getElementById("langBtn");
+        if (langBtn) langBtn.textContent = (CURRENT_LANG === "ja") ? "EN" : "JP";
+      }
+
+      function toggleLang() {
+        CURRENT_LANG = (CURRENT_LANG === "ja") ? "en" : "ja";
+        localStorage.setItem("sr_lang", CURRENT_LANG);
+        applyI18n();
+        draw();
+      }
+
+      window.addEventListener("DOMContentLoaded", () => {
+        const btn = document.getElementById("langBtn");
+        if (btn) btn.addEventListener("click", toggleLang);
+        applyI18n();
+      });
+    </script>
+<script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        let currentMode = 'text'; 
+        let uploadedImgObj = null; 
+
+        window.onload = draw;
+
+        function setMode(mode) {
+            currentMode = mode;
+            document.getElementById('btnModeText').classList.toggle('active', mode === 'text');
+            document.getElementById('btnModeImage').classList.toggle('active', mode === 'image');
+            document.getElementById('btnModeAI').classList.toggle('active', mode === 'ai');
+            
+            document.getElementById('controls-text').classList.add('hidden');
+            document.getElementById('controls-image').classList.add('hidden');
+            document.getElementById('controls-ai').classList.add('hidden');
+
+            if (mode === 'text') {
+                document.getElementById('controls-text').classList.remove('hidden');
+                draw(); // 文字モードは即再描画してOK
+            }
+            if (mode === 'image') {
+                document.getElementById('controls-image').classList.remove('hidden');
+                draw(); // 画像モードも即再描画
+            }
+            if (mode === 'ai') {
+                document.getElementById('controls-ai').classList.remove('hidden');
+                // AIモードは案内だけなので、キャンバスは一旦クリアするか、
+                // あるいは「現在設定中の画像」をそのまま残すか選べますが、
+                // ここでは分かりやすく「AI案内」を表示するように文字を描画します。
+                drawAiPlaceholder(); 
+            }
+        }
+
+        function handleImageUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                uploadedImgObj = new Image();
+                uploadedImgObj.onload = function() {
+                    draw();
+                }
+                uploadedImgObj.src = e.target.result;
+            }
+            reader.readAsDataURL(file);
+        }
+
+        function toggleRoundedPreview() {
+            const isChecked = document.getElementById('roundedPreview').checked;
+            canvas.style.borderRadius = isChecked ? "22%" : "10px";
+        }
+
+        function draw() {
+            // AIモードのときは専用描画処理へ逃がす（誤動作防止）
+            if (currentMode === 'ai') {
+                drawAiPlaceholder();
+                return;
+            }
+
+            ctx.clearRect(0, 0, 512, 512);
+            drawBackground();
+
+            if (currentMode === 'text') {
+                drawTextContent();
+            } else if (currentMode === 'image') {
+                drawImageContent();
+            }
+            drawBorder();
+        }
+
+        // 共通：背景描画
+        function drawBackground() {
+            const style = document.querySelector('input[name="bgStyle"]:checked').value;
+            
+            if (style === 'original') {
+                const grad = ctx.createLinearGradient(0, 0, 0, 512);
+                grad.addColorStop(0, "#2c3e50"); grad.addColorStop(1, "#000000"); 
+                ctx.fillStyle = grad; ctx.fillRect(0, 0, 512, 512);
+                ctx.beginPath(); ctx.arc(256, 256, 180, 0, Math.PI * 2);
+                ctx.fillStyle = "#b71c1c"; ctx.fill();
+            } else if (style === 'dawn') {
+                const grad = ctx.createLinearGradient(0, 0, 0, 512);
+                grad.addColorStop(0, "#b71c1c"); grad.addColorStop(1, "#500000"); 
+                ctx.fillStyle = grad; ctx.fillRect(0, 0, 512, 512);
+                ctx.beginPath(); ctx.arc(256, 256, 180, 0, Math.PI * 2);
+                ctx.fillStyle = "#d4af37"; ctx.fill();
+            } else if (style === 'black') {
+                ctx.fillStyle = "#111111"; ctx.fillRect(0, 0, 512, 512);
+            } else if (style === 'white') {
+                ctx.fillStyle = "#ffffff"; ctx.fillRect(0, 0, 512, 512);
+            }
+        }
+
+        // 共通：枠線描画
+        function drawBorder() {
+            const bgStyle = document.querySelector('input[name="bgStyle"]:checked').value;
+            if (bgStyle !== 'transparent') {
+                ctx.shadowColor = "transparent"; 
+                ctx.strokeStyle = bgStyle === 'white' ? "rgba(0,0,0,0.1)" : "rgba(255,255,255,0.2)";
+                ctx.lineWidth = 10;
+                ctx.strokeRect(5, 5, 502, 502);
+            }
+        }
+
+        function drawTextContent() {
+            const text = document.getElementById('textInput').value;
+            const fontSize = document.getElementById('fontSizeSlider').value;
+            document.getElementById('fontSizeValue').innerText = fontSize + 'px';
+            const bgStyle = document.querySelector('input[name="bgStyle"]:checked').value;
+
+            ctx.textAlign = "center"; ctx.textBaseline = "middle";
+            ctx.shadowColor = "rgba(0,0,0,0.5)"; ctx.shadowBlur = 10; ctx.shadowOffsetX = 5; ctx.shadowOffsetY = 5;
+            
+            if (bgStyle === 'white' || bgStyle === 'transparent') {
+                 ctx.fillStyle = "#000000";
+            } else {
+                 ctx.fillStyle = "#ffffff";
+            }
+            ctx.font = `bold ${fontSize}px 'Hiragino Mincho ProN', 'Yu Mincho', serif`;
+            ctx.fillText(text, 256, 256);
+        }
+
+        function drawImageContent() {
+            if (!uploadedImgObj) {
+                ctx.textAlign = "center"; ctx.textBaseline = "middle";
+                ctx.fillStyle = "rgba(128,128,128,0.5)"; ctx.font = "bold 24px sans-serif";
+                ctx.fillText(t("js_upload_prompt"), 256, 256);
+                return;
+            }
+            const scalePercent = document.getElementById('scaleSlider').value;
+            document.getElementById('scaleValue').innerText = scalePercent + '%';
+            const scale = scalePercent / 100;
+
+            const imgW = uploadedImgObj.width; const imgH = uploadedImgObj.height;
+            let baseW, baseH;
+            if (imgW > imgH) { baseW = 512; baseH = 512 * (imgH / imgW); } 
+            else { baseH = 512; baseW = 512 * (imgW / imgH); }
+
+            const finalW = baseW * scale; const finalH = baseH * scale;
+            const x = (512 - finalW) / 2; const y = (512 - finalH) / 2;
+
+            ctx.shadowColor = "rgba(0,0,0,0.3)"; ctx.shadowBlur = 10; ctx.shadowOffsetX = 0; ctx.shadowOffsetY = 5;
+            ctx.drawImage(uploadedImgObj, x, y, finalW, finalH);
+        }
+
+        // AIモード用のプレビュー画面（機能停止中を伝える画面）
+        function drawAiPlaceholder() {
+            ctx.clearRect(0, 0, 512, 512);
+            ctx.fillStyle = "#f0f0f0";
+            ctx.fillRect(0, 0, 512, 512);
+            
+            ctx.textAlign = "center"; 
+            ctx.textBaseline = "middle";
+            ctx.fillStyle = "#999999";
+            
+            ctx.font = "bold 80px sans-serif";
+            ctx.fillText("AI", 256, 200);
+            
+            ctx.font = "bold 30px sans-serif";
+            ctx.fillText(t("js_ai_not_available"), 256, 260);
+            
+            ctx.font = "20px sans-serif";
+            ctx.fillText(t("js_ai_req"), 256, 300);
+
+            // 枠線
+            ctx.lineWidth = 10;
+            ctx.strokeStyle = "#ccc";
+            ctx.strokeRect(5, 5, 502, 502);
+        }
+
+        function downloadIcon(size) {
+            // AIモードのときはダウンロードさせない、または警告してもいいが
+            // 基本的にプレビューされているものをそのまま落とす仕様にする
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = size; tempCanvas.height = size;
+            const tCtx = tempCanvas.getContext('2d');
+
+            tCtx.imageSmoothingEnabled = true; tCtx.imageSmoothingQuality = 'high';
+            tCtx.drawImage(canvas, 0, 0, size, size);
+
+            const link = document.createElement('a');
+            link.download = `icon_${size}.png`;
+            link.href = tempCanvas.toDataURL('image/png');
+            link.click();
+        }
+    </script>
+</body>
+</html>
