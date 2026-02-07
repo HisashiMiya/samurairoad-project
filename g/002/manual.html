@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>IMAGENESIS MANUAL</title>
+<style>
+    body { background: #111; color: #eee; font-family: sans-serif; padding: 20px; line-height: 1.6; }
+    h1 { color: #00f0ff; border-bottom: 2px solid #00f0ff; }
+    h2 { color: #ff2a6d; margin-top: 30px; }
+    .box { background: #222; padding: 15px; border-radius: 8px; margin-bottom: 10px; }
+    code { background: #000; padding: 2px 5px; color: #0f0; }
+</style>
+</head>
+<body>
+    <h1>IMAGENESIS 操作マニュアル</h1>
+    
+    <h2>1. ゲームの目的</h2>
+    <div class="box">
+        画像を解析して「視覚的生命体（モンスター）」を生成し、デッキを編成してバトルに勝利することが目的です。
+    </div>
+
+    <h2>2. 生成 (LAB)</h2>
+    <div class="box">
+        <ul>
+            <li><b>Inject Soul</b>: 「怒り」「静寂」など、想いを入力するとステータスや属性に影響します。</li>
+            <li><b>画像選択</b>: 端末内の画像を選択すると、自動的に圧縮・解析され、モンスターが誕生します。</li>
+        </ul>
+    </div>
+
+    <h2>3. バトルシステム (3on3)</h2>
+    <div class="box">
+        <p>最大3対3のチーム戦です。素早さ(SPD)の高い順に行動します。</p>
+        
+        <h3>ターン行動</h3>
+        <ol>
+            <li><b>ROLL DICE</b>: AP(行動力)を消費してダイスを振ります。</li>
+            <li><b>役の成立</b>: 役（Pair, Straightなど）が揃うと、対応するスキルが<b>「チャージ（使用可能）」</b>になります。</li>
+            <li><b>コマンド選択</b>: チャージされたスキル、または「ATTACK(通常攻撃)」「DEFEND(防御)」を選択して行動終了です。</li>
+        </ol>
+        
+        <h3>スキルの持ち越し</h3>
+        <p>チャージされたスキルは、使わずに次のターンへ持ち越せます。<br>
+        ただし、次のターンで<b>同じ役</b>を出してしまうと、チャージは重複して無駄になります。</p>
+    </div>
+
+    <button onclick="window.close()" style="width:100%; padding:20px; font-size:16px; margin-top:20px;">閉じる</button>
+</body>
+</html>

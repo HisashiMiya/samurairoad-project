@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>IMAGENESIS: V23 [Team Tactics]</title>
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Shippori+Mincho:wght@700&family=Orbitron:wght@700;900&display=swap');
+
+    :root {
+        --bg: #050505; --panel: #111;
+        --accent: #00f0ff; --text: #eee;
+        --p1: #00f0ff; --p2: #ff2a6d;
+        --crit: #ffaa00; --dodge: #00ffaa;
+        --ready: #00ff00; /* Skill Ready Color */
+        --danger: #ff4444;
+        --disabled: #333;
+        --font-main: 'Shippori Mincho', serif;
+        --font-eng: 'Orbitron', sans-serif;
+    }
+
+    body {
+        background: var(--bg); color: var(--text);
+        font-family: var(--font-main);
+        margin: 0; padding: 0;
+        height: 100vh; overflow: hidden;
+        user-select: none; display: flex; flex-direction: column;
+    }
+
+    /* --- UI COMPONENTS --- */
+    button { cursor: pointer; font-family: var(--font-eng); touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+    .screen { flex: 1; display: none; flex-direction: column; overflow-y: auto; position: relative; padding: 10px; }
+    .screen.active { display: flex; }
+
+    .logo-area { text-align: center; margin: 5px 0 10px; }
+    .main-logo { font-family: var(--font-eng); font-size: 24px; color: #fff; text-shadow: 0 0 5px var(--accent); }
+
+    /* MODAL */
+    .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 9999; display: none; align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(5px); }
+    .sys-box { width: 100%; max-width: 320px; background: #1a1a1a; border: 1px solid var(--accent); border-radius: 8px; padding: 20px; text-align: center; box-shadow: 0 0 30px rgba(0, 240, 255, 0.2); }
+    .sys-btn { background: var(--accent); color: #000; border: none; padding: 10px 30px; font-weight: bold; clip-path: polygon(10% 0, 100% 0, 90% 100%, 0% 100%); margin-top: 10px; }
+
+    /* --- BATTLE SCREEN (3v3) --- */
+    #scr-battle { padding: 0; }
+    
+    /* Turn Order Bar */
+    .timeline { height: 40px; background: #222; display: flex; align-items: center; padding: 0 10px; overflow-x: auto; border-bottom: 1px solid #444; white-space: nowrap; }
+    .tl-icon { width: 30px; height: 30px; border-radius: 50%; border: 2px solid #555; margin-right: 5px; object-fit: cover; opacity: 0.5; transition: 0.3s; }
+    .tl-icon.active { border-color: #fff; opacity: 1; transform: scale(1.2); z-index: 10; box-shadow: 0 0 10px #fff; }
+    .tl-icon.p1 { border-color: var(--p1); }
+    .tl-icon.p2 { border-color: var(--p2); }
+
+    .stage { flex: 1; position: relative; background: radial-gradient(circle at center, #222 0%, #050505 100%); display: flex; flex-wrap: wrap; justify-content: space-around; align-items: center; padding: 10px; }
+    
+    .unit-card { width: 30%; position: relative; transition: 0.3s; margin-bottom: 10px; opacity: 0.5; filter: grayscale(0.5); }
+    .unit-card.active { opacity: 1; filter: grayscale(0); transform: scale(1.1); z-index: 10; }
+    .unit-card.dead { opacity: 0.2; filter: grayscale(1); }
+    .unit-img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 8px; border: 2px solid #555; }
+    .unit-card.p1 .unit-img { border-color: var(--p1); }
+    .unit-card.p2 .unit-img { border-color: var(--p2); }
+    .hp-mini { height: 4px; background: #333; margin-top: 2px; border-radius: 2px; overflow: hidden; }
+    .hp-mini-fill { height: 100%; transition: width 0.3s; }
+
+    /* Control Panel */
+    .panel { background: #111; border-top: 2px solid var(--accent); padding: 10px; min-height: 220px; }
+    .btl-msg { text-align: center; color: var(--accent); font-size: 11px; margin-bottom: 5px; height: 1.2em; font-family: var(--font-eng); }
+    
+    .dice-area { display: flex; justify-content: center; gap: 10px; height: 40px; margin-bottom: 10px; }
+    .cube { width: 40px; height: 40px; position: relative; transform-style: preserve-3d; transition: transform 0.4s; }
+    .face { position: absolute; inset: 0; background: #222; border: 1px solid #555; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 16px; }
+    .cube.locked .face { border-color: var(--accent); color: var(--accent); }
+
+    .action-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+    .act-btn { 
+        padding: 10px; background: #222; color: #666; border: 1px solid #444; font-size: 10px; 
+        font-family: var(--font-eng); text-align: left; position: relative; overflow: hidden;
+    }
+    /* Skill States */
+    .act-btn.ready { border-color: var(--ready); color: #fff; background: rgba(0,255,0,0.1); box-shadow: 0 0 5px var(--ready); }
+    .act-btn.basic { border-color: #888; color: #ddd; background: #333; }
+    .act-btn:active:not(:disabled) { transform: scale(0.98); background: #fff; color: #000; }
+    .act-btn:disabled { opacity: 0.3; pointer-events: none; }
+    
+    .skill-name { font-size: 11px; font-weight: bold; display: block; }
+    .skill-type { font-size: 8px; color: #aaa; }
+
+    /* FX */
+    .dmg-txt { position: absolute; left: 50%; top: 0; transform: translateX(-50%); font-family: 'Impact'; font-size: 28px; font-weight: bold; color: #ffeb3b; text-shadow: 2px 2px 0 #000; animation: pop 0.8s forwards; z-index: 100; pointer-events: none; }
+    @keyframes pop { 0%{opacity:0; transform:translate(-50%,10px);} 20%{opacity:1;} 100%{opacity:0; transform:translate(-50%,-50px);} }
+
+    /* DECK */
+    .deck-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; padding-bottom: 90px; }
+    .card { background: #1a1a1a; border: 1px solid #333; border-radius: 6px; overflow: hidden; position: relative; aspect-ratio: 0.8; }
+    .card.selected { border: 2px solid var(--accent); box-shadow: 0 0 10px var(--accent); }
+    .card.selected::after { content: attr(data-order); position: absolute; top: 0; left: 0; background: var(--accent); color: #000; width: 20px; height: 20px; font-weight: bold; display: flex; align-items: center; justify-content: center; z-index: 10; font-size: 12px; }
+    .card-img { width: 100%; height: 100%; object-fit: cover; }
+
+    /* NAV */
+    .nav { height: 60px; background: #080808; border-top: 1px solid #222; display: flex; justify-content: space-around; align-items: center; }
+    .nav-btn { background: none; border: none; color: #444; font-size: 9px; font-weight: bold; display: flex; flex-direction: column; align-items: center; width: 100%; }
+    .nav-btn.active { color: var(--accent); }
+    .icon { font-size: 18px; margin-bottom: 4px; }
+
+    .btn-float { position: fixed; bottom: 80px; width: 90%; left: 5%; padding: 15px; background: #000; border: 2px solid var(--accent); color: var(--accent); font-weight: bold; z-index: 80; }
+
+    /* SETTINGS */
+    .st-row { margin-bottom: 15px; border-bottom: 1px solid #333; padding-bottom: 10px; }
+    .st-lbl { color: var(--accent); font-size: 10px; display: block; margin-bottom: 5px; }
+    .st-btn { width: 100%; padding: 10px; background: #222; color: #fff; border: 1px solid #444; text-align: left; }
+
+</style>
+</head>
+<body>
+
+<div id="sys-modal" class="modal">
+    <div class="sys-box">
+        <div id="sys-title" style="color:var(--accent); font-weight:bold; margin-bottom:10px;">SYSTEM</div>
+        <div id="sys-msg" style="font-size:12px;"></div>
+        <button class="sys-btn" onclick="document.getElementById('sys-modal').style.display='none'">OK</button>
+    </div>
+</div>
+
+<div id="scr-deck" class="screen active">
+    <div class="logo-area"><div class="main-logo">IMAGENESIS</div></div>
+    <div style="text-align:center; font-size:10px; color:#888; margin-bottom:5px;">Select 2 to 6 Fighters (Split into 2 Teams)</div>
+    <div class="deck-grid" id="deck-grid"></div>
+    <button id="btn-start" class="btn-float" onclick="initTeamBattle()">BATTLE START (0 Selected)</button>
+</div>
+
+<div id="scr-lab" class="screen">
+    <div class="logo-area"><div class="main-logo">GENESIS LAB</div></div>
+    <div class="lab-box" style="text-align:center; padding:20px;">
+        <input type="text" id="soul-text" style="width:80%; padding:10px; background:#000; color:#fff; border:1px solid #444;" placeholder="Inject Soul (Optional)">
+        <label class="upload-btn" style="display:block; margin:20px auto; width:100px; height:100px; border:1px dashed #666; border-radius:50%; position:relative;">
+            <span style="position:absolute; top:35px; left:42px; font-size:24px;">+</span>
+            <img id="prev-img" style="width:100%; height:100%; object-fit:cover; display:none; border-radius:50%;">
+            <input type="file" hidden accept="image/*" onchange="loadFile(this)">
+        </label>
+        <div id="loader" style="display:none; color:var(--accent); font-size:10px;">ANALYZING...</div>
+    </div>
+</div>
+
+<div id="scr-battle" class="screen">
+    <div class="timeline" id="timeline"></div>
+    <div class="stage" id="battle-stage"></div>
+    <div class="panel">
+        <div id="btl-msg" class="btl-msg">BATTLE START</div>
+        <div class="dice-area" id="dice-area"></div>
+        <button id="btn-roll" style="width:100%; padding:10px; background:#fff; color:#000; font-weight:bold; margin-bottom:10px;" onclick="actRoll()">ROLL DICE</button>
+        
+        <div class="action-grid">
+            <button class="act-btn basic" onclick="execAction('ATTACK')">
+                <span class="skill-name">ATTACK</span><span class="skill-type">Physical</span>
+            </button>
+            <button class="act-btn basic" onclick="execAction('DEFEND')">
+                <span class="skill-name">DEFEND</span><span class="skill-type">Block 50%</span>
+            </button>
+            <button id="btn-s1" class="act-btn" onclick="execAction('Sum>10')" disabled>
+                <span class="skill-name">Skill 1</span><span class="skill-type">Sum>10</span>
+            </button>
+            <button id="btn-s2" class="act-btn" onclick="execAction('Pair')" disabled>
+                <span class="skill-name">Skill 2</span><span class="skill-type">Pair</span>
+            </button>
+            <button id="btn-s3" class="act-btn" onclick="execAction('Triple')" disabled>
+                <span class="skill-name">Skill 3</span><span class="skill-type">Triple</span>
+            </button>
+            <button id="btn-s4" class="act-btn" onclick="execAction('Straight')" disabled>
+                <span class="skill-name">Skill 4</span><span class="skill-type">Straight</span>
+            </button>
+        </div>
+    </div>
+</div>
+
+<div id="scr-setting" class="screen">
+    <div class="logo-area"><div class="main-logo">SYSTEM</div></div>
+    <div style="padding:20px;">
+        <div class="st-row">
+            <span class="st-lbl">API KEY</span>
+            <input type="password" id="api-init" style="width:100%; padding:8px; background:#000; border:1px solid #444; color:#fff;" placeholder="Enter Gemini API Key">
+            <button onclick="saveApiKey()" style="margin-top:5px; background:#333; color:#fff; padding:5px 10px; border:none;">SAVE</button>
+        </div>
+        <div class="st-row">
+            <span class="st-lbl">SOUND</span>
+            <button id="btn-snd" class="st-btn" onclick="toggleSound()">SOUND: ON</button>
+        </div>
+        <div class="st-row">
+            <span class="st-lbl">MANUAL</span>
+            <a href="manual.html" target="_blank" style="display:block; padding:10px; background:#222; color:var(--accent); text-decoration:none; border:1px solid var(--accent); text-align:center;">OPEN MANUAL</a>
+        </div>
+        <button onclick="if(confirm('Delete All?')){localStorage.clear();location.reload();}" style="width:100%; padding:15px; background:#500; color:#fff; border:none;">RESET DATA</button>
+    </div>
+</div>
+
+<div class="nav">
+    <button class="nav-btn active" onclick="go('deck')"><span class="icon">◇</span>ARCHIVE</button>
+    <button class="nav-btn" onclick="go('lab')"><span class="icon">◈</span>LAB</button>
+    <button class="nav-btn" onclick="go('setting')"><span class="icon">◆</span>SYSTEM</button>
+</div>
+
+<script>
+// --- CONFIG ---
+const MODEL = "gemini-1.5-flash-latest";
+let apiKey = localStorage.getItem('ig_key') || "";
+let deck = JSON.parse(localStorage.getItem('ig_deck')) || [];
+let sel = []; // Selected indices
+let battle = null; // Battle state
+let soundOn = true;
+
+// --- INITIALIZATION ---
+if(!apiKey) alert("Please set API Key in SYSTEM tab.");
+renderDeck();
+
+// --- NAVIGATION ---
+function go(id){
+    document.querySelectorAll('.screen').forEach(e=>e.classList.remove('active'));
+    document.getElementById('scr-'+id).classList.add('active');
+    document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+    if(id==='deck') renderDeck();
+}
+
+// --- SOUND ---
+const actx = new (window.AudioContext||window.webkitAudioContext)();
+function snd(type){
+    if(!soundOn) return;
+    if(actx.state==='suspended') actx.resume();
+    const o=actx.createOscillator(), g=actx.createGain();
+    o.connect(g); g.connect(actx.destination);
+    const n=actx.currentTime;
+    if(type==='roll'){ o.frequency.setValueAtTime(100,n); g.gain.linearRampToValueAtTime(0,n+0.1); o.start(n); o.stop(n+0.1); }
+    if(type==='hit'){ o.type='sawtooth'; o.frequency.setValueAtTime(100,n); g.gain.linearRampToValueAtTime(0,n+0.2); o.start(n); o.stop(n+0.2); }
+}
+function toggleSound(){
+    soundOn = !soundOn;
+    document.getElementById('btn-snd').innerText = "SOUND: " + (soundOn?"ON":"OFF");
+}
+
+// --- DECK ---
+function renderDeck(){
+    const el = document.getElementById('deck-grid'); el.innerHTML="";
+    deck.forEach((m,i)=>{
+        const d=document.createElement('div');
+        d.className = `card ${sel.includes(i)?'selected':''}`;
+        if(sel.includes(i)) d.setAttribute('data-order', sel.indexOf(i)+1);
+        d.onclick = ()=>toggleSel(i);
+        d.innerHTML = `<img src="${m.img}" class="card-img">`;
+        el.appendChild(d);
+    });
+    document.getElementById('btn-start').innerText = `BATTLE START (${sel.length} Selected)`;
+}
+
+function toggleSel(i){
+    if(sel.includes(i)) sel = sel.filter(x=>x!==i);
+    else if(sel.length < 6) sel.push(i);
+    renderDeck();
+}
+
+// --- LAB (GENERATE) ---
+function loadFile(inp){
+    const f=inp.files[0]; if(!f)return;
+    const r=new FileReader();
+    r.onload=e=>{
+        document.getElementById('prev-img').src=e.target.result;
+        document.getElementById('prev-img').style.display='block';
+        genMonster(e.target.result);
+    };
+    r.readAsDataURL(f);
+}
+
+async function genMonster(b64){
+    const ldr=document.getElementById('loader'); ldr.style.display='block';
+    const soul=document.getElementById('soul-text').value;
+    
+    // V23 Prompt: Ask for Skill Names
+    const prompt = `Analyze image & soul "${soul}". Return JSON.
+    { "name": "Name", "stats": {"hp":150,"atk":20,"def":5,"spd":10,"luk":10},
+      "skills": {
+        "Sum>10": {"name":"Heavy Hit", "type":"ATTACK"},
+        "Pair": {"name":"Double Strike", "type":"SMASH"},
+        "Triple": {"name":"Ultima", "type":"CRITICAL"},
+        "Straight": {"name":"Heal Light", "type":"HEAL"}
+      }
+    }`;
+
+    try {
+        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${apiKey}`, {
+            method:"POST", headers:{"Content-Type":"application/json"},
+            body:JSON.stringify({contents:[{parts:[{text:prompt}, {inline_data:{mime_type:"image/jpeg", data:b64.split(',')[1]}}]}]})
+        });
+        const json = await res.json();
+        const data = JSON.parse(json.candidates[0].content.parts[0].text.match(/\{[\s\S]*\}/)[0]);
+        data.img = b64; data.stock = {}; // Init Skill Stock
+        deck.push(data); localStorage.setItem('ig_deck', JSON.stringify(deck));
+        ldr.style.display='none'; go('deck');
+    } catch(e) { alert("Error: "+e); ldr.style.display='none'; }
+}
+
+// --- BATTLE SYSTEM (3v3) ---
+function initTeamBattle(){
+    if(sel.length < 2) return alert("Select at least 2 fighters.");
+    
+    // Split Teams
+    const half = Math.ceil(sel.length / 2);
+    const t1 = sel.slice(0, half).map(i=>JSON.parse(JSON.stringify(deck[i])));
+    const t2 = sel.slice(half).map(i=>JSON.parse(JSON.stringify(deck[i])));
+    
+    // Init Battle State
+    battle = {
+        units: [],
+        queue: [],
+        turnIdx: 0,
+        activeUnit: null,
+        dice: [1,1,1],
+        locks: [false,false,false],
+        ap: 3
+    };
+
+    // Prepare Units
+    t1.forEach(u=>{ u.team=1; u.cur=u.stats.hp; u.stock={}; battle.units.push(u); });
+    t2.forEach(u=>{ u.team=2; u.cur=u.stats.hp; u.stock={}; battle.units.push(u); });
+    
+    // Initial Sort by SPD
+    sortQueue();
+    
+    go('battle');
+    renderStage();
+    nextTurn();
+}
+
+function sortQueue(){
+    // Filter dead, sort by SPD desc
+    battle.queue = battle.units.filter(u=>u.cur>0).sort((a,b)=>b.stats.spd - a.stats.spd);
+    renderTimeline();
+}
+
+function renderTimeline(){
+    const tl = document.getElementById('timeline'); tl.innerHTML="";
+    battle.queue.forEach((u, i)=>{
+        const img = document.createElement('img');
+        img.src = u.img; img.className = `tl-icon p${u.team} ${i===0?'active':''}`;
+        tl.appendChild(img);
+    });
+}
+
+function renderStage(){
+    const stage = document.getElementById('battle-stage'); stage.innerHTML="";
+    battle.units.forEach(u=>{
+        const div = document.createElement('div');
+        div.className = `unit-card p${u.team} ${u===battle.activeUnit?'active':''} ${u.cur<=0?'dead':''}`;
+        div.innerHTML = `
+            <img src="${u.img}" class="unit-img">
+            <div class="hp-mini"><div class="hp-mini-fill" style="width:${(u.cur/u.stats.hp)*100}%; background:${u.team===1?'var(--p1)':'var(--p2)'}"></div></div>
+        `;
+        stage.appendChild(div);
+    });
+}
+
+function nextTurn(){
+    // Check Win
+    const t1Alive = battle.units.filter(u=>u.team===1 && u.cur>0).length;
+    const t2Alive = battle.units.filter(u=>u.team===2 && u.cur>0).length;
+    if(t1Alive===0) return endBattle("Team 2 Wins!");
+    if(t2Alive===0) return endBattle("Team 1 Wins!");
+
+    // Rotate Queue
+    if(battle.queue.length === 0) sortQueue(); // Refill
+    battle.activeUnit = battle.queue.shift();
+    if(battle.activeUnit.cur <= 0) { nextTurn(); return; } // Skip dead
+
+    battle.ap = 3; 
+    battle.locks = [false,false,false];
+    
+    renderStage();
+    renderTimeline();
+    updatePanel();
+    
+    // AI Turn? (For now, Team 2 is AI)
+    if(battle.activeUnit.team === 2){
+        setTimeout(aiTurn, 1000);
+    }
+}
+
+function updatePanel(){
+    const u = battle.activeUnit;
+    document.getElementById('btl-msg').innerText = `${u.name}'s Turn`;
+    document.getElementById('btn-roll').disabled = (battle.ap <= 0);
+    renderDice();
+    
+    // Update Skill Buttons
+    updateSkillBtn('Sum>10', 'btn-s1');
+    updateSkillBtn('Pair', 'btn-s2');
+    updateSkillBtn('Triple', 'btn-s3');
+    updateSkillBtn('Straight', 'btn-s4');
+}
+
+function updateSkillBtn(role, btnId){
+    const u = battle.activeUnit;
+    const btn = document.getElementById(btnId);
+    const skill = u.skills?.[role] || {name:role, type:"ATTACK"};
+    
+    btn.innerHTML = `<span class="skill-name">${skill.name}</span><span class="skill-type">${role}</span>`;
+    
+    // Logic: Is Stoked?
+    if(u.stock[role]) {
+        btn.className = "act-btn ready";
+        btn.disabled = false;
+        btn.onclick = () => execAction(role);
+    } else {
+        btn.className = "act-btn";
+        btn.disabled = true;
+    }
+}
+
+function actRoll(){
+    if(battle.ap <= 0) return;
+    battle.ap--;
+    snd('roll');
+    
+    // Roll
+    battle.dice = battle.dice.map((v,i)=>battle.locks[i]?v:Math.ceil(Math.random()*6));
+    
+    // Check Combo & STOCK
+    const d=battle.dice, c={}; d.forEach(x=>c[x]=(c[x]||0)+1);
+    const vals=Object.values(c), sum=d.reduce((a,b)=>a+b,0), sStr=[...d].sort().join('');
+    
+    let matched = [];
+    if(vals.includes(3)) matched.push('Triple');
+    if(sStr==='123'||sStr==='234'||sStr==='345'||sStr==='456') matched.push('Straight');
+    if(vals.includes(2)) matched.push('Pair');
+    if(sum>=10) matched.push('Sum>10');
+    
+    const u = battle.activeUnit;
+    matched.forEach(role => {
+        if(u.stock[role]){
+            // Duplicate! Wasted!
+            document.getElementById('btl-msg').innerText = "SKILL DUPLICATE! (Wasted)";
+        } else {
+            u.stock[role] = true;
+            document.getElementById('btl-msg').innerText = "SKILL CHARGED: " + role;
+        }
+    });
+    
+    updatePanel();
+}
+
+function renderDice(){
+    const el = document.getElementById('dice-area'); el.innerHTML="";
+    battle.dice.forEach((v,i)=>{
+        const d = document.createElement('div'); d.className = `cube ${battle.locks[i]?'locked':''}`;
+        d.onclick = ()=>{ if(battle.activeUnit.team===1){ battle.locks[i]=!battle.locks[i]; renderDice(); }};
+        d.innerHTML = `<div class="face">${v}</div>`;
+        el.appendChild(d);
+    });
+}
+
+function execAction(actType){
+    const u = battle.activeUnit;
+    let target = battle.units.find(t => t.team !== u.team && t.cur > 0); // Simple Target Logic
+    if(!target) return;
+
+    let dmg = 0, msg = "";
+    
+    if(actType === "DEFEND"){
+        msg = "Defensive Stance!";
+        // Implement def buff logic if needed
+    } else if(actType === "ATTACK"){
+        dmg = Math.floor(u.stats.atk * 1.0);
+        msg = "Attack!";
+    } else {
+        // Skill Execution
+        const skill = u.skills[actType];
+        if(skill.type === "HEAL"){
+            u.cur = Math.min(u.stats.hp, u.cur + 40);
+            animDmg(u, "+40", "#0f0");
+            msg = `Used ${skill.name} (Heal)`;
+        } else {
+            let mult = 1.2;
+            if(skill.type === "SMASH") mult = 1.5;
+            if(skill.type === "CRITICAL") mult = 2.0;
+            dmg = Math.floor(u.stats.atk * mult);
+            msg = `Used ${skill.name}!`;
+        }
+        // Consume Stock
+        u.stock[actType] = false;
+    }
+
+    if(dmg > 0){
+        // Damage Calc (Simple)
+        target.cur = Math.max(0, target.cur - dmg);
+        animDmg(target, `-${dmg}`, "#f00");
+        snd('hit');
+    }
+    
+    document.getElementById('btl-msg').innerText = msg;
+    renderStage();
+    
+    setTimeout(nextTurn, 1000);
+}
+
+function aiTurn(){
+    // Simple AI: Roll 3 times, then use best skill or attack
+    let rolls = 3;
+    const interval = setInterval(()=>{
+        if(rolls > 0){
+            actRoll();
+            rolls--;
+        } else {
+            clearInterval(interval);
+            // Decide Action
+            const u = battle.activeUnit;
+            // Prefer Highest Skill
+            if(u.stock['Triple']) execAction('Triple');
+            else if(u.stock['Straight']) execAction('Straight');
+            else if(u.stock['Pair']) execAction('Pair');
+            else if(u.stock['Sum>10']) execAction('Sum>10');
+            else execAction('ATTACK');
+        }
+    }, 500);
+}
+
+function animDmg(unit, txt, col){
+    // Find unit element index
+    const idx = battle.units.indexOf(unit); // Wait, DOM order might differ.
+    // Re-render Stage handles HP bar, but we need text pop up.
+    // For simplicity, just pop up centered.
+    const div = document.createElement('div');
+    div.className = 'dmg-txt'; div.innerText = txt; div.style.color = col;
+    document.body.appendChild(div);
+    setTimeout(()=>div.remove(), 800);
+}
+
+function endBattle(res){ alert(res); go('deck'); }
+function saveApiKey(){ localStorage.setItem('ig_key', document.getElementById('api-init').value); alert("Saved"); }
+
+</script>
+</body>
+</html>
