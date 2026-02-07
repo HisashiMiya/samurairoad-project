@@ -3,10 +3,54 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Gemini API Model Finder</title>
-<meta name="description" content="Debug Gemini API models, verify correct model IDs, and fix 404/400 errors. Lists all available models for your API key.">
-<meta name="keywords" content="Gemini API, 404 error, model not found, gemini-1.5-flash, API debug, model list, Google AI Studio">
-<meta name="author" content="Gemini API Model Finder">
+
+<title>Gemini API Model Finder & Debugger | Fix 404 & Quota Errors</title>
+<meta name="description" content="Gemini APIの「404 Not Found」や「モデル名の間違い」に疲れていませんか？AIのハルシネーションや古いドキュメントに頼らず、あなたのAPIキーで実際に利用可能なモデル一覧（Gemini 1.5, 2.5, 3.0等）を正確に取得・検証できるデバッグツールです。">
+<meta name="keywords" content="Gemini API, 404 Not Found, 429 Too Many Requests, Quota Exceeded, model list, debug tool, Google AI Studio, gemini-1.5-flash, gemini-2.5, API Key check, SamuraiRoad">
+<meta name="author" content="SamuraiRoad Project">
+
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="SamuraiRoad Project">
+<meta property="og:title" content="Gemini API Model Finder - AIの嘘を見抜き、動くモデルを探すツール">
+<meta property="og:description" content="「Gemini 1.5 Flashなんて存在しない」と言われたら。ドキュメントと違う404エラーやレート制限(429)の原因を特定し、今本当に使えるモデルIDを可視化します。">
+<meta property="og:url" content="https://samurairoad-project.pages.dev/gemini_api_model_finder">
+<meta name="twitter:card" content="summary_large_image">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Gemini API Model Finder",
+  "url": "https://samurairoad-project.pages.dev/gemini_api_model_finder",
+  "applicationCategory": "DeveloperTool",
+  "operatingSystem": "Web Browser",
+  "description": "A debugging tool designed to solve developer frustration caused by AI hallucinations and incorrect model IDs (e.g., Gemini 1.5 Flash 404 errors). It bypasses AI predictions and fetches the live, correct model list directly from Google's API endpoint to fix 404 and 429 (Quota) errors.",
+  "browserRequirements": "Requires JavaScript. No server-side processing.",
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "JPY"
+  },
+  "author": {
+    "@type": "Organization",
+    "name": "SamuraiRoad Project",
+    "url": "https://samurairoad-project.pages.dev/"
+  },
+  "potentialAction": {
+    "@type": "SearchAction",
+    "target": "https://samurairoad-project.pages.dev/gemini_api_model_finder",
+    "query-input": "required name=api_key_check"
+  },
+  "featureList": [
+    "Verify Gemini API Key Validity & Quota Status",
+    "List all available models (Stable, Exp, Flash, Pro)",
+    "Detect hidden models (e.g., Gemini 2.5)",
+    "Fix '404 Not Found' by finding correct Model IDs",
+    "Ping test for connection check"
+  ]
+}
+</script>
+
 <style>
   :root {
     --bg: #0f1115;
@@ -32,11 +76,10 @@
   .container { max-width: 1400px; margin: 0 auto; }
   
   /* Header */
-/* Header Layout - 左寄せ対応版 */
   header {
     display: flex; 
-    justify-content: space-between; /* 両端揃え（左にタイトル、右にボタン） */
-    align-items: flex-start;        /* 上揃え */
+    justify-content: space-between;
+    align-items: flex-start;
     margin-bottom: 20px; 
     padding-bottom: 15px; 
     border-bottom: 1px solid var(--border);
@@ -44,14 +87,13 @@
     gap: 20px;
   }
 
-  /* 左側のグループ（タイトル＋説明文） */
   .header-main {
     display: flex;
-    flex-direction: column; /* 縦並び */
-    align-items: flex-start; /* 明示的に左寄せ */
-    text-align: left;        /* テキストも左揃え */
+    flex-direction: column;
+    align-items: flex-start;
+    text-align: left;
     gap: 8px;
-    max-width: 650px; /* 説明文が横に広がりすぎないように制限 */
+    max-width: 650px;
   }
 
   h1 { 
@@ -63,43 +105,30 @@
     gap: 10px; 
   }
 
-  /* 説明文のスタイル */
   .app-desc {
     margin: 0;
     font-size: 0.9rem;
-    color: #8b949e; /* 少し暗めの文字色 */
+    color: #8b949e;
     line-height: 1.5;
   }
 
-  /* 右側のグループ */
   .header-controls {
     display: flex;
     align-items: center;
     gap: 15px;
     flex-wrap: wrap;
-    /* 右側に寄せる必要がなければ、ここを調整可能 */
   }
 
-  /* スマホ表示時の調整 */
   @media (max-width: 768px) {
-    header { flex-direction: column; } /* 縦並びに変更 */
+    header { flex-direction: column; }
     .header-controls { 
       width: 100%; 
-      justify-content: flex-start; /* スマホならボタンも左寄せ */
+      justify-content: flex-start;
       margin-top: 5px; 
     }
     .navlinks { display: flex; flex-wrap: wrap; gap: 10px; }
   }
 
-  /* h1のマージンを微調整 */
-  h1 { margin: 0; font-size: 1.25rem; font-weight: 600; display: flex; align-items: center; gap: 10px; }
-  
-  /* スマホ表示時の調整 */
-  @media (max-width: 768px) {
-    header { flex-direction: column; }
-    .header-controls { width: 100%; justify-content: space-between; margin-top: 10px; }
-  }
-  h1 { margin: 0; font-size: 1.25rem; font-weight: 600; display: flex; align-items: center; gap: 10px; }
   .lang-switch {
     background: transparent; border: 1px solid var(--border); color: var(--text);
     padding: 5px 12px; border-radius: 6px; cursor: pointer; font-size: 0.85rem;
@@ -198,7 +227,7 @@
   .chat-row { display: flex; gap: 10px; }
   .chat-role { font-weight: bold; min-width: 60px; text-align: right; }
   .chat-role.me { color: var(--accent); }
-  .chat-role.ai { color: var(--pro); }
+  .chat-role.ai { color: var(--pro); } /* Using Pro color for AI */
   .chat-text { color: var(--text); white-space: pre-wrap; line-height: 1.4; }
 
   /* Modal (Raw JSON) */
@@ -220,19 +249,18 @@
   .promo-link { text-decoration: none; color: var(--accent); font-weight: 600; font-size: 0.9rem; }
   .promo-link:hover { text-decoration: underline; }
 
-
-/* Share / Tracking */
-.share-panel h2 { margin: 0 0 10px; font-size: 1rem; }
-.share-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
-.share-note { margin: 10px 0 0; color: var(--sub); font-size: 0.9rem; }
-.copy-status { color: var(--sub); font-size: 0.85rem; }
+  /* Share / Tracking */
+  .share-panel h2 { margin: 0 0 10px; font-size: 1rem; }
+  .share-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+  .share-note { margin: 10px 0 0; color: var(--sub); font-size: 0.9rem; }
+  .copy-status { color: var(--sub); font-size: 0.85rem; }
 </style>
 </head>
 <body>
 
 <div class="container">
   
-<header>
+  <header>
     <div class="header-main">
       <h1>
         <span style="font-size:1.5rem;">🔍</span>
@@ -245,7 +273,7 @@
 
     <div class="header-controls">
       <div class="navlinks">
-        <a class="pill" href="gemini_api_intro.html" target="_blank" data-i18n="link_intro">🧭 APIキー取得ガイド</a>
+        <a class="pill" href="gemini_api_key_guide.html" target="_blank" data-i18n="link_intro">🧭 APIキー取得ガイド</a>
         <a class="pill" href="gemini_api_model_finder_guid.html" target="_blank" title="初心者向け解説書" data-i18n="link_guide">📘 初心者ガイドを見る</a>
         <a class="pill" href="worldmap.html" data-i18n="link_world">🚀 World Route</a>
       </div>
@@ -279,15 +307,16 @@
   </details>
 
   <div class="panel share-panel" id="gptSharePanel" style="margin-top:0;">
-  <h2 data-i18n="share_title">Share / Tracking</h2>
-  <div class="share-row">
-    <span class="copy-status" id="copyStatus" aria-live="polite"></span>
-  </div>
+    <h2 data-i18n="share_title">Share / Tracking</h2>
+    <div class="share-row">
+      <button id="btnCopyGptLink" class="chip" style="color:var(--text); border-color:var(--text);">🔗 Copy Link</button>
+      <span class="copy-status" id="copyStatus" aria-live="polite"></span>
+    </div>
 
-  <p class="share-note" data-i18n="privacy_note">
-    ※このページは、入力したAPIキーを当サイト（SamuraiRoad Project）のサーバーへ送信しません。APIキーはブラウザ内でのみ利用され、GoogleのAPIエンドポイントへ直接送信してモデル一覧取得・疎通確認を行います。
-  </p>
-</div>
+    <p class="share-note" data-i18n="privacy_note">
+      ※このページは、入力したAPIキーを当サイト（SamuraiRoad Project）のサーバーへ送信しません。APIキーはブラウザ内でのみ利用され、GoogleのAPIエンドポイントへ直接送信してモデル一覧取得・疎通確認を行います。
+    </p>
+  </div>
 
   <div class="panel">
     <div class="input-group">
@@ -343,8 +372,7 @@
 
   <div class="dev-log">
     <strong data-i18n="log_title">■ 開発ログ：API仕様との格闘</strong>
-    <div class="chat-box" id="devLogContent">
-      </div>
+    <div class="chat-box" id="devLogContent"></div>
   </div>
 
 </div>
@@ -361,7 +389,6 @@
   </div>
 </div>
 
-<BR>
 <script>
 /* --- Text Resources (i18n) --- */
 const resources = {
@@ -393,16 +420,11 @@ const resources = {
     btn_ping: "接続テスト実行",
     log_wait: "// 待機中。モデルを選択してテストしてください。",
     promo_link: "🚀 アプリ「World Route」へ移動する",
-
-share_title: "共有リンク（from=...）",
-share_link_gpt: "🔗 GPT用リンク",
-share_link_discord: "💬 Discord用リンク",
-share_link_x: "𝕏 X用リンク",
-share_copy_btn: "GPT用リンクをコピー",
-privacy_note: "※このページは、入力したAPIキーを当サイト（SamuraiRoad Project）のサーバーへ送信しません。APIキーはブラウザ内でのみ利用され、GoogleのAPIエンドポイントへ直接送信してモデル一覧取得・疎通確認を行います。APIキーを保存・無断使用することはありません。",
+    share_title: "Share / Tracking",
+    privacy_note: "※このページは、入力したAPIキーを当サイト（SamuraiRoad Project）のサーバーへ送信しません。APIキーはブラウザ内でのみ利用され、GoogleのAPIエンドポイントへ直接送信してモデル一覧取得・疎通確認を行います。",
     alert_key: "APIキーを入力してください",
     alert_err: "エラー: ",
-    no_models: "権限のあるモデルが見つかりませんでした。",
+    no_models: "権限のあるモデルが見つかりませんでした。404エラーの場合は、APIキーの権限かエンドポイントを確認してください。",
     ping_ok: "成功！",
     ping_ng: "失敗",
     log_title: "■ 開発ログ：API仕様との格闘",
@@ -445,16 +467,11 @@ privacy_note: "※このページは、入力したAPIキーを当サイト（Sa
     btn_ping: "Ping Test",
     log_wait: "// Ready. Select a model to test connection.",
     promo_link: "🚀 Open \"World Route\" App",
-
-share_title: "Share links (from=...)",
-share_link_gpt: "🔗 Link for GPT",
-share_link_discord: "💬 Link for Discord",
-share_link_x: "𝕏 Link for X",
-share_copy_btn: "Copy GPT link",
-privacy_note: "This page does NOT send your API key to SamuraiRoad Project servers. Your key is used only in your browser and is sent directly to Google's API endpoints to fetch the model list and run a ping test. We do not store or use your key without permission.",
+    share_title: "Share / Tracking",
+    privacy_note: "This page does NOT send your API key to SamuraiRoad Project servers. Your key is used only in your browser and is sent directly to Google's API endpoints.",
     alert_key: "Please enter API Key",
     alert_err: "Error: ",
-    no_models: "No allowed models found.",
+    no_models: "No allowed models found. Check your API key or endpoint for 404/400 errors.",
     ping_ok: "SUCCESS!",
     ping_ng: "FAILED",
     log_title: "■ Dev Log: Fighting with API Specs",
@@ -655,86 +672,37 @@ function closeModal() {
   document.getElementById('jsonModal').style.display = 'none';
 }
 
-/* --- Share / Tracking (Safe) --- */
-function safeTrack(eventName, params) {
+/* --- Share / Copy Logic --- */
+const btn = document.getElementById("btnCopyGptLink");
+const statusEl = document.getElementById("copyStatus");
+
+btn.addEventListener("click", async () => {
+  const url = new URL(window.location.href);
+  url.searchParams.set("from", "gpt");
+  const text = url.toString();
+
+  let copied = false;
   try {
-    if (typeof window.gtag === "function") {
-      window.gtag("event", eventName, params || {});
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      await navigator.clipboard.writeText(text);
+      copied = true;
     }
-  } catch (e) {
-    // no-op
-  }
-}
-
-function getParam(name) {
-  try {
-    const url = new URL(window.location.href);
-    return url.searchParams.get(name);
-  } catch (e) {
-    return null;
-  }
-}
-
-(function trackReferralOnce() {
-  const from = getParam("from");
-  if (!from) return;
-
-  try {
-    const key = "sr_ref_tracked_" + from;
-    if (sessionStorage.getItem(key) === "1") return;
-    sessionStorage.setItem(key, "1");
   } catch (e) {
     // ignore
   }
 
-  safeTrack("gemini_finder_referral", { from, page: "gemini_api_model_finder" });
-})();
+  if (!copied) {
+    try { window.prompt("Copy this link:", text); } catch (e) {}
+  }
 
-(function wireShareButtons() {
-  // Track share link clicks
-  document.querySelectorAll('a[data-share]').forEach(a => {
-    a.addEventListener('click', () => {
-      const from = a.getAttribute('data-share') || 'unknown';
-      safeTrack("gemini_finder_share_click", { from, page: "gemini_api_model_finder" });
-    });
-  });
-
-  // Copy button
-  const btn = document.getElementById("btnCopyGptLink");
-  if (!btn) return;
-
-  const statusEl = document.getElementById("copyStatus");
-
-  btn.addEventListener("click", async () => {
-    const url = new URL(window.location.href);
-    url.searchParams.set("from", "gpt");
-    const text = url.toString();
-
-    let copied = false;
-    try {
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        await navigator.clipboard.writeText(text);
-        copied = true;
-      }
-    } catch (e) {
-      // ignore
-    }
-
-    if (!copied) {
-      try { window.prompt("Copy this link:", text); } catch (e) {}
-    }
-
-    if (statusEl) {
-      statusEl.textContent = copied ? "✓ Copied" : "✓ Link ready";
-      try { setTimeout(() => { statusEl.textContent = ""; }, 2500); } catch (e) {}
-    }
-
-    safeTrack("gemini_finder_copy_link", { from: "gpt", page: "gemini_api_model_finder" });
-  });
-})();
+  if (statusEl) {
+    statusEl.textContent = copied ? "✓ Copied" : "✓ Link ready";
+    setTimeout(() => { statusEl.textContent = ""; }, 2500);
+  }
+});
 
 // Init
-updateUIText(); // Load initial text (JA)
+updateUIText(); 
 </script>
 </body>
 </html>

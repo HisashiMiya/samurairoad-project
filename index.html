@@ -155,25 +155,16 @@
         </div>
       </div>
 
-
       <div class="card feature">
         <div class="tag" data-i18n="tag_dev">Dev</div>
-        <h4 data-i18n="gemini_title">Gemini API Model Finder</h4>
-        <p data-i18n="gemini_desc">Explore and identify available Gemini API models.</p>
-        <div class="actions">
-          <a class="btn primary" data-link="gemini_api_model_finder" data-i18n="open">Open</a>
+        <h4 data-i18n="gemini_dojo_title">Gemini API Dojo</h4>
+        <p data-i18n="gemini_dojo_desc">Get your API key, explore models, then follow the beginner guide — in that order.</p>
+        <div class="actions" style="flex-direction:column; gap:6px; align-items:stretch">
+          <a class="btn" data-link="gemini_api_intro" data-i18n="gemini_step1">① API Key Guide</a>
+          <a class="btn primary" data-link="gemini_api_model_finder" data-i18n="gemini_step2">② Model Finder Tool</a>
+          <a class="btn" data-link="gemini_api_beginner_guide" data-i18n="gemini_step3">③ Beginner Guide</a>
         </div>
       </div>
-      
-      <div class="card feature">
-        <div class="tag" data-i18n="tag_dev">Dev</div>
-        <h4 data-i18n="icon_maker_title">Samurai Icon Generator</h4>
-        <p data-i18n="icon_maker_desc">Create Android-ready app icons (512px) and quick prototypes.</p>
-        <div class="actions">
-          <a class="btn primary" data-link="icon_maker" data-i18n="open">Open</a>
-        </div>
-      </div>
-
       <div class="card feature">
         <div class="tag" data-i18n="tag_rt">Real-time</div>
         <h4 data-i18n="shogi_title">Shogi</h4>
@@ -200,11 +191,11 @@
     Experimental game series inspired by samurai themes.
   </p>
   <div class="actions" style="flex-direction:column; gap:6px;">
-    <a class="btn" href="./g/000/#000_samurai.html" data-i18n="samurai_000">#000 Samurai</a>
-    <a class="btn" href="./g/000/#001_samurai_kengo.html" data-i18n="samurai_001">#001 Samurai – Kengo</a>
-    <a class="btn" href="./g/000/#002_samurai_ketto.html" data-i18n="samurai_002">#002 Samurai – Ketto</a>
-    <a class="btn" href="./g/000/#003_samurai_garyo.html" data-i18n="samurai_003">#003 Samurai – Garyo</a>
-    <a class="btn" href="./g/000/#004_samurai_kessen.html" data-i18n="samurai_004">#004 Samurai – Kessen</a>
+    <a class="btn" href="./g/000/000_samurai.html" data-i18n="samurai_000">#000 Samurai</a>
+    <a class="btn" href="./g/000/001_samurai_kengo.html" data-i18n="samurai_001">#001 Samurai – Kengo</a>
+    <a class="btn" href="./g/000/002_samurai_ketto.html" data-i18n="samurai_002">#002 Samurai – Ketto</a>
+    <a class="btn" href="./g/000/003_samurai_garyo.html" data-i18n="samurai_003">#003 Samurai – Garyo</a>
+    <a class="btn" href="./g/000/004_samurai_kessen.html" data-i18n="samurai_004">#004 Samurai – Kessen</a>
     <a class="btn primary" href="./g/001/game.html" data-i18n="samurai_hub">Game Hub</a>
   </div>
 </div>
@@ -254,6 +245,8 @@ const LINKS = {
   intro: "./samurairoad_intro.html",
   index_original: "./index_original.html",
   gemini_api_model_finder: "./gemini_api_model_finder.html",
+  gemini_api_intro: "./gemini_api_intro.html",
+  gemini_api_beginner_guide: "./gemini_api_model_finder_guid.html",
     tag_dev: "Dev",
     icon_maker_title: "Samurai Icon Generator",
     icon_maker_desc: "Create Android-ready app icons (512px) and quick prototypes.",
@@ -315,6 +308,14 @@ window.SR_I18N = {
     engine_desc: "Search interface.",
     ai_title: "Search AI",
     ai_desc: "AI-powered search page.",
+    tag_dev: "Dev",
+    qa_gemini_t: "Gemini API",
+    qa_gemini_d: "Model Finder",
+    gemini_dojo_title: "Gemini API Dojo",
+    gemini_dojo_desc: "Get your API key, explore models, then follow the beginner guide — in that order.",
+    gemini_step1: "① API Key Guide",
+    gemini_step2: "② Model Finder Tool",
+    gemini_step3: "③ Beginner Guide",
     tag_rt: "Real-time",
     shogi_title: "Shogi",
     shogi_desc: "Online Shogi interface.",
@@ -386,6 +387,14 @@ bunosuke_play: "🐷 Fly! Bunosuke",
     engine_desc: "検索インターフェース。",
     ai_title: "検索AI",
     ai_desc: "AI検索ページ。",
+    tag_dev: "開発",
+    qa_gemini_t: "Gemini API",
+    qa_gemini_d: "モデル探索",
+    gemini_dojo_title: "Gemini API 修行",
+    gemini_dojo_desc: "APIキー取得 → モデル探索 → 初心者ガイド の順で進めます。",
+    gemini_step1: "① APIキー取得ガイド",
+    gemini_step2: "② モデル探索ツール",
+    gemini_step3: "③ 初心者ガイド",
     tag_rt: "リアルタイム",
     shogi_title: "将棋",
     shogi_desc: "オンライン将棋UI。",
