@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Privacy Policy - IMAGENESIS</title>
+<style>
+    body { background: #111; color: #eee; font-family: sans-serif; padding: 20px; line-height: 1.6; max-width: 800px; margin: 0 auto; }
+    h1 { color: #00f0ff; border-bottom: 1px solid #00f0ff; padding-bottom: 10px; font-family: 'Orbitron', sans-serif; }
+    h2 { color: #fff; margin-top: 30px; border-left: 4px solid #00f0ff; padding-left: 10px; }
+    ul { background: #1a1a1a; padding: 15px 30px; border-radius: 8px; }
+    li { margin-bottom: 10px; }
+    .highlight { color: #ff4444; font-weight: bold; }
+    a { color: #00f0ff; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .close-btn { 
+        display: block; width: 200px; margin: 40px auto; padding: 12px; 
+        background: #333; color: #fff; border: 1px solid #666; 
+        cursor: pointer; text-align: center; font-weight: bold;
+    }
+    .close-btn:hover { background: #444; }
+</style>
+</head>
+<body>
+
+<h1>PRIVACY POLICY</h1>
+<p style="font-size:0.8em; color:#888;">最終更新日: 2026年2月8日</p>
+
+<p>本アプリケーション「IMAGENESIS」（以下「当アプリ」）は、ユーザーのプライバシーを尊重し、個人情報の保護に努めます。当アプリにおけるデータの取り扱いについて、以下の通り定めます。</p>
+
+<h2>1. データの保存場所 (Local Storage)</h2>
+<p>当アプリは、以下のデータを<strong>お客様のブラウザ内（ローカルストレージ）にのみ</strong>保存します。</p>
+<ul>
+    <li>生成されたキャラクターデータ（画像、名前、ステータス）</li>
+    <li>ゲームの進行状況、設定内容</li>
+    <li>お客様が入力されたGoogle Gemini APIキー</li>
+</ul>
+<p><span class="highlight">これらのデータが、開発者のサーバーに送信・保存されることは一切ありません。</span>お客様がブラウザのキャッシュを削除しない限り、データはお客様の端末内に保持されます。</p>
+
+<h2>2. Google Gemini APIキーの取り扱い</h2>
+<p>当アプリでは、Google社の生成AIを利用するためにAPIキーの入力を推奨しています。</p>
+<ul>
+    <li>入力されたAPIキーは、<strong>Googleのサーバーとの直接通信（APIリクエスト）にのみ使用されます。</strong></li>
+    <li>APIキーが開発者や第三者のサーバーを経由・保存されることはありません。</li>
+    <li>APIキーは暗号化されずローカルストレージに保存されます。共用PCなどでご利用の場合は、使用後に「RESET DATA」で削除することを推奨します。</li>
+</ul>
+
+<h2>3. 画像データの送信とプロキシ利用</h2>
+<p>キャラクター生成時、アップロードされた画像データは以下のいずれかの経路で解析されます。</p>
+<ul>
+    <li><strong>APIキー設定時:</strong> お客様の端末から直接 Google のサーバーへ送信されます。</li>
+    <li><strong>APIキー未設定時:</strong> 開発者が用意した中継サーバー（Cloudflare Workers）を経由して Google のサーバーへ送信されます。
+        <br>※この中継サーバーはリクエストを転送する機能のみを持ち、<strong>画像データやプロンプトの内容を保存（ログ記録）することは一切ありません。</strong></li>
+</ul>
+<p>いずれの場合も、送信された画像データは解析完了後に即座に破棄され、Googleの学習データとしての利用設定等はGoogle側の規約（<a href="https://policies.google.com/privacy" target="_blank">Google プライバシーポリシー</a>）に準じます。</p>
+
+<h2>4. 課金（GEM）と仮想通貨について</h2>
+<p>当アプリ内で表示される「GEM」や「課金」「MINT」等の表現は、すべて<strong>ゲーム内の演出（シミュレーション）</strong>です。</p>
+<ul>
+    <li>実際の金銭の支払いは発生しません。</li>
+    <li>クレジットカード情報等の決済情報を要求することはありません。</li>
+</ul>
+
+<h2>5. 免責事項</h2>
+<p>当アプリの利用により生じた損害（API利用枠の超過、データの消失など）について、開発者は一切の責任を負わないものとします。APIキーのご利用は、Google AI Studioの利用規約に基づき、ご自身の責任において行ってください。</p>
+
+<div style="margin-top:40px;">
+    <button onclick="window.close()" class="close-btn">閉じる</button>
+</div>
+
+</body>
+</html>
