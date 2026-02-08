@@ -417,6 +417,27 @@
       el.textContent = t(el.dataset.lang);
     });
     renderRouteMenu();
+    // ■■■ 新機能: 地図長押しで侍を呼ぶ ■■■
+  map.on('contextmenu', function(e) {
+      const lat = e.latlng.lat;
+      const lng = e.latlng.lng;
+
+      // ポップアップの内容（スタイルはアプリに合わせる）
+      const popupContent = `
+        <div style="text-align:center; font-family: sans-serif;">
+            <div style="font-weight:bold; margin-bottom:8px; color:#333;">この場所について聞く</div>
+            <button onclick="window.askSamuraiSpot(${lat}, ${lng})" 
+              style="background: #0066cc; color: white; border: none; padding: 8px 16px; border-radius: 20px; font-weight: bold; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
+              🏯 侍解説
+            </button>
+        </div>
+      `;
+
+      L.popup()
+        .setLatLng(e.latlng)
+        .setContent(popupContent)
+        .openOn(map);
+  });
     updateRecordStats();
     renderRecordButtonState();
     updateTopBarText();
@@ -643,6 +664,41 @@ Please answer in English.
     }
   }
 
+
+// ■■■ 指定地点の侍解説を実行する関数 ■■■
+  window.askSamuraiSpot = async function(lat, lng) {
+      map.closePopup(); // ポップアップを閉じる
+      showLoading();    // ローディング開始
+
+      let prompt = "";
+      
+      if (AppState.lang === 'en') {
+          prompt = `I am pointing at a location on the map (Latitude ${lat}, Longitude ${longitude}).
+Please act as a historical Samurai guide.
+Explain the history, famous landmarks, or hidden gems near this specific location.
+Focus on the Edo period or old roads if applicable.
+[Constraint]: No titles. Start directly with the explanation.`;
+      } else {
+          prompt = `私は地図上のこの地点（緯度${lat}、経度${lng}）を指しています。
+この場所、あるいはここから最も近い名所・旧跡・宿場町について、
+「土地勘のある侍」として詳しく解説してください。
+特に、その土地の歴史的背景や、旅人が立ち寄るべきスポットがあれば教えてください。
+【制約事項】
+・タイトルや見出しは不要です。いきなり本文から語り始めてください。
+・口調は威厳がありつつも親切な侍言葉で。`;
+      }
+
+      try {
+          // 既存のAPI呼び出し関数を再利用
+          const answer = await callGemini(prompt);
+          hideLoading();
+          showAIResult(answer);
+      } catch (e) {
+          hideLoading();
+          console.error(e);
+          alert(t('msg_error'));
+      }
+  };
   // =========================================
   // 5. 記録・インポート・エクスポート
   // =========================================
