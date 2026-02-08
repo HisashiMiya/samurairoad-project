@@ -1,0 +1,918 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>宿泊検索リンク（メジャーサイト横断）</title>
+  <meta name="description" content="チェックイン/アウト・人数・部屋数・場所を指定して、主要宿泊サイトの検索ページへ一括で遷移できます。" />
+
+  <style>
+    :root{
+      --bg1:#06121c;
+      --bg2:#0a1b2a;
+      --panel: rgba(255,255,255,.08);
+      --panel2: rgba(0,0,0,.20);
+      --text:#eaf2ff;
+      --muted:#b6c3d9;
+      --line:rgba(255,255,255,.18);
+      --accent:#7dd3fc;   /* sky */
+      --accent2:#a7f3d0;  /* mint */
+      --warn:#fde68a;     /* sand */
+      --danger:#fca5a5;   /* coral */
+      --radius:18px;
+    }
+
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, "Noto Sans JP", sans-serif;
+      color:var(--text);
+      line-height:1.55;
+      background:
+        radial-gradient(1200px 800px at 20% -10%, rgba(125,211,252,.22), transparent 60%),
+        radial-gradient(1000px 700px at 85% 0%, rgba(167,243,208,.16), transparent 55%),
+        radial-gradient(1000px 800px at 50% 110%, rgba(253,230,138,.12), transparent 55%),
+        linear-gradient(180deg, var(--bg1), var(--bg2));
+      min-height:100vh;
+    }
+
+    header{
+      padding:20px 14px 12px;
+      border-bottom:1px solid var(--line);
+      background:linear-gradient(to bottom, rgba(255,255,255,.07), transparent);
+      backdrop-filter: blur(6px);
+      position:sticky; top:0; z-index:10;
+    }
+
+    .wrap{max-width:1100px;margin:0 auto;padding:0 10px}
+    h1{margin:0 0 6px;font-size:20px;letter-spacing:.2px}
+    .sub{margin:0;color:var(--muted);font-size:13px}
+
+    main{padding:14px 0 28px}
+
+    .panel{
+      border:1px solid var(--line);
+      background: linear-gradient(180deg, rgba(255,255,255,.10), rgba(0,0,0,.18));
+      border-radius:var(--radius);
+      padding:14px;
+      box-shadow: 0 14px 50px rgba(0,0,0,.35);
+    }
+
+    .grid{
+      display:grid;
+      gap:10px;
+      grid-template-columns: repeat(12, 1fr);
+      align-items:end;
+    }
+    .field{grid-column: span 12}
+    @media (min-width: 820px){
+      .field.place{grid-column: span 6}
+      .field.date{grid-column: span 3}
+      .field.small{grid-column: span 2}
+      .field.rooms{grid-column: span 2}
+      .field.action{grid-column: span 2}
+    }
+
+    label{display:block;font-size:12px;color:var(--muted);margin:0 0 6px}
+
+    input, select{
+      width:100%;
+      padding:12px 12px;
+      border-radius:16px;
+      border:1px solid rgba(255,255,255,.18);
+      background:rgba(6,10,14,.40);
+      color:var(--text);
+      outline:none;
+      font-size:15px;
+    }
+    input:focus, select:focus{
+      border-color:rgba(125,211,252,.65);
+      box-shadow:0 0 0 4px rgba(125,211,252,.13)
+    }
+
+    .row2{
+      display:flex; gap:10px; flex-wrap:wrap; align-items:center; justify-content:space-between;
+      margin-top:12px;
+    }
+
+    .btn{
+      padding:12px 14px;
+      border-radius:16px;
+      border:1px solid rgba(125,211,252,.40);
+      background:linear-gradient(180deg, rgba(125,211,252,.20), rgba(125,211,252,.06));
+      color:var(--text);
+      cursor:pointer;
+      font-weight:800;
+      letter-spacing:.2px;
+      min-height:44px; /* mobile tap */
+    }
+    .btn:hover{filter:brightness(1.08)}
+    .btn.secondary{
+      border:1px solid rgba(255,255,255,.18);
+      background:rgba(255,255,255,.05);
+      font-weight:700;
+      color:var(--muted);
+    }
+
+    .chips{display:flex;gap:8px;flex-wrap:wrap}
+    .chip{
+      padding:9px 11px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.18);
+      background:rgba(0,0,0,.15);
+      color:var(--muted);
+      cursor:pointer;
+      user-select:none;
+      font-size:12px;
+      min-height:40px; /* mobile tap */
+    }
+    .chip[aria-pressed="true"]{
+      border-color:rgba(167,243,208,.55);
+      background:rgba(167,243,208,.12);
+      color:var(--text);
+    }
+
+    .hint{font-size:12px;color:var(--muted)}
+    .error{
+      margin-top:10px;
+      padding:10px 12px;
+      border-radius:16px;
+      border:1px solid rgba(252,165,165,.45);
+      background:rgba(252,165,165,.10);
+      color:#ffe1e1;
+      display:none;
+      white-space:pre-line;
+    }
+
+    .legend{
+      margin-top:12px;
+      border:1px solid rgba(255,255,255,.14);
+      border-radius:16px;
+      padding:10px 12px;
+      background:rgba(255,255,255,.04);
+    }
+    .legendTitle{font-weight:900;margin:0 0 6px;font-size:13px}
+    .legendGrid{display:flex;flex-wrap:wrap;gap:8px}
+    .pill{
+      font-size:11px;
+      padding:7px 9px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.18);
+      color:var(--muted);
+      background:rgba(255,255,255,.03);
+    }
+    .pill.primary{border-color:rgba(125,211,252,.45); color:#dff7ff; background:rgba(125,211,252,.10)}
+    .pill.good{border-color:rgba(167,243,208,.45); color:#eafff5; background:rgba(167,243,208,.10)}
+    .pill.warn{border-color:rgba(253,230,138,.50); color:#fff4cf; background:rgba(253,230,138,.10)}
+
+    /* Results */
+    .resultsHead{
+      display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;
+      margin-top:14px;
+    }
+    .count{color:var(--muted);font-size:12px}
+
+    .cards{
+      display:grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap:12px;
+      margin-top:12px;
+    }
+
+    .card{
+      border:1px solid rgba(255,255,255,.16);
+      border-radius:var(--radius);
+      padding:12px;
+      background:linear-gradient(180deg, rgba(255,255,255,.08), rgba(0,0,0,.18));
+      position:relative;
+      overflow:hidden;
+    }
+    .card::before{
+      content:"";
+      position:absolute; inset:-1px -1px auto auto;
+      width:140px; height:140px;
+      background:radial-gradient(circle at 30% 30%, rgba(125,211,252,.18), transparent 60%);
+      pointer-events:none;
+    }
+    .cardTop{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+    .name{font-weight:900;font-size:15px;margin:0}
+    .badge{
+      font-size:11px;
+      padding:7px 9px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.18);
+      color:var(--muted);
+      background:rgba(0,0,0,.12);
+      white-space:nowrap;
+    }
+
+    .feat{margin:8px 0 0;color:var(--muted);font-size:13px}
+    .who{margin:8px 0 0;font-size:13px}
+    .who b{color:#ffffff}
+
+    .tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+    .tag{
+      font-size:11px;
+      padding:7px 9px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.16);
+      color:var(--muted);
+      background:rgba(255,255,255,.03);
+    }
+    .tag.primary{border-color:rgba(125,211,252,.45); color:#dff7ff; background:rgba(125,211,252,.10)}
+    .tag.good{border-color:rgba(167,243,208,.45); color:#eafff5; background:rgba(167,243,208,.10)}
+    .tag.warn{border-color:rgba(253,230,138,.55); color:#fff4cf; background:rgba(253,230,138,.10)}
+
+    .go{
+      display:flex; align-items:center; justify-content:space-between; gap:8px;
+      margin-top:12px;
+      padding-top:10px;
+      border-top:1px solid rgba(255,255,255,.12);
+    }
+    .go a{
+      display:inline-flex; align-items:center; gap:8px;
+      padding:11px 12px;
+      border-radius:16px;
+      border:1px solid rgba(125,211,252,.42);
+      background:linear-gradient(180deg, rgba(125,211,252,.16), rgba(125,211,252,.05));
+      color:var(--text);
+      text-decoration:none;
+      font-weight:900;
+      min-height:44px; /* mobile tap */
+    }
+    .go a:hover{filter:brightness(1.08)}
+    .go .tiny{font-size:11px;color:var(--muted)}
+
+    details{
+      border:1px solid rgba(255,255,255,.12);
+      border-radius:16px;
+      padding:10px 12px;
+      background:rgba(255,255,255,.03);
+      margin-top:10px;
+    }
+    summary{cursor:pointer; font-weight:900}
+    .note{margin:8px 0 0; color:var(--muted)}
+    .mono{font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Noto Sans Mono", monospace; font-size:11px; opacity:.95; word-break:break-all}
+
+    footer{
+      border-top:1px solid rgba(255,255,255,.14);
+      padding:16px 0 26px;
+      color:var(--muted);
+      font-size:12px;
+    }
+
+    /* Mobile: bottom action bar */
+    .mobileBar{
+      display:none;
+    }
+    @media (max-width: 640px){
+      header{position:sticky; top:0}
+      .field.action{display:none} /* 上のボタンは隠して、下に固定バー */
+      .mobileBar{
+        display:flex;
+        position:fixed; left:0; right:0; bottom:0;
+        padding:10px 10px calc(10px + env(safe-area-inset-bottom));
+        background:linear-gradient(180deg, rgba(0,0,0,.0), rgba(0,0,0,.55));
+        backdrop-filter: blur(10px);
+        gap:10px;
+        z-index:30;
+      }
+      .mobileBar .btn{flex:1}
+      main{padding-bottom:92px}
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <div class="wrap">
+      <h1>宿泊検索リンク（メジャーサイト横断）</h1>
+      <p class="sub">条件を入れると、主要サイトの検索ページをまとめて生成します（検索結果は各サイトで表示）。</p>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section class="panel" aria-label="search-form">
+      <div class="grid">
+        <div class="field place">
+          <label for="place">場所（駅名/地名/観光地/市区町村など）</label>
+          <input id="place" placeholder="例：東京 / 京都駅 / 箱根湯本" autocomplete="off" />
+        </div>
+
+        <div class="field date">
+          <label for="checkin">チェックイン</label>
+          <input id="checkin" type="date" inputmode="numeric" />
+        </div>
+
+        <div class="field date">
+          <label for="checkout">チェックアウト</label>
+          <input id="checkout" type="date" inputmode="numeric" />
+        </div>
+
+        <div class="field small">
+          <label for="adults">大人</label>
+          <input id="adults" type="number" min="1" value="2" inputmode="numeric" />
+        </div>
+
+        <div class="field small">
+          <label for="children">子供</label>
+          <input id="children" type="number" min="0" value="0" inputmode="numeric" />
+        </div>
+
+        <div class="field rooms">
+          <label for="rooms">部屋数</label>
+          <input id="rooms" type="number" min="1" value="1" inputmode="numeric" />
+        </div>
+
+        <div class="field action">
+          <button class="btn" id="btnBuild" type="button">リンク生成</button>
+        </div>
+      </div>
+
+      <div class="row2">
+        <div class="chips" aria-label="filters">
+          <button class="chip" type="button" data-filter="all" aria-pressed="true">全部</button>
+          <button class="chip" type="button" data-filter="domestic" aria-pressed="false">国内メジャー</button>
+          <button class="chip" type="button" data-filter="global" aria-pressed="false">海外系</button>
+          <button class="chip" type="button" data-filter="meta" aria-pressed="false">比較/地図</button>
+          <button class="chip" type="button" data-filter="value" aria-pressed="false">価格重視</button>
+          <button class="chip" type="button" data-filter="luxury" aria-pressed="false">高級/記念日</button>
+          <button class="chip" type="button" data-filter="family" aria-pressed="false">家族/グループ</button>
+        </div>
+
+        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+          <span class="hint">並び順</span>
+          <select id="sort">
+            <option value="recommended">おすすめ</option>
+            <option value="name">名前順</option>
+            <option value="category">カテゴリ順</option>
+          </select>
+          <button class="btn secondary" id="btnShare" type="button">この条件をURLに保存</button>
+          <button class="btn secondary" id="btnReset" type="button">リセット</button>
+        </div>
+      </div>
+
+      <div class="legend" aria-label="legend">
+        <p class="legendTitle">見方（特徴が一目で分かるように）</p>
+        <div class="legendGrid">
+          <span class="pill primary">条件引継ぎ◎：日付/人数が渡りやすい</span>
+          <span class="pill warn">入口確実：サイト内検索で確実に入口へ</span>
+          <span class="pill good">用途タグ：価格/高級/家族/比較</span>
+        </div>
+      </div>
+
+      <div id="error" class="error" role="alert"></div>
+
+      <details>
+        <summary>このページの考え方（読み飛ばしOK）</summary>
+        <p class="note">
+          “結果をこのページに表示”せず、<b>各公式サイトの検索ページへ条件付きで遷移</b>します。<br/>
+          予約サイトはURL仕様が変わることがあるため、壊れにくいように
+          <b>直リンク（安定しやすい）</b>と<b>サイト内検索（確実に入口へ）</b>を併用しています。
+        </p>
+      </details>
+    </section>
+
+    <section class="resultsHead" aria-label="results-header">
+      <div class="count" id="count">リンク未生成</div>
+      <div class="hint">リンクは新しいタブで開きます。</div>
+    </section>
+
+    <section class="cards" id="cards" aria-label="results"></section>
+
+    <footer>
+      <div class="wrap">
+        <div>※ 予約サイトの仕様変更により、一部リンクの条件引き継ぎが弱い場合があります（その場合も検索入口には到達します）。</div>
+        <div>※ 本ページはスクレイピングせず、公式ページへの送客のみを行います。</div>
+      </div>
+    </footer>
+  </main>
+
+  <!-- Mobile bottom action bar -->
+  <div class="mobileBar" aria-label="mobile-actions">
+    <button class="btn" id="btnBuildMobile" type="button">リンク生成</button>
+    <button class="btn secondary" id="btnShareMobile" type="button">URL保存</button>
+  </div>
+
+  <script>
+    const $ = (id) => document.getElementById(id);
+    const enc = (s) => encodeURIComponent((s || "").trim());
+
+    // 壊れにくい「サイト内検索」URL（Google / Yahoo）
+    function googleSiteSearch(domain, query){
+      return `https://www.google.com/search?q=${enc(query + " site:" + domain)}`;
+    }
+    function yahooSiteSearch(domain, query){
+      return `https://search.yahoo.co.jp/search?p=${enc(query + " site:" + domain)}`;
+    }
+
+    // 受け取った日付を "YYYY-MM-DD" に正規化（スラッシュもOK）
+    function normalizeDate(raw){
+      if(!raw) return "";
+      const v = String(raw).trim();
+
+      // already YYYY-MM-DD
+      if(/^\d{4}-\d{2}-\d{2}$/.test(v)) return v;
+
+      // YYYY/MM/DD or YYYY/M/D
+      const m1 = v.match(/^(\d{4})\/(\d{1,2})\/(\d{1,2})$/);
+      if(m1){
+        const y = m1[1];
+        const mm = String(m1[2]).padStart(2,"0");
+        const dd = String(m1[3]).padStart(2,"0");
+        return `${y}-${mm}-${dd}`;
+      }
+
+      // YYYYMMDD
+      const m2 = v.match(/^(\d{4})(\d{2})(\d{2})$/);
+      if(m2) return `${m2[1]}-${m2[2]}-${m2[3]}`;
+
+      return ""; // unknown
+    }
+
+    function fmtISO(d){
+      const y = d.getFullYear();
+      const m = String(d.getMonth()+1).padStart(2,"0");
+      const day = String(d.getDate()).padStart(2,"0");
+      return `${y}-${m}-${day}`;
+    }
+
+    // プリセット：今日/明日
+    function presetDatesIfEmpty(){
+      const inEl = $("checkin");
+      const outEl = $("checkout");
+      const inV = normalizeDate(inEl.value);
+      const outV = normalizeDate(outEl.value);
+
+      const today = new Date();
+      const tomorrow = new Date(today);
+      tomorrow.setDate(today.getDate()+1);
+
+      if(!inV) inEl.value = fmtISO(today);
+      if(!outV) outEl.value = fmtISO(tomorrow);
+    }
+
+    // 生成するサイト定義（特徴/向いてる人 を表示）
+    const SITES = [
+      // 国内メジャー
+      {
+        id:"yahoo",
+        name:"Yahoo!トラベル",
+        category:"国内メジャー",
+        kind:"entry",
+        tags:["domestic","value"],
+        badge:"国内",
+        feature:"PayPay連携・セールで“即時割引”が刺さることが多い。",
+        forWho:"価格重視 / PayPayユーザー",
+        build: ({q}) => yahooSiteSearch("travel.yahoo.co.jp", `${q} 宿泊`)
+      },
+      {
+        id:"rakuten",
+        name:"楽天トラベル",
+        category:"国内メジャー",
+        kind:"entry",
+        tags:["domestic","value","family"],
+        badge:"国内",
+        feature:"掲載数が多く、地方・温泉の選択肢が豊富。",
+        forWho:"選択肢重視 / 楽天ポイント派",
+        build: ({q}) => `https://travel.rakuten.co.jp/keyword/Search.do?f_query=${enc(q)}`
+      },
+      {
+        id:"jalan",
+        name:"じゃらん",
+        category:"国内メジャー",
+        kind:"entry",
+        tags:["domestic","family"],
+        badge:"国内",
+        feature:"口コミと写真が“実用寄り”で雰囲気が掴みやすい。",
+        forWho:"体験重視 / 失敗回避",
+        build: ({q}) => `https://www.jalan.net/uw/uwp2011/uww2011init.do?keyword=${enc(q)}`
+      },
+      {
+        id:"ikyu",
+        name:"一休.com",
+        category:"国内メジャー",
+        kind:"entry",
+        tags:["domestic","luxury"],
+        badge:"高級",
+        feature:"高級・記念日向けが強い。プラン品質が安定。",
+        forWho:"大人旅 / 記念日 / 外したくない",
+        build: ({q}) => googleSiteSearch("ikyu.com", `${q} 宿泊`)
+      },
+      {
+        id:"jtb",
+        name:"JTB",
+        category:"国内メジャー",
+        kind:"entry",
+        tags:["domestic","family"],
+        badge:"大手",
+        feature:"安心感とプランの厚み。初めての土地でも頼りになる。",
+        forWho:"家族旅行 / 初心者 / 安心優先",
+        build: ({q}) => googleSiteSearch("jtb.co.jp", `${q} ホテル`)
+      },
+
+      // 海外系
+      {
+        id:"booking",
+        name:"Booking.com",
+        category:"海外系",
+        kind:"direct",
+        tags:["global","value","family"],
+        badge:"海外",
+        feature:"世界最大級。比較しやすく、キャンセル条件も見やすいことが多い。",
+        forWho:"海外旅行 / 比較重視",
+        build: ({q, checkin, checkout, adults, children, rooms}) =>
+          `https://www.booking.com/searchresults.ja.html?ss=${enc(q)}&checkin=${checkin}&checkout=${checkout}&group_adults=${adults}&group_children=${children}&no_rooms=${rooms}`
+      },
+      {
+        id:"agoda",
+        name:"Agoda",
+        category:"海外系",
+        kind:"direct",
+        tags:["global","value"],
+        badge:"割安",
+        feature:"セールが強く“最安”になることがある。価格検算に向く。",
+        forWho:"とにかく安く / 価格比較の最後",
+        build: ({q, checkin, checkout, adults, children, rooms}) =>
+          `https://www.agoda.com/ja-jp/search?text=${enc(q)}&checkIn=${checkin}&checkOut=${checkout}&adults=${adults}&children=${children}&rooms=${rooms}`
+      },
+      {
+        id:"expedia",
+        name:"Expedia",
+        category:"海外系",
+        kind:"entry",
+        tags:["global","family"],
+        badge:"セット",
+        feature:"航空券＋宿のセットが強い。旅全体をまとめたいとき。",
+        forWho:"航空券も一緒 / 旅程まとめ",
+        build: ({q}) => googleSiteSearch("expedia.co.jp", `${q} ホテル`)
+      },
+      {
+        id:"hotels",
+        name:"Hotels.com",
+        category:"海外系",
+        kind:"entry",
+        tags:["global"],
+        badge:"常連",
+        feature:"頻繁に泊まる人向けの特典が魅力のことがある。",
+        forWho:"出張 / 常連利用",
+        build: ({q}) => googleSiteSearch("hotels.com", `${q} hotel`)
+      },
+      {
+        id:"trip",
+        name:"Trip.com",
+        category:"海外系",
+        kind:"entry",
+        tags:["global","value"],
+        badge:"海外価格",
+        feature:"海外向け価格が刺さることがある。比較の補助枠。",
+        forWho:"海外比較 / 掘り出し物狙い",
+        build: ({q}) => googleSiteSearch("trip.com", `${q} hotel`)
+      },
+      {
+        id:"airbnb",
+        name:"Airbnb",
+        category:"海外系",
+        kind:"entry",
+        tags:["global","family"],
+        badge:"民泊",
+        feature:"民泊・長期滞在。家族/グループで“暮らす旅”向き。",
+        forWho:"長期 / グループ / キッチン重視",
+        build: ({q}) => googleSiteSearch("airbnb.jp", `${q}`)
+      },
+
+      // メタ
+      {
+        id:"googlehotels",
+        name:"Google ホテル",
+        category:"比較/地図",
+        kind:"direct",
+        tags:["meta","recommended"],
+        badge:"比較",
+        feature:"まず全体像を掴む最短ルート。相場感と空室の当たりを見る。",
+        forWho:"最初の1クリック",
+        build: ({q, checkin, checkout}) =>
+          `https://www.google.com/travel/hotels/${enc(q)}?q=${enc(q)}&checkin=${checkin}&checkout=${checkout}`
+      },
+      {
+        id:"maps",
+        name:"Google マップ",
+        category:"比較/地図",
+        kind:"direct",
+        tags:["meta"],
+        badge:"地図",
+        feature:"立地・周辺の動線確認。駅近/坂/観光密度の確認に。",
+        forWho:"立地で失敗したくない",
+        build: ({q}) => `https://www.google.com/maps/search/${enc(q + " ホテル")}`
+      },
+    ];
+
+    const RECOMMENDED_ORDER = [
+      "googlehotels","yahoo","rakuten","jalan","ikyu","jtb",
+      "booking","agoda","expedia","hotels","trip","airbnb",
+      "maps"
+    ];
+
+    function parseStateFromURL(){
+      const u = new URL(location.href);
+      return {
+        place: u.searchParams.get("place") || "",
+        checkin: u.searchParams.get("checkin") || "",
+        checkout: u.searchParams.get("checkout") || "",
+        adults: u.searchParams.get("adults") || "2",
+        children: u.searchParams.get("children") || "0",
+        rooms: u.searchParams.get("rooms") || "1",
+        filter: u.searchParams.get("filter") || "all",
+        sort: u.searchParams.get("sort") || "recommended"
+      };
+    }
+
+    function writeStateToURL(state){
+      const u = new URL(location.href);
+      u.searchParams.set("place", state.place);
+      u.searchParams.set("checkin", state.checkin);
+      u.searchParams.set("checkout", state.checkout);
+      u.searchParams.set("adults", String(state.adults));
+      u.searchParams.set("children", String(state.children));
+      u.searchParams.set("rooms", String(state.rooms));
+      u.searchParams.set("filter", state.filter);
+      u.searchParams.set("sort", state.sort);
+      history.replaceState(null, "", u.toString());
+    }
+
+    function setError(msg){
+      const e = $("error");
+      if(!msg){
+        e.style.display="none";
+        e.textContent="";
+        return;
+      }
+      e.style.display="block";
+      e.textContent=msg;
+    }
+
+    function getForm(){
+      const place = ($("place").value || "").trim();
+      const checkin = normalizeDate($("checkin").value);
+      const checkout = normalizeDate($("checkout").value);
+      const adults = Math.max(1, parseInt($("adults").value || "2", 10));
+      const children = Math.max(0, parseInt($("children").value || "0", 10));
+      const rooms = Math.max(1, parseInt($("rooms").value || "1", 10));
+      return { place, checkin, checkout, adults, children, rooms };
+    }
+
+    function validate(form){
+      if(!form.place) return "場所を入力してください。";
+      if(!form.checkin || !form.checkout){
+        return "チェックイン/アウトの日付を入力してください。\n（※ スラッシュ形式でもOK。内部で自動変換します）";
+      }
+      if(form.checkout <= form.checkin) return "チェックアウトはチェックインより後の日付にしてください。";
+      return "";
+    }
+
+    function currentFilter(){
+      const pressed = [...document.querySelectorAll(".chip[aria-pressed='true']")];
+      return pressed[0]?.dataset.filter || "all";
+    }
+
+    function applyFilter(site, f){
+      if(f === "all") return true;
+      if(f === "domestic") return site.tags.includes("domestic");
+      if(f === "global") return site.tags.includes("global");
+      if(f === "meta") return site.tags.includes("meta");
+      if(f === "value") return site.tags.includes("value");
+      if(f === "luxury") return site.tags.includes("luxury");
+      if(f === "family") return site.tags.includes("family");
+      return true;
+    }
+
+    function sortSites(list, mode){
+      const copy = [...list];
+      if(mode === "name"){
+        copy.sort((a,b)=>a.name.localeCompare(b.name,"ja"));
+        return copy;
+      }
+      if(mode === "category"){
+        copy.sort((a,b)=>a.category.localeCompare(b.category,"ja") || a.name.localeCompare(b.name,"ja"));
+        return copy;
+      }
+      const idx = new Map(RECOMMENDED_ORDER.map((id,i)=>[id,i]));
+      copy.sort((a,b)=>(idx.get(a.id) ?? 999) - (idx.get(b.id) ?? 999));
+      return copy;
+    }
+
+    function tagPills(site){
+      const pills = [];
+      if(site.tags.includes("value")) pills.push({t:"価格重視", cls:"primary"});
+      if(site.tags.includes("luxury")) pills.push({t:"高級/記念日", cls:"good"});
+      if(site.tags.includes("family")) pills.push({t:"家族/グループ", cls:"good"});
+      if(site.tags.includes("meta")) pills.push({t:"比較/地図", cls:"primary"});
+      if(site.kind === "entry") pills.push({t:"入口確実", cls:"warn"});
+      if(site.kind === "direct") pills.push({t:"条件引継ぎ◎", cls:"primary"});
+      return pills;
+    }
+
+    function buildCards(form){
+      const f = currentFilter();
+      const sort = $("sort").value;
+
+      const ctx = {
+        q: form.place,
+        checkin: form.checkin,
+        checkout: form.checkout,
+        adults: form.adults,
+        children: form.children,
+        rooms: form.rooms
+      };
+
+      let list = SITES.filter(s => applyFilter(s, f));
+      list = sortSites(list, sort);
+
+      const cards = $("cards");
+      cards.innerHTML = "";
+
+      list.forEach(site=>{
+        const url = site.build(ctx);
+        const pills = tagPills(site);
+
+        const div = document.createElement("article");
+        div.className = "card";
+        div.innerHTML = `
+          <div class="cardTop">
+            <div>
+              <h3 class="name">${site.name}</h3>
+              <div class="feat">特徴：${site.feature}</div>
+              <div class="who">向いてる人：<b>${site.forWho}</b></div>
+            </div>
+            <div class="badge">${site.badge}</div>
+          </div>
+
+          <div class="tags">
+            ${pills.map(p=>`<span class="tag ${p.cls}">${p.t}</span>`).join("")}
+          </div>
+
+          <div class="go">
+            <a href="${url}" target="_blank" rel="noopener">この条件で開く →</a>
+            <span class="tiny">${site.category}</span>
+          </div>
+
+          <details>
+            <summary>URL（確認用）</summary>
+            <div class="mono">${url}</div>
+          </details>
+        `;
+        cards.appendChild(div);
+      });
+
+      $("count").textContent = `表示中：${list.length} 件（フィルタ：${labelOfFilter(f)} / 並び：${labelOfSort(sort)}）`;
+    }
+
+    function labelOfFilter(f){
+      return ({
+        all:"全部",
+        domestic:"国内メジャー",
+        global:"海外系",
+        meta:"比較/地図",
+        value:"価格重視",
+        luxury:"高級/記念日",
+        family:"家族/グループ"
+      })[f] || "全部";
+    }
+    function labelOfSort(s){
+      return ({recommended:"おすすめ", name:"名前順", category:"カテゴリ順"})[s] || "おすすめ";
+    }
+
+    function setPressed(filter){
+      document.querySelectorAll(".chip").forEach(btn=>{
+        btn.setAttribute("aria-pressed", (btn.dataset.filter === filter) ? "true" : "false");
+      });
+    }
+
+    function saveToURL(){
+      const form = getForm();
+      const err = validate(form);
+      setError(err);
+      if(err) return;
+
+      // 正規化した日付をinputにも反映（表示ズレ対策）
+      $("checkin").value = form.checkin;
+      $("checkout").value = form.checkout;
+
+      writeStateToURL({
+        place: form.place,
+        checkin: form.checkin,
+        checkout: form.checkout,
+        adults: form.adults,
+        children: form.children,
+        rooms: form.rooms,
+        filter: currentFilter(),
+        sort: $("sort").value
+      });
+    }
+
+    function runBuild(){
+      // 日付未入力ならプリセットで埋める（要望）
+      presetDatesIfEmpty();
+
+      const form = getForm();
+      const err = validate(form);
+      setError(err);
+      if(err) return;
+
+      // ここで正規化日付を反映して「入力したのにエラー」感を消す
+      $("checkin").value = form.checkin;
+      $("checkout").value = form.checkout;
+
+      buildCards(form);
+      saveToURL();
+    }
+
+    function initFromURL(){
+      const s = parseStateFromURL();
+      $("place").value = s.place;
+      $("checkin").value = normalizeDate(s.checkin);
+      $("checkout").value = normalizeDate(s.checkout);
+      $("adults").value = s.adults;
+      $("children").value = s.children;
+      $("rooms").value = s.rooms;
+      $("sort").value = s.sort;
+      setPressed(s.filter);
+
+      // まず日付をプリセット（要望）
+      presetDatesIfEmpty();
+
+      // URLに条件が揃ってたら自動生成
+      const form = getForm();
+      const err = (form.place && form.checkin && form.checkout) ? validate(form) : "";
+      setError(err);
+      if(form.place && form.checkin && form.checkout && !err){
+        buildCards(form);
+      }
+    }
+
+    // Events
+    $("btnBuild").addEventListener("click", runBuild);
+    $("btnBuildMobile").addEventListener("click", runBuild);
+
+    $("btnReset").addEventListener("click", ()=>{
+      $("place").value = "";
+      $("adults").value = "2";
+      $("children").value = "0";
+      $("rooms").value = "1";
+      $("sort").value = "recommended";
+      setPressed("all");
+      $("cards").innerHTML = "";
+      $("count").textContent = "リンク未生成";
+      setError("");
+
+      // 日付はリセット後も「今日/明日」に戻す（使いやすさ優先）
+      $("checkin").value = "";
+      $("checkout").value = "";
+      presetDatesIfEmpty();
+
+      history.replaceState(null, "", location.pathname);
+    });
+
+    async function shareURL(){
+      // 先にURLを確定
+      saveToURL();
+      try{
+        await navigator.clipboard.writeText(location.href);
+        alert("このページURLをコピーしました。");
+      }catch(_){
+        prompt("このURLをコピーしてください:", location.href);
+      }
+    }
+
+    $("btnShare").addEventListener("click", shareURL);
+    $("btnShareMobile").addEventListener("click", shareURL);
+
+    $("sort").addEventListener("change", ()=>{
+      if($("cards").children.length){
+        const form = getForm();
+        const err = validate(form);
+        setError(err);
+        if(!err) buildCards(form);
+      }
+      saveToURL();
+    });
+
+    document.querySelectorAll(".chip").forEach(btn=>{
+      btn.addEventListener("click", ()=>{
+        setPressed(btn.dataset.filter);
+
+        if($("cards").children.length){
+          const form = getForm();
+          const err = validate(form);
+          setError(err);
+          if(!err) buildCards(form);
+        }
+        saveToURL();
+      });
+    });
+
+    // 初期化
+    initFromURL();
+  </script>
+</body>
+</html>
