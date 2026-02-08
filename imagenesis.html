@@ -2,77 +2,926 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>IMAGENESIS MANUAL</title>
-<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=Shippori+Mincho:wght@700&display=swap" rel="stylesheet">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>IMAGENESIS: V51 [Reality Hacking]</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Orbitron:wght@700;900&family=Shippori+Mincho:wght@700&display=swap" rel="stylesheet">
+
 <style>
-    body { background: #050505; color: #eee; font-family: 'Shippori Mincho', sans-serif; padding: 20px; line-height: 1.8; max-width: 800px; margin: 0 auto; }
-    h1, h2, h3 { font-family: 'Orbitron', sans-serif; color: #00f0ff; text-transform: uppercase; }
-    h1 { border-bottom: 2px solid #00f0ff; padding-bottom: 10px; text-align: center; text-shadow: 0 0 10px #00f0ff; }
-    h2 { margin-top: 40px; border-left: 5px solid #00f0ff; padding-left: 15px; background: linear-gradient(90deg, #111, transparent); }
-    strong { color: #ffd700; }
-    .key-point { background: #1a1a1a; padding: 15px; border: 1px solid #333; border-radius: 8px; margin: 10px 0; }
-    .img-icon { display:inline-block; background:#333; padding:2px 6px; border-radius:4px; font-size:0.8em; font-family:'Orbitron'; }
-    .reality { color: #ff00ff; font-weight: bold; text-shadow: 0 0 5px #ff00ff; }
+    :root {
+        --bg: #050505; --panel: #111;
+        --accent: #00f0ff; --text: #eee;
+        --p1: #00f0ff; --p2: #ff2a6d;
+        --crit: #ffaa00; --dodge: #00ffaa;
+        --ready: #00ff00;
+        --def: #0088ff;
+        --gold: #ffd700;
+        --danger: #ff4444;
+        --disabled: #333;
+        --font-main: 'Shippori Mincho', serif;
+        --font-eng: 'Orbitron', sans-serif;
+    }
+
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+    body {
+        background: var(--bg); color: var(--text);
+        font-family: var(--font-main);
+        margin: 0; padding: 0;
+        height: 100vh; overflow: hidden;
+        user-select: none; display: flex; flex-direction: column;
+    }
+
+    button { cursor: pointer; font-family: var(--font-eng); touch-action: manipulation; }
+    .screen { flex: 1; display: none; flex-direction: column; overflow-y: auto; position: relative; padding: 10px; width: 100%; }
+    .screen.active { display: flex; }
+
+    .logo-area { text-align: center; margin: 5px 0 10px; }
+    .main-logo { font-family: var(--font-eng); font-size: 20px; color: #fff; text-shadow: 0 0 5px var(--accent); }
+
+    /* MODAL */
+    .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 9999; display: none; align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(5px); }
+    .sys-box { width: 90%; max-width: 320px; background: #1a1a1a; border: 1px solid var(--accent); border-radius: 8px; padding: 15px; text-align: center; box-shadow: 0 0 20px rgba(0, 240, 255, 0.2); max-height: 90vh; overflow-y: auto; }
+    .sys-btn { background: var(--accent); color: #000; border: none; padding: 10px 20px; font-weight: bold; clip-path: polygon(5% 0, 100% 0, 95% 100%, 0% 100%); margin-top: 10px; font-size: 12px; width:100%; }
+
+    /* BATTLE SCREEN */
+    #scr-battle { padding: 0; }
+    
+    .hud { display: flex; justify-content: space-between; align-items: flex-end; padding: 5px 10px; background: rgba(0,0,0,0.8); border-bottom: 1px solid #333; z-index: 20; position: relative; width: 100%; }
+    .hud-team { width: 45%; }
+    .team-name { font-size: 9px; font-weight: bold; margin-bottom: 2px; font-family: var(--font-eng); text-transform: uppercase; color: #ccc; }
+    .team-bar-bg { width: 100%; height: 3px; background: #333; border-radius: 2px; overflow: hidden; }
+    .team-bar-fill { height: 100%; transition: width 0.3s; }
+
+    .timeline { height: 30px; background: #222; display: flex; align-items: center; padding: 0 10px; overflow-x: auto; border-bottom: 1px solid #444; white-space: nowrap; margin-top: 0; width: 100%; }
+    .tl-icon { width: 20px; height: 20px; border-radius: 50%; border: 1px solid #555; margin-right: 4px; object-fit: cover; opacity: 0.5; transition: 0.3s; flex-shrink: 0; }
+    .tl-icon.active { border-color: #fff; opacity: 1; transform: scale(1.2); z-index: 10; box-shadow: 0 0 5px #fff; }
+    .tl-icon.p1 { border-color: var(--p1); }
+    .tl-icon.p2 { border-color: var(--p2); }
+
+    .battle-log {
+        background: rgba(0,0,0,0.7); border-bottom: 1px solid #333; padding: 5px;
+        height: 50px; overflow-y: auto; font-size: 9px; color: #ccc; z-index: 10; font-family: sans-serif; width: 100%;
+    }
+    .msg-row { margin-bottom: 2px; border-bottom: 1px solid #222; }
+
+    /* BATTLE STAGE */
+    .stage { 
+        flex: 1; position: relative; width: 100%;
+        background: radial-gradient(circle at center, #1a1a1a 0%, #050505 100%); 
+        display: flex; justify-content: space-between; align-items: center; 
+        padding: 5px; overflow: hidden;
+    }
+    .team-zone { width: 45%; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 5px; }
+    .vs-logo {
+        position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+        font-family: 'Cinzel', serif; font-size: 40px; font-weight: 900;
+        color: #fff; text-shadow: 0 0 10px rgba(255,255,255,0.1); z-index: 0; pointer-events: none; opacity: 0.2;
+    }
+    
+    .unit-card { width: 60px; height: 60px; position: relative; transition: 0.3s; opacity: 0.8; filter: grayscale(0.2); z-index: 1; flex-shrink: 0; }
+    .unit-card.active { opacity: 1; filter: grayscale(0); transform: scale(1.15); z-index: 10; box-shadow: 0 0 15px rgba(255,255,255,0.3); }
+    .unit-card.dead { opacity: 0.3; filter: grayscale(1); transform: scale(0.9); pointer-events: none; }
+    .unit-img { width: 100%; height: 100%; object-fit: cover; border-radius: 8px; border: 2px solid #555; }
+    .unit-card.p1 .unit-img { border-color: var(--p1); }
+    .unit-card.p2 .unit-img { border-color: var(--p2); }
+    
+    .unit-card.targeted::before {
+        content: "TARGET"; position: absolute; top: -12px; left: 50%; transform: translateX(-50%);
+        color: var(--danger); font-size: 9px; font-weight: bold; font-family: var(--font-eng);
+        text-shadow: 0 0 5px #000; animation: bounce 0.5s infinite alternate; z-index: 20;
+    }
+    .unit-card.targeted .unit-img { border-color: var(--danger); box-shadow: 0 0 10px var(--danger); }
+    @keyframes bounce { from{transform:translate(-50%,0);} to{transform:translate(-50%,-5px);} }
+
+    .hp-box { background: rgba(0,0,0,0.8); border-radius: 4px; margin-top: -8px; position: relative; z-index: 2; padding: 2px; border: 1px solid #333; text-align: center; width: 100%; }
+    .hp-mini { width: 100%; height: 3px; background: #333; border-radius: 1px; overflow: hidden; margin-bottom: 1px; }
+    .hp-mini-fill { height: 100%; transition: width 0.3s; }
+    .hp-text { font-size: 7px; font-family: var(--font-eng); color: #fff; line-height: 1; display: block; font-weight: bold; }
+
+    /* WIN OVERLAY */
+    .win-overlay {
+        position: absolute; inset: 0; background: rgba(0,0,0,0.85); z-index: 100;
+        display: none; flex-direction: column; align-items: center; justify-content: center;
+        animation: fadeIn 0.5s forwards; backdrop-filter: blur(5px);
+    }
+    .win-title {
+        font-family: 'Cinzel', serif; font-size: 40px; font-weight: 900;
+        color: var(--gold); text-shadow: 0 0 20px var(--gold);
+        margin-bottom: 20px; text-align: center;
+        transform: scale(0); animation: popIn 0.5s 0.2s forwards cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    @keyframes fadeIn { from{opacity:0;} to{opacity:1;} }
+    @keyframes popIn { from{transform:scale(0);} to{transform:scale(1);} }
+
+    /* Control Panel */
+    .panel { background: #111; border-top: 2px solid var(--accent); padding: 10px; min-height: 200px; z-index: 20; position: relative; width: 100%; }
+    .btl-msg { text-align: center; color: var(--accent); font-size: 10px; margin-bottom: 5px; height: 1.2em; font-family: var(--font-eng); }
+    
+    .dice-area { display: flex; justify-content: center; gap: 8px; height: 35px; margin-bottom: 8px; perspective: 500px; }
+    .cube { width: 35px; height: 35px; position: relative; transform-style: preserve-3d; transition: transform 0.2s; }
+    .face { position: absolute; inset: 0; background: #222; border: 1px solid #555; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 14px; }
+    .cube.locked .face { border-color: var(--accent); color: var(--accent); box-shadow: inset 0 0 5px var(--accent); }
+    .cube.rolling { animation: shake 0.1s infinite; }
+    @keyframes shake { 0%{transform:rotate(0deg);} 25%{transform:rotate(5deg);} 75%{transform:rotate(-5deg);} 100%{transform:rotate(0deg);} }
+
+    .action-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
+    .act-btn { 
+        padding: 8px; background: #222; color: #666; border: 1px solid #444; font-size: 9px; 
+        font-family: var(--font-eng); text-align: left; position: relative; overflow: hidden;
+    }
+    .act-btn.ready { border-color: var(--ready); color: #fff; background: rgba(0,255,0,0.1); box-shadow: 0 0 5px var(--ready); }
+    .act-btn.basic { border-color: #888; color: #ddd; background: #333; }
+    .act-btn:active:not(:disabled) { transform: scale(0.98); background: #fff; color: #000; }
+    .act-btn:disabled { opacity: 0.3; pointer-events: none; }
+    .skill-name { font-size: 10px; font-weight: bold; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .skill-type { font-size: 8px; color: #aaa; }
+
+    /* FX */
+    .dmg-txt { position: absolute; left: 50%; top: -10px; transform: translateX(-50%); font-family: 'Impact'; font-size: 20px; font-weight: bold; color: #ffeb3b; text-shadow: 1px 1px 0 #000; animation: pop 0.8s forwards; z-index: 100; pointer-events: none; }
+    @keyframes pop { 0%{opacity:0; transform:translate(-50%,0);} 20%{opacity:1;} 100%{opacity:0; transform:translate(-50%,-30px);} }
+
+    /* DECK */
+    .deck-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; padding-bottom: 80px; }
+    .card { background: #1a1a1a; border: 1px solid #333; border-radius: 4px; overflow: hidden; position: relative; aspect-ratio: 1; min-height: 80px; }
+    .card.sel-p1 { border: 2px solid var(--p1); box-shadow: 0 0 5px var(--p1); }
+    .card.sel-p1::after { content: "P1"; position: absolute; top: 0; left: 0; background: var(--p1); color: #000; font-size: 9px; padding: 1px 3px; font-weight:bold; }
+    .card.sel-p2 { border: 2px solid var(--p2); box-shadow: 0 0 5px var(--p2); }
+    .card.sel-p2::after { content: "P2"; position: absolute; top: 0; right: 0; background: var(--p2); color: #fff; font-size: 9px; padding: 1px 3px; font-weight:bold; }
+    .card-img { width: 100%; height: 100%; object-fit: cover; }
+
+    /* NAV */
+    .nav { height: 50px; background: #080808; border-top: 1px solid #222; display: flex; justify-content: space-around; align-items: center; width: 100%; }
+    .nav-btn { background: none; border: none; color: #444; font-size: 8px; font-weight: bold; display: flex; flex-direction: column; align-items: center; width: 100%; }
+    .nav-btn.active { color: var(--accent); }
+    .icon { font-size: 16px; margin-bottom: 2px; }
+
+    /* Float Button */
+    .btn-float { position: fixed; bottom: 70px; width: 90%; left: 5%; padding: 12px; background: #000; border: 2px solid var(--accent); color: var(--accent); font-weight: bold; z-index: 80; font-size: 12px; box-shadow: 0 0 10px rgba(0, 240, 255, 0.3); }
+
+    /* SETTINGS */
+    .st-row { margin-bottom: 10px; border-bottom: 1px solid #333; padding-bottom: 8px; }
+    .st-lbl { color: var(--accent); font-size: 9px; display: block; margin-bottom: 4px; }
+    .st-btn { width: 100%; padding: 8px; background: #222; color: #fff; border: 1px solid #444; text-align: left; font-size: 10px; }
+    .inp-st { width: 100%; padding: 6px; background: #000; border: 1px solid #444; color: #fff; box-sizing: border-box; font-size: 10px; }
+
+    /* DETAIL MODAL */
+    .detail-card { width: 90%; max-width: 320px; background: #111; border: 1px solid var(--accent); border-radius: 8px; padding: 20px; text-align: center; position: relative; }
+    .detail-img { width: 60px; height: 60px; border-radius: 50%; border: 2px solid var(--accent); object-fit: cover; margin: 0 auto; display: block; }
+    .skill-table { width: 100%; font-size: 10px; color: #888; margin-top: 15px; border-collapse: collapse; }
+    .skill-table th { color: var(--accent); border-bottom: 1px solid #333; text-align: left; padding: 4px; }
+    .skill-table td { padding: 6px 4px; border-bottom: 1px solid #222; }
+    .potential-unlocked { color: var(--gold) !important; text-shadow: 0 0 5px var(--gold); animation: pulseGold 2s infinite; }
+    @keyframes pulseGold { 0%{opacity:0.8;} 50%{opacity:1;} 100%{opacity:0.8;} }
+
+    .edit-row { display: flex; align-items: center; margin-bottom: 5px; gap: 5px; }
+    .edit-sel { background: #000; color: #fff; border: 1px solid #444; font-size: 10px; padding: 4px; flex: 1; }
+    .edit-lbl { font-size: 9px; color: var(--accent); width: 30px; }
+
+    .deck-header { text-align: center; font-size: 10px; color: #aaa; margin-bottom: 5px; min-height: 15px; }
+
+    /* V50: NEW CARD MODAL */
+    #new-card-modal { z-index: 10000; background: rgba(0,0,0,0.95); }
+    .new-card-box { text-align: center; animation: zoomIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+    .nc-title { font-family: 'Cinzel'; font-size: 24px; color: var(--gold); margin-bottom: 15px; text-shadow: 0 0 10px var(--gold); }
+    .nc-img-box { position: relative; width: 120px; height: 120px; margin: 0 auto 15px; }
+    .nc-img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; border: 3px solid var(--accent); box-shadow: 0 0 20px var(--accent); }
+    .nc-name { font-size: 18px; font-weight: bold; color: #fff; margin-bottom: 10px; }
+    .nc-stats { display: flex; justify-content: center; gap: 10px; font-size: 12px; color: #ccc; margin-bottom: 15px; }
+    .nc-skills { font-size: 10px; color: #888; text-align: left; background: #111; padding: 10px; border-radius: 4px; border: 1px solid #333; }
+    @keyframes zoomIn { from{transform:scale(0); opacity:0;} to{transform:scale(1); opacity:1;} }
+
+    /* V51: REALITY BUTTON */
+    .btn-reality {
+        background: linear-gradient(45deg, #ff00ff, #00ffff);
+        color: #000; border: none; font-weight: 900;
+        animation: pulse 1s infinite;
+        font-family: var(--font-eng);
+        margin-top: 5px;
+    }
+    @keyframes pulse { 0%{transform:scale(1);} 50%{transform:scale(1.05);} 100%{transform:scale(1);} }
+
 </style>
 </head>
 <body>
 
-<h1>IMAGENESIS OFFICIAL MANUAL</h1>
-<p style="text-align:center; color:#888;">Ver 51.0 - Reality Updated</p>
-
-<h2>1. GENESIS (生成)</h2>
-<p>全ての始まりは「画像」と「言葉」です。</p>
-<ul>
-    <li><strong>画像アップロード:</strong> 好きな写真をアップロードしてください。風景、動物、落書き、何でも構いません。</li>
-    <li><strong>Inject Soul (魂の注入):</strong> その画像に与えたい設定や言葉を入力します（例：「古の剣士」「暴走したAI」）。</li>
-    <li><strong>GENERATE:</strong> AIが画像を解析し、独自のステータスとスキルを持つ「ファイター」を生成します。</li>
-</ul>
-
-<h2>2. DECK & MANAGEMENT (管理)</h2>
-<p>生成されたファイターは自動的にアーカイブ（デッキ）に保存されます。</p>
-<div class="key-point">
-    <h3>スロット拡張 (Expansion)</h3>
-    <p>初期の保存上限は <strong>8体</strong> です。上限に達した場合、GEM（ゲーム内通貨演出）を消費してスロットを拡張できます。</p>
-</div>
-<ul>
-    <li><strong>詳細確認:</strong> カードをタップすると詳細画面が開きます。</li>
-    <li><strong>RELEASE:</strong> 不要になったカードを削除（解放）します。</li>
-    <li><strong>MINT DATA:</strong> カードデータをテキスト形式でクリップボードにコピーします。</li>
-    <li><strong>UNLOCK POTENTIAL:</strong> GEMを消費して、カードに「二つ名」を与え、ステータスを強化します。</li>
-</ul>
-
-<h2>3. BATTLE (戦闘)</h2>
-<p>最大 <strong>4 vs 4</strong> のチームバトルを行います。</p>
-<ol>
-    <li><strong>MODE SELECT:</strong> PvP（対人/ローカル）か CPU（対AI）を選択します。</li>
-    <li><strong>TEAM BUILD:</strong> デッキから出撃メンバーを選びます。</li>
-    <li><strong>DICE ROLL:</strong> 戦闘はダイス（サイコロ）で行われます。出目によって役（ポーカーハンド）が成立すると、強力なスキルが発動します。</li>
-</ol>
-
-<h2>4. REALITY HACKING (現実介入)</h2>
-<p>v51より搭載された新システムです。デジタルと現実の境界を破壊します。</p>
-<div class="key-point" style="border-color:#ff00ff;">
-    <h3 class="reality">⚡ REALITY SUPPORT</h3>
-    <p>バトル中、ピンチになると「REALITY SUPPORT」ボタンが使用可能になります。</p>
-    <ul>
-        <li>AIから<strong>「赤いものを撮れ」「丸いものを探せ」</strong>などの指令が出ます。</li>
-        <li>カメラを起動し、指定された現実の物体を撮影してください。</li>
-        <li>AIが「成功」と判定すれば、<strong>HP全回復＆ステータス超強化</strong>などの奇跡が起きます。</li>
-        <li>失敗すればペナルティを受けます。家の中にある全ての物体が武器になります。</li>
-    </ul>
+<div id="sys-modal" class="modal" onclick="if(event.target===this) closeSysModal()">
+    <div class="sys-box">
+        <div id="sys-title" style="color:var(--accent); font-weight:bold; margin-bottom:5px; font-size:12px;">SYSTEM</div>
+        <div id="sys-msg" style="font-size:11px; margin-bottom:10px; word-wrap: break-word;"></div>
+        <button class="sys-btn" onclick="closeSysModal()">OK</button>
+    </div>
 </div>
 
-<h2>5. SYSTEM & DATA</h2>
-<ul>
-    <li><strong>API KEY:</strong> Google Gemini APIキーを入力することで、生成速度と精度が向上します。（未入力でも開発用サーバー経由で動作します）</li>
-    <li><strong>DATA SAVE:</strong> 全データはブラウザのローカルストレージに保存されます。ブラウザのキャッシュをクリアするとデータは消滅します。</li>
-</ul>
-
-<div style="margin-top:50px; text-align:center;">
-    <p>© 2026 SamuraiRoad Project / Powered by Gemini 3</p>
-    <button onclick="window.close()" style="padding:10px 30px; background:#333; color:#fff; border:1px solid #666; cursor:pointer;">CLOSE MANUAL</button>
+<div id="reality-modal" class="modal">
+    <div class="sys-box">
+        <div style="color:#ff00ff; font-weight:bold; font-size:16px; margin-bottom:5px; text-shadow:0 0 5px #ff00ff;">REALITY HACK</div>
+        <div id="reality-task" style="font-size:12px; margin-bottom:15px; color:#fff; font-weight:bold;"></div>
+        <label class="upload-btn" style="display:block; margin: 10px auto; width:100px; height:100px; border:2px dashed #ff00ff; border-radius:8px; position:relative; cursor:pointer;">
+            <span style="position:absolute; top:35px; left:40px; font-size:24px; color:#ff00ff;">📷</span>
+            <img id="reality-prev" style="width:100%; height:100%; object-fit:cover; display:none; border-radius:6px;">
+            <input type="file" hidden accept="image/*" capture="environment" onchange="previewReality(this)">
+        </label>
+        <button id="btn-reality-send" class="sys-btn" onclick="sendReality()" disabled>UPLOAD EVIDENCE</button>
+        <button class="sys-btn" style="background:#333; margin-top:5px;" onclick="document.getElementById('reality-modal').style.display='none'">ESCAPE</button>
+    </div>
 </div>
 
+<div id="new-card-modal" class="modal">
+    <div class="sys-box new-card-box">
+        <div class="nc-title">SUMMON SUCCESS!</div>
+        <div class="nc-img-box"><img id="nc-img" class="nc-img"></div>
+        <div id="nc-name" class="nc-name"></div>
+        <div class="nc-stats" id="nc-stats"></div>
+        <div class="nc-skills" id="nc-skills"></div>
+        <button class="sys-btn" style="background:var(--accent); color:#000; margin-top:20px;" onclick="closeNewCard()">ADD TO DECK</button>
+    </div>
+</div>
+
+<div id="expand-modal" class="modal" onclick="if(event.target===this) document.getElementById('expand-modal').style.display='none'">
+    <div class="sys-box">
+        <div style="color:var(--gold); font-weight:bold; margin-bottom:10px;">EXPAND STORAGE</div>
+        <p style="font-size:10px; color:#ccc;">Slot Limit Reached.<br>Unlock +8 Slots?</p>
+        <button class="sys-btn" style="background:var(--gold); color:#000;" onclick="execExpand()">UNLOCK (500 GEM)</button>
+        <button class="sys-btn" style="background:#333; color:#888; margin-top:5px;" onclick="document.getElementById('expand-modal').style.display='none'">CANCEL</button>
+    </div>
+</div>
+
+<div id="mode-modal" class="modal" onclick="if(event.target===this) closeModeModal()">
+    <div class="sys-box">
+        <div style="color:var(--accent); font-weight:bold; margin-bottom:15px; font-family:var(--font-eng);">SELECT MODE</div>
+        <button class="sys-btn" onclick="startSelectionMode('pvp')">LOCAL BATTLE (PvP)</button>
+        <button class="sys-btn" onclick="startSelectionMode('cpu')">CPU BATTLE (PvE)</button>
+        <button class="sys-btn" style="background:#333; color:#888;" onclick="sysMsg('ONLINE','Coming Soon...')">ONLINE BATTLE</button>
+        <button class="sys-btn" style="background:none; border:1px solid #444; color:#888; margin-top:5px;" onclick="closeModeModal()">CANCEL</button>
+    </div>
+</div>
+
+<div id="scr-deck" class="screen active">
+    <div class="logo-area"><div class="main-logo">IMAGENESIS</div></div>
+    <div id="deck-msg" class="deck-header">Manage your Fighters</div>
+    <div class="deck-grid" id="deck-grid"></div>
+    <button id="btn-start" class="btn-float" onclick="openModeModal()">BATTLE MENU</button>
+</div>
+
+<div id="scr-lab" class="screen">
+    <div class="logo-area"><div class="main-logo">GENESIS LAB</div></div>
+    <div class="lab-box" style="text-align:center; padding:20px;">
+        <label class="upload-btn" style="display:block; margin: 10px auto; width:80px; height:80px; border:1px dashed #666; border-radius:50%; position:relative; cursor:pointer;">
+            <span style="position:absolute; top:25px; left:32px; font-size:24px; color:#333;">+</span>
+            <img id="prev-img" style="width:100%; height:100%; object-fit:cover; display:none; border-radius:50%;">
+            <input type="file" hidden accept="image/*" onchange="previewImage(this)">
+        </label>
+        <input type="text" id="soul-text" class="inp-st" style="width:80%; margin-bottom:10px;" placeholder="Inject Soul">
+        <button id="btn-gen" class="sys-btn" onclick="startGenesis()" style="width:80%;" disabled>GENERATE SOUL</button>
+        <div id="loader" style="display:none; color:var(--accent); font-size:9px; margin-top:10px;">CONNECTING TO VISUAL SOUL...</div>
+    </div>
+</div>
+
+<div id="scr-battle" class="screen">
+    <div id="win-overlay" class="win-overlay">
+        <div id="win-msg" class="win-title"></div>
+        <button class="sys-btn" style="width:50%" onclick="closeWinOverlay()">RETURN</button>
+    </div>
+
+    <div class="hud">
+        <div class="hud-team">
+            <div id="team1-name" class="team-name" style="color:var(--p1)">TEAM 1</div>
+            <div class="team-bar-bg"><div id="t1-bar" class="team-bar-fill" style="background:var(--p1); width:100%"></div></div>
+        </div>
+        <div class="hud-team" style="text-align:right;">
+            <div id="team2-name" class="team-name" style="color:var(--p2)">TEAM 2</div>
+            <div class="team-bar-bg"><div id="t2-bar" class="team-bar-fill" style="background:var(--p2); width:100%"></div></div>
+        </div>
+    </div>
+    
+    <div class="timeline" id="timeline"></div>
+    
+    <div class="stage" id="battle-stage">
+        <div class="team-zone" id="zone-t1"></div>
+        <div class="vs-logo">VS</div>
+        <div class="team-zone" id="zone-t2"></div>
+    </div>
+    
+    <div class="battle-log" id="btl-log"></div>
+    
+    <div class="panel">
+        <div id="btl-msg" class="btl-msg">BATTLE START</div>
+        <div class="dice-area" id="dice-area"></div>
+        <button id="btn-roll" style="width:100%; padding:12px; background:#fff; color:#000; font-weight:bold; margin-bottom:5px; font-size:12px;" onclick="actRoll()">ROLL DICE</button>
+        
+        <button id="btn-reality" class="sys-btn btn-reality" onclick="openReality()" style="display:none; padding:8px; margin-bottom:5px;">⚡ REALITY SUPPORT ⚡</button>
+
+        <div class="action-grid">
+            <button class="act-btn basic" onclick="execAction('ATTACK')">
+                <span id="lbl-atk" class="skill-name">ATTACK</span><span class="skill-type">Dice Power</span>
+            </button>
+            <button class="act-btn basic" onclick="execAction('DEFEND')">
+                <span id="lbl-def" class="skill-name">DEFEND</span><span class="skill-type">Block</span>
+            </button>
+            <button id="btn-s1" class="act-btn" disabled><span class="skill-name">S1</span><span class="skill-type">-</span></button>
+            <button id="btn-s2" class="act-btn" disabled><span class="skill-name">S2</span><span class="skill-type">-</span></button>
+            <button id="btn-s3" class="act-btn" disabled><span class="skill-name">S3</span><span class="skill-type">-</span></button>
+            <button id="btn-s4" class="act-btn" disabled><span class="skill-name">S4</span><span class="skill-type">-</span></button>
+        </div>
+    </div>
+</div>
+
+<div id="scr-setting" class="screen">
+    <div class="logo-area"><div class="main-logo">SYSTEM</div></div>
+    <div style="padding:20px;">
+        <div class="st-row">
+            <span class="st-lbl" id="mem-usage">MEMORY USAGE: 0%</span>
+            <div style="width:100%; height:4px; background:#333; margin-top:2px;"><div id="mem-bar" style="height:100%; background:var(--accent); width:0%;"></div></div>
+        </div>
+        <div class="st-row">
+            <span class="st-lbl">LANGUAGE</span>
+            <button onclick="toggleLang()" style="width:100%; padding:8px; background:#222; color:#fff; border:1px solid #444;">
+                <span id="lbl-lang">JP</span>
+            </button>
+        </div>
+        <div class="st-row">
+            <span class="st-lbl">TEAM NAMES</span>
+            <input type="text" id="inp-t1" class="inp-st" placeholder="Team 1 Name" style="margin-bottom:5px;">
+            <input type="text" id="inp-t2" class="inp-st" placeholder="Team 2 Name">
+            <button onclick="saveTeams()" style="margin-top:5px; background:#333; color:#fff; padding:4px 8px; border:none; font-size:10px;">SAVE NAMES</button>
+        </div>
+        <div class="st-row">
+            <span class="st-lbl">API KEY</span>
+            <input type="password" id="api-init" class="inp-st" placeholder="Gemini API Key (Optional)">
+            <button onclick="saveApiKey()" style="margin-top:5px; background:#333; color:#fff; padding:4px 8px; border:none; font-size:10px;">SAVE KEY</button>
+        </div>
+        <div class="st-row">
+            <span class="st-lbl">SOUND</span>
+            <button id="btn-snd" class="st-btn" onclick="toggleSound()">SOUND: ON</button>
+        </div>
+        <div class="st-row">
+            <span class="st-lbl">MANUAL & POLICY</span>
+            <div style="display:flex; gap:5px;">
+                <a href="manual.html" target="_blank" style="flex:1; display:block; padding:8px; background:#222; color:var(--accent); text-decoration:none; border:1px solid var(--accent); text-align:center; font-size:10px;">MANUAL</a>
+                <a href="privacy.html" target="_blank" style="flex:1; display:block; padding:8px; background:#222; color:var(--accent); text-decoration:none; border:1px solid var(--accent); text-align:center; font-size:10px;">PRIVACY POLICY</a>
+            </div>
+        </div>
+        <button onclick="if(confirm('Delete All?')){localStorage.clear();location.reload();}" style="width:100%; padding:10px; background:#500; color:#fff; border:none; font-size:10px;">RESET DATA</button>
+    </div>
+</div>
+
+<div class="nav">
+    <button class="nav-btn active" onclick="go('deck')"><span class="icon">◇</span>ARCHIVE</button>
+    <button class="nav-btn" onclick="go('lab')"><span class="icon">◈</span>LAB</button>
+    <button class="nav-btn" onclick="go('setting')"><span class="icon">◆</span>SYSTEM</button>
+</div>
+
+<div id="detail-modal" class="modal" onclick="if(event.target===this) closeDetail()">
+    <div class="detail-card">
+        <button onclick="closeDetail()" style="position:absolute; top:5px; right:5px; background:none; border:none; color:#666; font-size:24px;">×</button>
+        <img id="dt-img" class="detail-img">
+        <div style="font-weight:bold; font-size:16px; margin:10px 0;" id="dt-name"></div>
+        <div style="font-size:12px; margin-bottom:15px;">
+            HP:<span id="dt-hp"></span> ATK:<span id="dt-atk"></span> 
+            DEF:<span id="dt-def" style="color:var(--def)"></span> LUK:<span id="dt-luk"></span>
+        </div>
+        <table class="skill-table" id="dt-skills"></table>
+        <div id="dt-origin" style="font-size:10px; color:#888; text-align:left; max-height:60px; overflow:auto; margin-top:15px;"></div>
+        <div style="margin-top:15px; display:flex; gap:5px;">
+            <button onclick="renameCard()" style="flex:1; background:#222; border:1px solid #444; color:#fff; padding:6px; font-size:10px;">RENAME</button>
+            <button onclick="openSkillEdit()" style="flex:1; background:#222; border:1px solid #444; color:var(--accent); padding:6px; font-size:10px;">CUSTOMIZE</button>
+        </div>
+        <div style="margin-top:5px; display:flex; gap:5px;">
+            <button onclick="exportCard()" style="flex:1; background:#333; border:1px solid #666; color:#aaa; padding:6px; font-size:10px;">MINT DATA (PAY)</button>
+            <button onclick="releaseCard()" style="flex:1; background:#300; border:1px solid #500; color:var(--danger); padding:6px; font-size:10px;">RELEASE</button>
+        </div>
+        <button onclick="unlockPotential()" style="width:100%; margin-top:5px; background:linear-gradient(45deg, #333, #550); border:1px solid var(--gold); color:var(--gold); padding:8px; font-size:10px; font-weight:bold;">★ UNLOCK POTENTIAL</button>
+    </div>
+</div>
+
+<div id="skill-modal" class="modal">
+    <div class="sys-box">
+        <div style="color:var(--accent); font-weight:bold; margin-bottom:10px;">CUSTOMIZE SKILLS</div>
+        <p style="font-size:9px; color:#aaa; margin-bottom:10px;">Harder conditions = Stronger Power</p>
+        <div id="skill-editor-rows"></div>
+        <button class="sys-btn" onclick="saveSkillEdit()">SAVE CONFIG</button>
+        <button class="sys-btn" style="background:#333; color:#888; margin-top:5px;" onclick="document.getElementById('skill-modal').style.display='none'">CANCEL</button>
+    </div>
+</div>
+
+<div id="pot-modal" class="modal">
+    <div class="sys-box">
+        <div style="color:var(--gold); font-weight:bold; margin-bottom:10px;">UNLOCK POTENTIAL</div>
+        <p style="font-size:10px; color:#ccc;">Enter a word that fits this soul.<br>Higher sync rate = More Stats.</p>
+        <input type="text" id="pot-word" class="inp-st" placeholder="e.g. Burning, Silent...">
+        <button class="sys-btn" style="background:var(--gold); color:#000;" onclick="execUnlock()">UNLOCK (100 GEM)</button>
+        <button class="sys-btn" style="background:#333; color:#888; margin-top:5px;" onclick="document.getElementById('pot-modal').style.display='none'">CANCEL</button>
+    </div>
+</div>
+
+<script src="./assets/js/config.js?v=51"></script>
+<script>
+// --- V51: REALITY HACK ---
+const MODEL = window.GEM_MODEL; 
+if (!MODEL) alert("CRITICAL: config.js missing or GEM_MODEL undefined.");
+
+if (!window.AI_HTTP) window.AI_HTTP = "https://samurairoad-ws.korokorokororintyo.workers.dev";
+
+let apiKey = localStorage.getItem('ig_key') || "";
+let deck = JSON.parse(localStorage.getItem('ig_deck')) || [];
+let maxSlots = parseInt(localStorage.getItem('ig_slots')) || 8; 
+let selT1 = [], selT2 = [];
+let battle = null;
+let soundOn = true;
+let lang = localStorage.getItem('ig_lang') || "JP";
+let teamNames = { t1: localStorage.getItem('ig_team1')||"TEAM 1", t2: localStorage.getItem('ig_team2')||"TEAM 2" };
+let viewingIdx = -1;
+let pendingImage = null;
+let realityImage = null; // V51
+let realityTarget = ""; // V51
+let selectMode = null; 
+let selectPhase = 0; 
+
+const MAX_TEAM = 4;
+
+const DICT = {
+    JP: { battle:"戦闘開始", roll:"ダイスを振る", atk:"攻撃", def:"防御", heal:"回復", win:"の勝利！", turn:"のターン", gen_btn:"生成開始" },
+    EN: { battle:"BATTLE START", roll:"ROLL DICE", atk:"ATTACK", def:"DEFEND", heal:"HEAL", win:" WINS!", turn:"'s Turn", gen_btn:"GENERATE" }
+};
+
+const TRIGGERS = [
+    { id: "Triple", label: "Triple (Hard)", mul: 3.0 }, { id: "Straight", label: "Straight (Hard)", mul: 2.5 },
+    { id: "Sum10", label: "Sum = 10", mul: 2.0 }, { id: "Sum7", label: "Sum = 7", mul: 2.0 },
+    { id: "Pair", label: "Pair", mul: 1.5 }, { id: "Evens", label: "All Even", mul: 1.5 }, { id: "Odds", label: "All Odd", mul: 1.5 },
+    { id: "SumHigh", label: "Sum >= 12", mul: 1.2 }, { id: "Sum>10", label: "Sum > 10 (Easy)", mul: 1.2 }
+];
+
+// --- INITIALIZATION ---
+document.getElementById('inp-t1').value = teamNames.t1;
+document.getElementById('inp-t2').value = teamNames.t2;
+repairData(); renderDeck(); updateLangUI(); checkStorage();
+
+// --- API ---
+async function callAI(prompt, image = null) {
+    if (apiKey) {
+        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${apiKey}`, {
+            method:"POST", headers:{"Content-Type":"application/json"},
+            body:JSON.stringify({contents:[{parts:[{text:prompt}, {inline_data:{mime_type:"image/webp", data:image.split(',')[1]}}]}]})
+        });
+        if (!res.ok) throw new Error("API Error");
+        const json = await res.json();
+        return json.candidates[0].content.parts[0].text;
+    } else {
+        return await callGemini(prompt, image);
+    }
+}
+
+async function callGemini(prompt, image = null) {
+    const base = (window.AI_HTTP || location.origin).replace(/\/$/, "");
+    const endpoint = `${base}/ai/samuraimap`;
+    const payload = { prompt, model: "gemma-3-27b-it" };
+    if (image) payload.image = image.indexOf(',') > -1 ? image.split(',')[1] : image;
+
+    try {
+      const res = await fetch(endpoint, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
+      const rawText = await res.text();
+      const jsonMatch = rawText.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+          const json = JSON.parse(jsonMatch[0]);
+          if (json.text) return json.text;
+          if (json.candidates && json.candidates[0]) return json.candidates[0].content.parts[0].text;
+          return JSON.stringify(json);
+      }
+      throw new Error("No JSON found");
+    } catch (e) { throw new Error(e.message); }
+}
+
+function repairData() {
+    let repaired = false;
+    const defSkills = { "Sum>10":{name:"Hit",type:"ATTACK"}, "Pair":{name:"Bash",type:"SMASH"}, "Triple":{name:"Ult",type:"CRITICAL"}, "Straight":{name:"Aid",type:"HEAL"} };
+    deck.forEach(u => {
+        if (!u.skills) { u.skills = JSON.parse(JSON.stringify(defSkills)); repaired = true; }
+        if (!u.stats) { u.stats = {hp:150, atk:20, def:5, spd:10, luk:10}; repaired = true; }
+        if (u.stats.def === undefined) { u.stats.def = 5; repaired = true; }
+    });
+    if (repaired) localStorage.setItem('ig_deck', JSON.stringify(deck));
+}
+
+function checkStorage() {
+    const total = JSON.stringify(localStorage).length;
+    const limit = 5000000; 
+    const pct = Math.floor((total / limit) * 100);
+    document.getElementById('mem-usage').innerText = `MEMORY USAGE: ${pct}% | SLOT: ${deck.length}/${maxSlots}`;
+    document.getElementById('mem-bar').style.width = `${pct}%`;
+    if(pct > 90) document.getElementById('mem-bar').style.background = "var(--danger)";
+}
+
+function go(id){
+    document.querySelectorAll('.screen').forEach(e=>e.classList.remove('active'));
+    document.getElementById('scr-'+id).classList.add('active');
+    if(id==='deck') { selectPhase = 0; renderDeck(); }
+    if(id==='setting') checkStorage();
+}
+
+function sysMsg(t, m){ document.getElementById('sys-title').innerText=t; document.getElementById('sys-msg').innerText=m; document.getElementById('sys-modal').style.display='flex'; }
+function closeSysModal(){ document.getElementById('sys-modal').style.display='none'; }
+function closeDetail(){ document.getElementById('detail-modal').style.display='none'; viewingIdx=-1; }
+function closeWinOverlay(){ document.getElementById('win-overlay').style.display='none'; go('deck'); }
+function toggleLang(){ lang = lang==="JP"?"EN":"JP"; localStorage.setItem('ig_lang', lang); updateLangUI(); }
+function updateLangUI(){
+    document.getElementById('lbl-lang').innerText = lang; document.getElementById('btn-roll').innerText = DICT[lang].roll;
+    document.getElementById('lbl-atk').innerText = DICT[lang].atk; document.getElementById('lbl-def').innerText = DICT[lang].def;
+    document.getElementById('btn-gen').innerText = DICT[lang].gen_btn;
+}
+const actx = new (window.AudioContext||window.webkitAudioContext)();
+function snd(type){
+    if(!soundOn) return; if(actx.state==='suspended') actx.resume();
+    const o=actx.createOscillator(), g=actx.createGain(); o.connect(g); g.connect(actx.destination); const n=actx.currentTime;
+    if(type==='roll'){ o.type='square'; o.frequency.setValueAtTime(80,n); g.gain.linearRampToValueAtTime(0,n+0.2); o.start(n); o.stop(n+0.2); }
+    if(type==='hit'){ o.type='sawtooth'; o.frequency.setValueAtTime(100,n); g.gain.linearRampToValueAtTime(0,n+0.2); o.start(n); o.stop(n+0.2); }
+    if(type==='ui'){ o.frequency.setValueAtTime(800,n); g.gain.linearRampToValueAtTime(0,n+0.1); o.start(n); o.stop(n+0.1); }
+    if(type==='power'){ o.type='sine'; o.frequency.setValueAtTime(200,n); o.frequency.linearRampToValueAtTime(800,n+0.5); g.gain.linearRampToValueAtTime(0,n+0.5); o.start(n); o.stop(n+0.5); }
+    if(type==='win'){ o.type='triangle'; o.frequency.setValueAtTime(523,n); o.frequency.setValueAtTime(659,n+0.1); o.frequency.setValueAtTime(783,n+0.2); o.frequency.setValueAtTime(1046,n+0.3); g.gain.linearRampToValueAtTime(0,n+0.8); o.start(n); o.stop(n+0.8); }
+    if(type==='summon'){ 
+        o.type='sawtooth'; 
+        o.frequency.setValueAtTime(200,n); o.frequency.linearRampToValueAtTime(1000,n+0.5); 
+        g.gain.linearRampToValueAtTime(0,n+1.5); 
+        o.start(n); o.stop(n+1.5); 
+    }
+}
+function toggleSound(){ soundOn = !soundOn; document.getElementById('btn-snd').innerText = "SOUND: " + (soundOn?"ON":"OFF"); }
+
+function openModeModal(){ if(deck.length<2) return sysMsg("ALERT","Need 2+ Fighters"); document.getElementById('mode-modal').style.display='flex'; }
+function closeModeModal(){ document.getElementById('mode-modal').style.display='none'; }
+function startSelectionMode(mode) { closeModeModal(); selectMode = mode; selectPhase = 1; selT1 = []; selT2 = []; renderDeck(); }
+
+function renderDeck(){
+    const el = document.getElementById('deck-grid'); el.innerHTML="";
+    const btn = document.getElementById('btn-start');
+    const msg = document.getElementById('deck-msg');
+
+    if(selectPhase === 0) {
+        msg.innerText = `Manage your Fighters (${deck.length}/${maxSlots})`; 
+        btn.innerText = "BATTLE MENU"; btn.onclick = openModeModal; btn.style.display = "block";
+    } else if (selectPhase === 1) {
+        msg.innerText = `SELECT TEAM 1 (Blue) [Max ${MAX_TEAM}]`; btn.innerText = `CONFIRM TEAM 1 (${selT1.length})`; btn.onclick = confirmTeam1; btn.style.display = selT1.length > 0 ? "block" : "none";
+    } else if (selectPhase === 2) {
+        msg.innerText = `SELECT TEAM 2 (Red) [Max ${MAX_TEAM}]`; btn.innerText = `BATTLE START (${selT2.length})`; btn.onclick = initTeamBattle; btn.style.display = selT2.length > 0 ? "block" : "none";
+    }
+
+    deck.forEach((m,i)=>{
+        const d=document.createElement('div');
+        let cls = "card"; if(selT1.includes(i)) cls += " sel-p1"; else if(selT2.includes(i)) cls += " sel-p2";
+        d.className = cls; d.onclick = ()=>onCardTap(i); d.innerHTML = `<img src="${m.img}" class="card-img">`; el.appendChild(d);
+    });
+}
+
+function onCardTap(i) {
+    if (selectPhase === 0) { openDetail(i); } 
+    else if (selectPhase === 1) { if (selT1.includes(i)) selT1 = selT1.filter(x=>x!==i); else if (selT1.length < MAX_TEAM) selT1.push(i); renderDeck(); } 
+    else if (selectPhase === 2) { if (selT2.includes(i)) selT2 = selT2.filter(x=>x!==i); else if (!selT1.includes(i) && selT2.length < MAX_TEAM) selT2.push(i); renderDeck(); }
+}
+
+function confirmTeam1() {
+    if (selectMode === 'cpu') {
+        const pool = deck.map((_,i)=>i).filter(i => !selT1.includes(i)); selT2 = [];
+        while(selT2.length < MAX_TEAM && pool.length > 0) { const r = Math.floor(Math.random()*pool.length); selT2.push(pool.splice(r,1)[0]); }
+        initTeamBattle();
+    } else { selectPhase = 2; renderDeck(); }
+}
+
+function previewImage(inp){
+    const f=inp.files[0]; if(!f)return;
+    const r=new FileReader();
+    r.onload=e=>{
+        const img=new Image();
+        img.onload=()=>{
+            const cvs=document.createElement('canvas'); const MAX=120; // V49 Low Res
+            let w=img.width, h=img.height;
+            if(w>h){ if(w>MAX){ h*=MAX/w; w=MAX; } } else { if(h>MAX){ w*=MAX/h; h=MAX; } }
+            cvs.width=w; cvs.height=h;
+            cvs.getContext('2d').drawImage(img,0,0,w,h);
+            pendingImage = cvs.toDataURL('image/webp', 0.5); // V49 Low Quality
+            document.getElementById('prev-img').src=pendingImage;
+            document.getElementById('prev-img').style.display='block';
+            document.getElementById('btn-gen').disabled=false;
+        };
+        img.src=e.target.result;
+    };
+    r.readAsDataURL(f);
+}
+
+async function startGenesis(){
+    if(deck.length >= maxSlots) { document.getElementById('expand-modal').style.display='flex'; return; }
+    if(!pendingImage) return;
+    const ldr=document.getElementById('loader'); ldr.style.display='block';
+    const soul=document.getElementById('soul-text').value;
+    const prompt = `Analyze image & soul "${soul}". Return JSON with CREATIVE skill names. { "name": "Name", "stats": {"hp":150,"atk":20,"def":5,"spd":10,"luk":10}, "skills": { "Sum>10": {"name":"(Name)", "type":"ATTACK"}, "Pair": {"name":"(Name)", "type":"SMASH"}, "Triple": {"name":"(Name)", "type":"CRITICAL"}, "Straight": {"name":"(Name)", "type":"HEAL"}, "Sum7": {"name":"(Name)", "type":"FLIP"}, "Odds": {"name":"(Name)", "type":"TRAP"} } }`;
+    try {
+        const txt = await callAI(prompt, pendingImage);
+        let cleanTxt = txt.replace(/```json/g, "").replace(/```/g, "").trim();
+        const data = JSON.parse(cleanTxt.match(/\{[\s\S]*\}/)[0]);
+        data.img = pendingImage; data.stock = {}; 
+        
+        try {
+            deck.push(data); 
+            localStorage.setItem('ig_deck', JSON.stringify(deck));
+            showNewCardModal(data);
+        } catch(e) {
+            deck.pop(); 
+            sysMsg("STORAGE FULL", "Cannot save! Please RELEASE old cards.");
+        }
+        ldr.style.display='none'; document.getElementById('btn-gen').disabled=true; pendingImage=null; 
+    } catch(e) { alert("Error: "+e); ldr.style.display='none'; console.error(e); }
+}
+
+function showNewCardModal(data) {
+    document.getElementById('nc-img').src = data.img;
+    document.getElementById('nc-name').innerText = data.name;
+    document.getElementById('nc-stats').innerText = `HP:${data.stats.hp} ATK:${data.stats.atk} DEF:${data.stats.def} SPD:${data.stats.spd}`;
+    let skillsHtml = ""; if(data.skills) { Object.keys(data.skills).forEach(k => { skillsHtml += `[${k}] ${data.skills[k].name}\n`; }); }
+    document.getElementById('nc-skills').innerText = skillsHtml;
+    document.getElementById('new-card-modal').style.display = 'flex';
+    snd('summon'); 
+}
+
+function closeNewCard() { document.getElementById('new-card-modal').style.display = 'none'; go('deck'); }
+
+function execExpand(){
+    maxSlots += 8; localStorage.setItem('ig_slots', maxSlots);
+    document.getElementById('expand-modal').style.display='none';
+    sysMsg("EXPANDED!", `Slots increased to ${maxSlots}! (-500 GEM)`);
+    checkStorage(); renderDeck();
+}
+
+function openDetail(i){
+    const m = deck[i]; viewingIdx = i;
+    document.getElementById('dt-img').src=m.img; document.getElementById('dt-name').innerText=m.name;
+    if(m.potential) document.getElementById('dt-name').classList.add('potential-unlocked');
+    else document.getElementById('dt-name').classList.remove('potential-unlocked');
+    document.getElementById('dt-hp').innerText=m.stats.hp; document.getElementById('dt-atk').innerText=m.stats.atk;
+    document.getElementById('dt-def').innerText=m.stats.def; document.getElementById('dt-luk').innerText=m.stats.luk;
+    document.getElementById('dt-origin').innerText=m.origin || "No origin.";
+    const tbl = document.getElementById('dt-skills'); tbl.innerHTML="";
+    if(m.skills) Object.keys(m.skills).forEach(k=>{ tbl.innerHTML += `<tr><td>${k}</td><td>${m.skills[k].name} (${m.skills[k].type})</td></tr>`; });
+    document.getElementById('detail-modal').style.display='flex';
+}
+
+function openSkillEdit(){
+    const m = deck[viewingIdx]; const box = document.getElementById('skill-editor-rows'); box.innerHTML = "";
+    const currentKeys = Object.keys(m.skills);
+    for(let i=0; i<4; i++){
+        const key = currentKeys[i] || "Sum>10";
+        let opts = ""; TRIGGERS.forEach(t => { opts += `<option value="${t.id}" ${t.id===key?'selected':''}>${t.label} (x${t.mul})</option>`; });
+        box.innerHTML += `<div class="edit-row"><span class="edit-lbl">S${i+1}</span><select id="sk-sel-${i}" class="edit-sel">${opts}</select><input type="hidden" id="sk-old-${i}" value="${key}"></div>`;
+    }
+    document.getElementById('skill-modal').style.display='flex';
+}
+function saveSkillEdit(){
+    const m = deck[viewingIdx]; const newSkills = {};
+    for(let i=0; i<4; i++){
+        const newKey = document.getElementById(`sk-sel-${i}`).value;
+        const oldKey = document.getElementById(`sk-old-${i}`).value;
+        newSkills[newKey] = m.skills[oldKey] || {name:"Skill", type:"ATTACK"};
+    }
+    m.skills = newSkills; localStorage.setItem('ig_deck', JSON.stringify(deck));
+    document.getElementById('skill-modal').style.display='none'; openDetail(viewingIdx);
+}
+function unlockPotential(){ document.getElementById('pot-modal').style.display='flex'; }
+async function execUnlock(){
+    const word = document.getElementById('pot-word').value; if(!word) return;
+    document.getElementById('pot-modal').style.display='none'; const m = deck[viewingIdx];
+    sysMsg("SYNCING...", "Analyzing compatibility...");
+    setTimeout(()=>{
+        const bonus = Math.floor(Math.random() * 20) + 10; m.stats.hp += bonus; m.stats.atk += Math.floor(bonus/2); m.potential = word;
+        localStorage.setItem('ig_deck', JSON.stringify(deck)); snd('power'); closeSysModal();
+        sysMsg("SUCCESS!", `Potential Unlocked!\nWord: "${word}"\nBonus: HP+${bonus}, ATK+${Math.floor(bonus/2)}`); openDetail(viewingIdx);
+    }, 1500);
+}
+function releaseCard() {
+    if(!confirm("Are you sure you want to release (DELETE) this soul?")) return;
+    deck.splice(viewingIdx, 1);
+    localStorage.setItem('ig_deck', JSON.stringify(deck));
+    selT1 = []; selT2 = [];
+    closeDetail(); renderDeck(); checkStorage();
+}
+function exportCard() {
+    const data = JSON.stringify(deck[viewingIdx]);
+    sysMsg("MINTING...", "Generating Soul Data...");
+    setTimeout(() => { navigator.clipboard.writeText(data).then(() => { sysMsg("MINTED!", "Data copied to clipboard! (1000 GEM Paid)"); }); }, 1500);
+}
+function renameCard(){ if(viewingIdx<0)return; const n=prompt("Name:", deck[viewingIdx].name); if(n){ deck[viewingIdx].name=n; localStorage.setItem('ig_deck',JSON.stringify(deck)); openDetail(viewingIdx); renderDeck(); } }
+
+// --- BATTLE ---
+function initTeamBattle(){
+    battle = { units: [], queue: [], activeUnit: null, dice: [1,1,1], locks: [false,false,false], ap: 3, finished: false, target: null };
+    const t1 = selT1.map(i=>JSON.parse(JSON.stringify(deck[i])));
+    const t2 = selT2.map(i=>JSON.parse(JSON.stringify(deck[i])));
+    [t1, t2].forEach((team, tIdx) => { team.forEach(u => { u.team = tIdx + 1; u.cur = u.stats.hp; u.stock = {}; battle.units.push(u); }); });
+    document.getElementById('team1-name').innerText = teamNames.t1;
+    document.getElementById('team2-name').innerText = teamNames.t2;
+    document.getElementById('btl-log').innerHTML = "";
+    document.getElementById('btn-reality').style.display = 'block'; // Show Reality Btn
+    sortQueue(); go('battle'); renderStage(); nextTurn();
+}
+
+function sortQueue(){ battle.queue = battle.units.filter(u=>u.cur>0).sort((a,b)=>b.stats.spd - a.stats.spd); renderTimeline(); }
+function renderTimeline(){
+    const tl = document.getElementById('timeline'); tl.innerHTML="";
+    battle.queue.forEach((u, i)=>{
+        const img = document.createElement('img'); img.src = u.img; img.className = `tl-icon p${u.team} ${i===0?'active':''}`; tl.appendChild(img);
+    });
+}
+
+function renderStage(){
+    const z1 = document.getElementById('zone-t1'); z1.innerHTML="";
+    const z2 = document.getElementById('zone-t2'); z2.innerHTML="";
+    battle.units.forEach(u=>{
+        const div = document.createElement('div');
+        div.className = `unit-card p${u.team} ${u===battle.activeUnit?'active':''} ${u.cur<=0?'dead':''}`;
+        if(battle.target === u) div.classList.add('targeted');
+        div.onclick = () => { if(battle.activeUnit.team === 1 && u.team === 2 && u.cur > 0) { battle.target = u; snd('ui'); renderStage(); } };
+        div.innerHTML = `<img src="${u.img}" class="unit-img"><div class="hp-box"><div class="hp-mini"><div class="hp-mini-fill" style="width:${(u.cur/u.stats.hp)*100}%; background:${u.team===1?'var(--p1)':'var(--p2)'}"></div></div><span class="hp-text">${u.cur}/${u.stats.hp}</span></div>`;
+        if(u.team===1) z1.appendChild(div); else z2.appendChild(div);
+    });
+    const t1s = battle.units.filter(u=>u.team===1), t2s = battle.units.filter(u=>u.team===2);
+    document.getElementById('t1-bar').style.width = (t1s.reduce((a,c)=>a+c.cur,0)/Math.max(1, t1s.reduce((a,c)=>a+c.stats.hp,0))*100)+"%";
+    document.getElementById('t2-bar').style.width = (t2s.reduce((a,c)=>a+c.cur,0)/Math.max(1, t2s.reduce((a,c)=>a+c.stats.hp,0))*100)+"%";
+}
+
+function nextTurn(){
+    if(battle.finished) return; 
+    const t1Alive = battle.units.some(u=>u.team===1 && u.cur>0);
+    const t2Alive = battle.units.some(u=>u.team===2 && u.cur>0);
+    if(!t1Alive) return endBattle(teamNames.t2 + DICT[lang].win);
+    if(!t2Alive) return endBattle(teamNames.t1 + DICT[lang].win);
+    if(battle.queue.length === 0) sortQueue();
+    battle.activeUnit = battle.queue.shift();
+    if(battle.activeUnit.cur <= 0) { nextTurn(); return; }
+    battle.ap = 3; battle.locks = [false,false,false]; battle.target = null; 
+    renderStage(); renderTimeline(); updatePanel();
+    if(battle.activeUnit.team === 2){ setTimeout(aiTurn, 800); }
+}
+
+function updatePanel(){
+    const u = battle.activeUnit;
+    document.getElementById('btl-msg').innerText = u.name + DICT[lang].turn;
+    document.getElementById('btn-roll').disabled = (battle.ap <= 0);
+    renderDice();
+    const skillKeys = u.skills ? Object.keys(u.skills).slice(0, 4) : [];
+    for(let i=0; i<4; i++) updateSkillBtn(skillKeys[i], `btn-s${i+1}`);
+}
+
+function updateSkillBtn(role, btnId){
+    const btn = document.getElementById(btnId);
+    if(!role) { btn.innerHTML="-"; btn.className="act-btn"; btn.disabled=true; return; }
+    const u = battle.activeUnit; const skill = u.skills[role];
+    btn.innerHTML = `<span class="skill-name">${skill.name}</span><span class="skill-type">${role}</span>`;
+    if(u.stock[role]) { btn.className = "act-btn ready"; btn.disabled = false; btn.onclick = () => execAction(role); } 
+    else { btn.className = "act-btn"; btn.disabled = true; }
+}
+
+function actRoll(){
+    if(battle.ap <= 0) return; battle.ap--; 
+    let c = 0; const iv = setInterval(() => {
+        battle.dice = battle.dice.map((v,i)=>battle.locks[i]?v:Math.ceil(Math.random()*6));
+        renderDice(true); snd('roll'); c++;
+        if(c >= 5) { clearInterval(iv); checkCombos(); }
+    }, 100);
+}
+
+function checkCombos(){
+    const d=battle.dice, c={}; d.forEach(x=>c[x]=(c[x]||0)+1);
+    const vals=Object.values(c), sum=d.reduce((a,b)=>a+b,0), sStr=[...d].sort().join('');
+    const u = battle.activeUnit;
+    let matched = [];
+    if(vals.includes(3)) matched.push('Triple');
+    if(sStr==='123'||sStr==='234'||sStr==='345'||sStr==='456') matched.push('Straight');
+    if(vals.includes(2)) matched.push('Pair');
+    if(sum>=12) matched.push('SumHigh');
+    if(sum>=10) matched.push('Sum>10');
+    if(sum===10) matched.push('Sum10');
+    if(sum===7) matched.push('Sum7');
+    if(d.every(v=>v%2===0)) matched.push('Evens');
+    if(d.every(v=>v%2!==0)) matched.push('Odds');
+    matched.forEach(role => { if(u.skills && u.skills[role]) u.stock[role] = true; });
+    renderDice(); updatePanel();
+}
+
+function renderDice(anim=false){
+    const el = document.getElementById('dice-area'); el.innerHTML="";
+    battle.dice.forEach((v,i)=>{
+        const d = document.createElement('div'); d.className = `cube ${battle.locks[i]?'locked':''} ${anim&&!battle.locks[i]?'rolling':''}`;
+        d.onclick = ()=>{ if(battle.activeUnit.team===1){ battle.locks[i]=!battle.locks[i]; renderDice(); }};
+        d.innerHTML = `<div class="face">${v}</div>`;
+        el.appendChild(d);
+    });
+}
+
+function execAction(actType){
+    const u = battle.activeUnit;
+    let target = battle.target || battle.units.find(t => t.team !== u.team && t.cur > 0);
+    if(!target && actType !== "HEAL") return; 
+    let dmg = 0, msg = "";
+    
+    let triggerMul = 1.0;
+    const triggerData = TRIGGERS.find(t=>t.id === actType);
+    if(triggerData) triggerMul = triggerData.mul;
+
+    if(actType === "DEFEND"){ msg = DICT[lang].def; }
+    else if(actType === "ATTACK"){ 
+        const diceSum = battle.dice.reduce((a,b)=>a+b,0);
+        const factor = 0.5 + (diceSum / 10);
+        dmg = Math.floor(u.stats.atk * factor); msg = `Attack (Pow:${diceSum})`;
+    }
+    else {
+        const skill = u.skills[actType];
+        let power = Math.floor(u.stats.atk * triggerMul);
+        if(skill.type === "HEAL"){ u.cur = Math.min(u.stats.hp, u.cur + (power*2)); animDmg(u, `+${power*2}`, "#0f0"); msg = DICT[lang].heal; }
+        else if (skill.type === "FLIP") { dmg = Math.floor(power * 0.8); target.stats.spd = Math.max(1, target.stats.spd - 2); msg = `FLIP! ${skill.name}`; } 
+        else if (skill.type === "TRAP") { dmg = Math.floor(power * 1.5); msg = `TRAP! ${skill.name}`; } 
+        else { let mult = skill.type === "SMASH" ? 1.5 : (skill.type === "CRITICAL" ? 2.0 : 1.2); dmg = Math.floor(power * mult); msg = skill.name; }
+        u.stock[actType] = false;
+    }
+    if(dmg > 0 && target){
+        let def = target.stats.def || 0; let reduce = 100 / (100 + def); dmg = Math.floor(dmg * reduce);
+        target.cur = Math.max(0, target.cur - dmg); animDmg(target, `-${dmg}`, "#f00"); snd('hit');
+    }
+    addLog(`${u.name}: ${msg} ${dmg>0?'('+dmg+')':''}`);
+    document.getElementById('btl-msg').innerText = msg; renderStage(); setTimeout(nextTurn, 800);
+}
+
+// V51: REALITY FUNCTIONS
+function openReality() {
+    if(battle.activeUnit.team !== 1) return;
+    const tasks = ["RED Object", "BLUE Object", "ROUND Shape", "SQUARE Shape", "FOOD", "ELECTRONICS"];
+    realityTarget = tasks[Math.floor(Math.random()*tasks.length)];
+    document.getElementById('reality-task').innerText = `TARGET: ${realityTarget}`;
+    document.getElementById('reality-prev').style.display = 'none';
+    document.getElementById('btn-reality-send').disabled = true;
+    document.getElementById('reality-modal').style.display = 'flex';
+}
+
+function previewReality(inp) {
+    const f=inp.files[0]; if(!f)return;
+    const r=new FileReader();
+    r.onload=e=>{
+        const img=new Image();
+        img.onload=()=>{
+            const cvs=document.createElement('canvas'); const MAX=120;
+            let w=img.width, h=img.height;
+            if(w>h){ if(w>MAX){ h*=MAX/w; w=MAX; } } else { if(h>MAX){ w*=MAX/h; h=MAX; } }
+            cvs.width=w; cvs.height=h;
+            cvs.getContext('2d').drawImage(img,0,0,w,h);
+            realityImage = cvs.toDataURL('image/webp', 0.5);
+            document.getElementById('reality-prev').src = realityImage;
+            document.getElementById('reality-prev').style.display = 'block';
+            document.getElementById('btn-reality-send').disabled = false;
+        };
+        img.src=e.target.result;
+    };
+    r.readAsDataURL(f);
+}
+
+async function sendReality() {
+    document.getElementById('reality-modal').style.display='none';
+    addLog("Analyzing Reality...");
+    
+    // Simple prompt to verify image content
+    const prompt = `Does this image contain "${realityTarget}"? Answer JSON: {"match": true/false}`;
+    try {
+        const txt = await callAI(prompt, realityImage);
+        const res = JSON.parse(txt.match(/\{[\s\S]*\}/)[0]);
+        
+        if(res.match) {
+            snd('power');
+            addLog("REALITY HACK SUCCESS! All Stats UP!");
+            battle.units.forEach(u => {
+                if(u.team === 1 && u.cur > 0) {
+                    u.cur = Math.min(u.stats.hp, u.cur + 50);
+                    u.stats.atk += 10;
+                    animDmg(u, "BOOST!", "#0ff");
+                }
+            });
+        } else {
+            snd('hit');
+            addLog("REALITY HACK FAILED! Penalty Damage!");
+            battle.units.forEach(u => {
+                if(u.team === 1 && u.cur > 0) {
+                    u.cur = Math.max(0, u.cur - 30);
+                    animDmg(u, "-30", "#f00");
+                }
+            });
+        }
+        renderStage();
+    } catch(e) {
+        addLog("Reality Link Lost...");
+    }
+}
+
+function addLog(t){ const l=document.getElementById('btl-log'); l.innerHTML+=`<div class="msg-row">${t}</div>`; l.scrollTop=l.scrollHeight; }
+function aiTurn(){ const iv = setInterval(()=>{ if(battle.ap > 0){ actRoll(); } else { clearInterval(iv); const u = battle.activeUnit; const readySkill = Object.keys(u.stock).find(k=>u.stock[k]); if(readySkill) execAction(readySkill); else execAction('ATTACK'); } }, 600); }
+function animDmg(unit, txt, col){ const div = document.createElement('div'); div.className = 'dmg-txt'; div.innerText = txt; div.style.color = col; document.body.appendChild(div); setTimeout(()=>div.remove(), 800); }
+function endBattle(res){ if(battle.finished) return; battle.finished = true; snd('win'); document.getElementById('win-msg').innerText = res; document.getElementById('win-overlay').style.display = 'flex'; }
+function saveApiKey(){ localStorage.setItem('ig_key', document.getElementById('api-init').value); alert("Saved"); }
+function saveTeams(){ teamNames.t1 = document.getElementById('inp-t1').value; teamNames.t2 = document.getElementById('inp-t2').value; localStorage.setItem('ig_team1', teamNames.t1); localStorage.setItem('ig_team2', teamNames.t2); alert("Saved"); }
+</script>
 </body>
 </html>
