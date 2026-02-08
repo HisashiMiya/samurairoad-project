@@ -2,8 +2,8 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<title>IMAGENESIS: V51 [Reality Hacking]</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>IMAGENESIS: V52 [Mobile Fixed]</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Orbitron:wght@700;900&family=Shippori+Mincho:wght@700&display=swap" rel="stylesheet">
@@ -29,7 +29,9 @@
         background: var(--bg); color: var(--text);
         font-family: var(--font-main);
         margin: 0; padding: 0;
-        height: 100vh; overflow: hidden;
+        /* V52: Dynamic Viewport Height for Mobile */
+        height: 100dvh; 
+        overflow: hidden;
         user-select: none; display: flex; flex-direction: column;
     }
 
@@ -42,8 +44,8 @@
 
     /* MODAL */
     .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 9999; display: none; align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(5px); }
-    .sys-box { width: 90%; max-width: 320px; background: #1a1a1a; border: 1px solid var(--accent); border-radius: 8px; padding: 15px; text-align: center; box-shadow: 0 0 20px rgba(0, 240, 255, 0.2); max-height: 90vh; overflow-y: auto; }
-    .sys-btn { background: var(--accent); color: #000; border: none; padding: 10px 20px; font-weight: bold; clip-path: polygon(5% 0, 100% 0, 95% 100%, 0% 100%); margin-top: 10px; font-size: 12px; width:100%; }
+    .sys-box { width: 90%; max-width: 320px; background: #1a1a1a; border: 1px solid var(--accent); border-radius: 8px; padding: 15px; text-align: center; box-shadow: 0 0 20px rgba(0, 240, 255, 0.2); max-height: 80vh; overflow-y: auto; }
+    .sys-btn { background: var(--accent); color: #000; border: none; padding: 12px 20px; font-weight: bold; clip-path: polygon(5% 0, 100% 0, 95% 100%, 0% 100%); margin-top: 10px; font-size: 14px; width:100%; }
 
     /* BATTLE SCREEN */
     #scr-battle { padding: 0; }
@@ -66,7 +68,6 @@
     }
     .msg-row { margin-bottom: 2px; border-bottom: 1px solid #222; }
 
-    /* BATTLE STAGE */
     .stage { 
         flex: 1; position: relative; width: 100%;
         background: radial-gradient(circle at center, #1a1a1a 0%, #050505 100%); 
@@ -116,7 +117,7 @@
     @keyframes popIn { from{transform:scale(0);} to{transform:scale(1);} }
 
     /* Control Panel */
-    .panel { background: #111; border-top: 2px solid var(--accent); padding: 10px; min-height: 200px; z-index: 20; position: relative; width: 100%; }
+    .panel { background: #111; border-top: 2px solid var(--accent); padding: 10px; min-height: 200px; z-index: 20; position: relative; width: 100%; padding-bottom: 20px; }
     .btl-msg { text-align: center; color: var(--accent); font-size: 10px; margin-bottom: 5px; height: 1.2em; font-family: var(--font-eng); }
     
     .dice-area { display: flex; justify-content: center; gap: 8px; height: 35px; margin-bottom: 8px; perspective: 500px; }
@@ -128,7 +129,7 @@
 
     .action-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
     .act-btn { 
-        padding: 8px; background: #222; color: #666; border: 1px solid #444; font-size: 9px; 
+        padding: 10px; background: #222; color: #666; border: 1px solid #444; font-size: 10px; 
         font-family: var(--font-eng); text-align: left; position: relative; overflow: hidden;
     }
     .act-btn.ready { border-color: var(--ready); color: #fff; background: rgba(0,255,0,0.1); box-shadow: 0 0 5px var(--ready); }
@@ -151,14 +152,29 @@
     .card.sel-p2::after { content: "P2"; position: absolute; top: 0; right: 0; background: var(--p2); color: #fff; font-size: 9px; padding: 1px 3px; font-weight:bold; }
     .card-img { width: 100%; height: 100%; object-fit: cover; }
 
-    /* NAV */
-    .nav { height: 50px; background: #080808; border-top: 1px solid #222; display: flex; justify-content: space-around; align-items: center; width: 100%; }
-    .nav-btn { background: none; border: none; color: #444; font-size: 8px; font-weight: bold; display: flex; flex-direction: column; align-items: center; width: 100%; }
+    /* NAV V52 */
+    .nav { 
+        height: auto; min-height: 50px; 
+        background: #080808; border-top: 1px solid #222; 
+        display: flex; justify-content: space-around; align-items: center; 
+        width: 100%; 
+        padding-bottom: env(safe-area-inset-bottom); /* iOS Safe Area */
+    }
+    .nav-btn { 
+        background: none; border: none; color: #444; font-size: 9px; font-weight: bold; 
+        display: flex; flex-direction: column; align-items: center; width: 100%; 
+        padding: 8px 0;
+    }
     .nav-btn.active { color: var(--accent); }
-    .icon { font-size: 16px; margin-bottom: 2px; }
+    .icon { font-size: 18px; margin-bottom: 2px; }
 
     /* Float Button */
-    .btn-float { position: fixed; bottom: 70px; width: 90%; left: 5%; padding: 12px; background: #000; border: 2px solid var(--accent); color: var(--accent); font-weight: bold; z-index: 80; font-size: 12px; box-shadow: 0 0 10px rgba(0, 240, 255, 0.3); }
+    .btn-float { 
+        position: fixed; bottom: calc(60px + env(safe-area-inset-bottom)); width: 90%; left: 5%; 
+        padding: 12px; background: #000; border: 2px solid var(--accent); color: var(--accent); 
+        font-weight: bold; z-index: 80; font-size: 12px; 
+        box-shadow: 0 0 10px rgba(0, 240, 255, 0.3); 
+    }
 
     /* SETTINGS */
     .st-row { margin-bottom: 10px; border-bottom: 1px solid #333; padding-bottom: 8px; }
@@ -167,7 +183,7 @@
     .inp-st { width: 100%; padding: 6px; background: #000; border: 1px solid #444; color: #fff; box-sizing: border-box; font-size: 10px; }
 
     /* DETAIL MODAL */
-    .detail-card { width: 90%; max-width: 320px; background: #111; border: 1px solid var(--accent); border-radius: 8px; padding: 20px; text-align: center; position: relative; }
+    .detail-card { width: 90%; max-width: 320px; background: #111; border: 1px solid var(--accent); border-radius: 8px; padding: 20px; text-align: center; position: relative; max-height: 80vh; overflow-y: auto; }
     .detail-img { width: 60px; height: 60px; border-radius: 50%; border: 2px solid var(--accent); object-fit: cover; margin: 0 auto; display: block; }
     .skill-table { width: 100%; font-size: 10px; color: #888; margin-top: 15px; border-collapse: collapse; }
     .skill-table th { color: var(--accent); border-bottom: 1px solid #333; text-align: left; padding: 4px; }
@@ -181,7 +197,7 @@
 
     .deck-header { text-align: center; font-size: 10px; color: #aaa; margin-bottom: 5px; min-height: 15px; }
 
-    /* V50: NEW CARD MODAL */
+    /* NEW CARD MODAL */
     #new-card-modal { z-index: 10000; background: rgba(0,0,0,0.95); }
     .new-card-box { text-align: center; animation: zoomIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
     .nc-title { font-family: 'Cinzel'; font-size: 24px; color: var(--gold); margin-bottom: 15px; text-shadow: 0 0 10px var(--gold); }
@@ -192,7 +208,7 @@
     .nc-skills { font-size: 10px; color: #888; text-align: left; background: #111; padding: 10px; border-radius: 4px; border: 1px solid #333; }
     @keyframes zoomIn { from{transform:scale(0); opacity:0;} to{transform:scale(1); opacity:1;} }
 
-    /* V51: REALITY BUTTON */
+    /* REALITY BUTTON */
     .btn-reality {
         background: linear-gradient(45deg, #ff00ff, #00ffff);
         color: #000; border: none; font-weight: 900;
@@ -359,8 +375,8 @@
         <div class="st-row">
             <span class="st-lbl">MANUAL & POLICY</span>
             <div style="display:flex; gap:5px;">
-                <a href="manual.html" target="_blank" style="flex:1; display:block; padding:8px; background:#222; color:var(--accent); text-decoration:none; border:1px solid var(--accent); text-align:center; font-size:10px;">MANUAL</a>
-                <a href="privacy.html" target="_blank" style="flex:1; display:block; padding:8px; background:#222; color:var(--accent); text-decoration:none; border:1px solid var(--accent); text-align:center; font-size:10px;">PRIVACY POLICY</a>
+                <a href="imagenesis_manual.html" target="_blank" style="flex:1; display:block; padding:8px; background:#222; color:var(--accent); text-decoration:none; border:1px solid var(--accent); text-align:center; font-size:10px;">MANUAL</a>
+                <a href="imagenesis_privacy.html" target="_blank" style="flex:1; display:block; padding:8px; background:#222; color:var(--accent); text-decoration:none; border:1px solid var(--accent); text-align:center; font-size:10px;">PRIVACY POLICY</a>
             </div>
         </div>
         <button onclick="if(confirm('Delete All?')){localStorage.clear();location.reload();}" style="width:100%; padding:10px; background:#500; color:#fff; border:none; font-size:10px;">RESET DATA</button>
@@ -416,9 +432,9 @@
     </div>
 </div>
 
-<script src="./assets/js/config.js?v=51"></script>
+<script src="./assets/js/config.js?v=52"></script>
 <script>
-// --- V51: REALITY HACK ---
+// --- V52: MOBILE OPTIMIZED ---
 const MODEL = window.GEM_MODEL; 
 if (!MODEL) alert("CRITICAL: config.js missing or GEM_MODEL undefined.");
 
@@ -434,8 +450,8 @@ let lang = localStorage.getItem('ig_lang') || "JP";
 let teamNames = { t1: localStorage.getItem('ig_team1')||"TEAM 1", t2: localStorage.getItem('ig_team2')||"TEAM 2" };
 let viewingIdx = -1;
 let pendingImage = null;
-let realityImage = null; // V51
-let realityTarget = ""; // V51
+let realityImage = null;
+let realityTarget = "";
 let selectMode = null; 
 let selectPhase = 0; 
 
@@ -453,12 +469,10 @@ const TRIGGERS = [
     { id: "SumHigh", label: "Sum >= 12", mul: 1.2 }, { id: "Sum>10", label: "Sum > 10 (Easy)", mul: 1.2 }
 ];
 
-// --- INITIALIZATION ---
 document.getElementById('inp-t1').value = teamNames.t1;
 document.getElementById('inp-t2').value = teamNames.t2;
 repairData(); renderDeck(); updateLangUI(); checkStorage();
 
-// --- API ---
 async function callAI(prompt, image = null) {
     if (apiKey) {
         const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${apiKey}`, {
@@ -709,146 +723,7 @@ function exportCard() {
 }
 function renameCard(){ if(viewingIdx<0)return; const n=prompt("Name:", deck[viewingIdx].name); if(n){ deck[viewingIdx].name=n; localStorage.setItem('ig_deck',JSON.stringify(deck)); openDetail(viewingIdx); renderDeck(); } }
 
-// --- BATTLE ---
-function initTeamBattle(){
-    battle = { units: [], queue: [], activeUnit: null, dice: [1,1,1], locks: [false,false,false], ap: 3, finished: false, target: null };
-    const t1 = selT1.map(i=>JSON.parse(JSON.stringify(deck[i])));
-    const t2 = selT2.map(i=>JSON.parse(JSON.stringify(deck[i])));
-    [t1, t2].forEach((team, tIdx) => { team.forEach(u => { u.team = tIdx + 1; u.cur = u.stats.hp; u.stock = {}; battle.units.push(u); }); });
-    document.getElementById('team1-name').innerText = teamNames.t1;
-    document.getElementById('team2-name').innerText = teamNames.t2;
-    document.getElementById('btl-log').innerHTML = "";
-    document.getElementById('btn-reality').style.display = 'block'; // Show Reality Btn
-    sortQueue(); go('battle'); renderStage(); nextTurn();
-}
-
-function sortQueue(){ battle.queue = battle.units.filter(u=>u.cur>0).sort((a,b)=>b.stats.spd - a.stats.spd); renderTimeline(); }
-function renderTimeline(){
-    const tl = document.getElementById('timeline'); tl.innerHTML="";
-    battle.queue.forEach((u, i)=>{
-        const img = document.createElement('img'); img.src = u.img; img.className = `tl-icon p${u.team} ${i===0?'active':''}`; tl.appendChild(img);
-    });
-}
-
-function renderStage(){
-    const z1 = document.getElementById('zone-t1'); z1.innerHTML="";
-    const z2 = document.getElementById('zone-t2'); z2.innerHTML="";
-    battle.units.forEach(u=>{
-        const div = document.createElement('div');
-        div.className = `unit-card p${u.team} ${u===battle.activeUnit?'active':''} ${u.cur<=0?'dead':''}`;
-        if(battle.target === u) div.classList.add('targeted');
-        div.onclick = () => { if(battle.activeUnit.team === 1 && u.team === 2 && u.cur > 0) { battle.target = u; snd('ui'); renderStage(); } };
-        div.innerHTML = `<img src="${u.img}" class="unit-img"><div class="hp-box"><div class="hp-mini"><div class="hp-mini-fill" style="width:${(u.cur/u.stats.hp)*100}%; background:${u.team===1?'var(--p1)':'var(--p2)'}"></div></div><span class="hp-text">${u.cur}/${u.stats.hp}</span></div>`;
-        if(u.team===1) z1.appendChild(div); else z2.appendChild(div);
-    });
-    const t1s = battle.units.filter(u=>u.team===1), t2s = battle.units.filter(u=>u.team===2);
-    document.getElementById('t1-bar').style.width = (t1s.reduce((a,c)=>a+c.cur,0)/Math.max(1, t1s.reduce((a,c)=>a+c.stats.hp,0))*100)+"%";
-    document.getElementById('t2-bar').style.width = (t2s.reduce((a,c)=>a+c.cur,0)/Math.max(1, t2s.reduce((a,c)=>a+c.stats.hp,0))*100)+"%";
-}
-
-function nextTurn(){
-    if(battle.finished) return; 
-    const t1Alive = battle.units.some(u=>u.team===1 && u.cur>0);
-    const t2Alive = battle.units.some(u=>u.team===2 && u.cur>0);
-    if(!t1Alive) return endBattle(teamNames.t2 + DICT[lang].win);
-    if(!t2Alive) return endBattle(teamNames.t1 + DICT[lang].win);
-    if(battle.queue.length === 0) sortQueue();
-    battle.activeUnit = battle.queue.shift();
-    if(battle.activeUnit.cur <= 0) { nextTurn(); return; }
-    battle.ap = 3; battle.locks = [false,false,false]; battle.target = null; 
-    renderStage(); renderTimeline(); updatePanel();
-    if(battle.activeUnit.team === 2){ setTimeout(aiTurn, 800); }
-}
-
-function updatePanel(){
-    const u = battle.activeUnit;
-    document.getElementById('btl-msg').innerText = u.name + DICT[lang].turn;
-    document.getElementById('btn-roll').disabled = (battle.ap <= 0);
-    renderDice();
-    const skillKeys = u.skills ? Object.keys(u.skills).slice(0, 4) : [];
-    for(let i=0; i<4; i++) updateSkillBtn(skillKeys[i], `btn-s${i+1}`);
-}
-
-function updateSkillBtn(role, btnId){
-    const btn = document.getElementById(btnId);
-    if(!role) { btn.innerHTML="-"; btn.className="act-btn"; btn.disabled=true; return; }
-    const u = battle.activeUnit; const skill = u.skills[role];
-    btn.innerHTML = `<span class="skill-name">${skill.name}</span><span class="skill-type">${role}</span>`;
-    if(u.stock[role]) { btn.className = "act-btn ready"; btn.disabled = false; btn.onclick = () => execAction(role); } 
-    else { btn.className = "act-btn"; btn.disabled = true; }
-}
-
-function actRoll(){
-    if(battle.ap <= 0) return; battle.ap--; 
-    let c = 0; const iv = setInterval(() => {
-        battle.dice = battle.dice.map((v,i)=>battle.locks[i]?v:Math.ceil(Math.random()*6));
-        renderDice(true); snd('roll'); c++;
-        if(c >= 5) { clearInterval(iv); checkCombos(); }
-    }, 100);
-}
-
-function checkCombos(){
-    const d=battle.dice, c={}; d.forEach(x=>c[x]=(c[x]||0)+1);
-    const vals=Object.values(c), sum=d.reduce((a,b)=>a+b,0), sStr=[...d].sort().join('');
-    const u = battle.activeUnit;
-    let matched = [];
-    if(vals.includes(3)) matched.push('Triple');
-    if(sStr==='123'||sStr==='234'||sStr==='345'||sStr==='456') matched.push('Straight');
-    if(vals.includes(2)) matched.push('Pair');
-    if(sum>=12) matched.push('SumHigh');
-    if(sum>=10) matched.push('Sum>10');
-    if(sum===10) matched.push('Sum10');
-    if(sum===7) matched.push('Sum7');
-    if(d.every(v=>v%2===0)) matched.push('Evens');
-    if(d.every(v=>v%2!==0)) matched.push('Odds');
-    matched.forEach(role => { if(u.skills && u.skills[role]) u.stock[role] = true; });
-    renderDice(); updatePanel();
-}
-
-function renderDice(anim=false){
-    const el = document.getElementById('dice-area'); el.innerHTML="";
-    battle.dice.forEach((v,i)=>{
-        const d = document.createElement('div'); d.className = `cube ${battle.locks[i]?'locked':''} ${anim&&!battle.locks[i]?'rolling':''}`;
-        d.onclick = ()=>{ if(battle.activeUnit.team===1){ battle.locks[i]=!battle.locks[i]; renderDice(); }};
-        d.innerHTML = `<div class="face">${v}</div>`;
-        el.appendChild(d);
-    });
-}
-
-function execAction(actType){
-    const u = battle.activeUnit;
-    let target = battle.target || battle.units.find(t => t.team !== u.team && t.cur > 0);
-    if(!target && actType !== "HEAL") return; 
-    let dmg = 0, msg = "";
-    
-    let triggerMul = 1.0;
-    const triggerData = TRIGGERS.find(t=>t.id === actType);
-    if(triggerData) triggerMul = triggerData.mul;
-
-    if(actType === "DEFEND"){ msg = DICT[lang].def; }
-    else if(actType === "ATTACK"){ 
-        const diceSum = battle.dice.reduce((a,b)=>a+b,0);
-        const factor = 0.5 + (diceSum / 10);
-        dmg = Math.floor(u.stats.atk * factor); msg = `Attack (Pow:${diceSum})`;
-    }
-    else {
-        const skill = u.skills[actType];
-        let power = Math.floor(u.stats.atk * triggerMul);
-        if(skill.type === "HEAL"){ u.cur = Math.min(u.stats.hp, u.cur + (power*2)); animDmg(u, `+${power*2}`, "#0f0"); msg = DICT[lang].heal; }
-        else if (skill.type === "FLIP") { dmg = Math.floor(power * 0.8); target.stats.spd = Math.max(1, target.stats.spd - 2); msg = `FLIP! ${skill.name}`; } 
-        else if (skill.type === "TRAP") { dmg = Math.floor(power * 1.5); msg = `TRAP! ${skill.name}`; } 
-        else { let mult = skill.type === "SMASH" ? 1.5 : (skill.type === "CRITICAL" ? 2.0 : 1.2); dmg = Math.floor(power * mult); msg = skill.name; }
-        u.stock[actType] = false;
-    }
-    if(dmg > 0 && target){
-        let def = target.stats.def || 0; let reduce = 100 / (100 + def); dmg = Math.floor(dmg * reduce);
-        target.cur = Math.max(0, target.cur - dmg); animDmg(target, `-${dmg}`, "#f00"); snd('hit');
-    }
-    addLog(`${u.name}: ${msg} ${dmg>0?'('+dmg+')':''}`);
-    document.getElementById('btl-msg').innerText = msg; renderStage(); setTimeout(nextTurn, 800);
-}
-
-// V51: REALITY FUNCTIONS
+// --- REALITY ---
 function openReality() {
     if(battle.activeUnit.team !== 1) return;
     const tasks = ["RED Object", "BLUE Object", "ROUND Shape", "SQUARE Shape", "FOOD", "ELECTRONICS"];
@@ -883,12 +758,12 @@ function previewReality(inp) {
 async function sendReality() {
     document.getElementById('reality-modal').style.display='none';
     addLog("Analyzing Reality...");
-    
-    // Simple prompt to verify image content
     const prompt = `Does this image contain "${realityTarget}"? Answer JSON: {"match": true/false}`;
     try {
         const txt = await callAI(prompt, realityImage);
-        const res = JSON.parse(txt.match(/\{[\s\S]*\}/)[0]);
+        // V52: Robust parsing for reality response
+        let res;
+        try { res = JSON.parse(txt); } catch(e) { res = JSON.parse(txt.match(/\{[\s\S]*\}/)[0]); }
         
         if(res.match) {
             snd('power');
