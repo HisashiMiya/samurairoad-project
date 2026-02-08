@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>可変幅・タイムアタック迷路</title>
+    <style>
+        body {
+            margin: 0; padding: 0;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            height: 100vh; background-color: #1a1a1a;
+            color: white; font-family: sans-serif;
+            overflow: hidden; touch-action: none;
+        }
+        #ui-header { margin-bottom: 10px; width: 90%; display: flex; justify-content: space-between; max-width: 400px; }
+        #timer { color: #ffeb3b; font-family: monospace; font-size: 1.2rem; }
+        #maze-container {
+            background-color: #222;
+            border: 2px solid #555;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+        }
+        canvas { display: block; }
+        .msg { margin-top: 10px; height: 20px; font-size: 0.9rem; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <div id="ui-header">
+        <div>Lv: <span id="level">1</span></div>
+        <div id="timer">0.00s</div>
+    </div>
+
+    <div id="maze-container">
+        <canvas id="mazeCanvas"></canvas>
+    </div>
+
+    <div class="msg" id="msg">Sからスタート！</div>
+
+    <script>
+        const canvas = document.getElementById('mazeCanvas');
+        const ctx = canvas.getContext('2d');
+        const timerEl = document.getElementById('timer');
+        const levelEl = document.getElementById('level');
+        const msgEl = document.getElementById('msg');
+
+        let level = 1;
+        let maze = [];
+        let cols, rows, cellSize;
+        let isDrawing = false;
+        let startTime, timerInterval;
+
+        function initGame() {
+            // --- スマホ操作性を考慮したサイズ設計 ---
+            const padding = 40;
+            const availableSize = Math.min(window.innerWidth - padding, window.innerHeight - 160);
+            
+            // レベルに応じてマス数を微増させるが、道が細くなりすぎないように調整
+            const complexity = Math.min(level, 10);
+            cols = rows = 9 + (Math.floor(complexity / 2) * 2);
+            
+            // 通路の幅（cellSize）をランダムに決定
+            // 最小を24px、最大を画面に収まる限界値にする
+            const minAllowed = 24; 
+            const maxAllowed = Math.floor(availableSize / cols);
+            
+            // ランダムに幅を決定（レベルが低いほど広くなりやすい）
+            cellSize = Math.floor(Math.random() * (maxAllowed - minAllowed + 1)) + minAllowed;
+
+            canvas.width = cols * cellSize;
+            canvas.height = rows * cellSize;
+
+            generateMaze(cols, rows);
+            drawMaze();
+            resetTimer();
+            msgEl.textContent = "青いSをなぞって開始！";
+            msgEl.style.color = "#ccc";
+        }
+
+        function generateMaze(c, r) {
+            maze = Array.from({ length: r }, () => Array(c).fill(1));
+            function dig(x, y) {
+                maze[y][x] = 0;
+                const dirs = [[0, 2], [0, -2], [2, 0], [-2, 0]].sort(() => Math.random() - 0.5);
+                for (let [dx, dy] of dirs) {
+                    const nx = x + dx, ny = y + dy;
+                    if (nx > 0 && nx < c - 1 && ny > 0 && ny < r - 1 && maze[ny][nx] === 1) {
+                        maze[y + dy / 2][x + dx / 2] = 0;
+                        dig(nx, ny);
+                    }
+                }
+            }
+            dig(1, 1);
+            maze[1][1] = 2; // S
+            maze[r - 2][c - 2] = 3; // G
+        }
+
+        function drawMaze() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            for (let y = 0; y < rows; y++) {
+                for (let x = 0; x < cols; x++) {
+                    if (maze[y][x] === 1) {
+                        ctx.fillStyle = "#111"; // 壁
+                    } else if (maze[y][x] === 2) {
+                        ctx.fillStyle = "#4488ff"; // S
+                    } else if (maze[y][x] === 3) {
+                        ctx.fillStyle = "#ff4444"; // G
+                    } else {
+                        ctx.fillStyle = "#fff"; // 通路
+                    }
+                    ctx.fillRect(x * cellSize, y * cellSize, cellSize, cellSize);
+                    
+                    if(maze[y][x] === 2 || maze[y][x] === 3) {
+                        ctx.fillStyle = "white";
+                        ctx.font = `bold ${cellSize * 0.6}px sans-serif`;
+                        ctx.textAlign = "center";
+                        ctx.textBaseline = "middle";
+                        ctx.fillText(maze[y][x] === 2 ? "S" : "G", x * cellSize + cellSize/2, y * cellSize + cellSize/2);
+                    }
+                }
+            }
+        }
+
+        function startTimer() {
+            if (startTime) return;
+            startTime = Date.now();
+            timerInterval = setInterval(() => {
+                timerEl.textContent = ((Date.now() - startTime) / 1000).toFixed(2) + "s";
+            }, 50);
+        }
+
+        function resetTimer() {
+            clearInterval(timerInterval);
+            startTime = null;
+            timerEl.textContent = "0.00s";
+        }
+
+        function handleInput(e) {
+            if (!isDrawing) return;
+            const rect = canvas.getBoundingClientRect();
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            
+            const x = Math.floor((clientX - rect.left) / cellSize);
+            const y = Math.floor((clientY - rect.top) / cellSize);
+
+            if (x >= 0 && x < cols && y >= 0 && y < rows) {
+                if (maze[y][x] === 1) {
+                    isDrawing = false;
+                    resetTimer();
+                    msgEl.style.color = "#ff4444";
+                    msgEl.textContent = "壁です！やり直し";
+                    drawMaze();
+                } else if (maze[y][x] === 3) {
+                    isDrawing = false;
+                    const clearTime = timerEl.textContent;
+                    clearInterval(timerInterval);
+                    msgEl.style.color = "#4caf50";
+                    msgEl.textContent = `CLEAR! (${clearTime})`;
+                    level++;
+                    setTimeout(() => {
+                        levelEl.textContent = level;
+                        initGame();
+                    }, 800);
+                } else {
+                    ctx.fillStyle = "rgba(255, 235, 59, 0.5)";
+                    ctx.fillRect(x * cellSize + 2, y * cellSize + 2, cellSize - 4, cellSize - 4);
+                }
+            }
+        }
+
+        const startAction = (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            const x = Math.floor((clientX - rect.left) / cellSize);
+            const y = Math.floor((clientY - rect.top) / cellSize);
+
+            if (maze[y] && maze[y][x] === 2) {
+                isDrawing = true;
+                startTimer();
+                msgEl.textContent = "急いで！";
+            }
+        };
+
+        canvas.addEventListener('mousedown', startAction);
+        canvas.addEventListener('touchstart', (e) => { e.preventDefault(); startAction(e); }, {passive: false});
+        window.addEventListener('mousemove', handleInput);
+        window.addEventListener('touchmove', (e) => { e.preventDefault(); handleInput(e); }, {passive: false});
+        window.addEventListener('mouseup', () => isDrawing = false);
+        window.addEventListener('touchend', () => isDrawing = false);
+
+        initGame();
+    </script>
+</body>
+</html>
