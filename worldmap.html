@@ -510,7 +510,7 @@
       });
   }
 
-  // --- Gemini API 呼び出し ---
+  // --- Gemini API 呼び出し ---n
   async function callGemini(prompt, image = null) {
     const base = (window.AI_HTTP || location.origin).replace(/\/$/, "");
     const endpoint = `${base}/ai/samuraimap`;
@@ -531,24 +531,56 @@
     }
   }
 
-  // --- 侍の目 (画像ファイル処理) ---
+// ★ 修正版: 画像を選択・圧縮して送信する関数 ★
   function handleSamuraiImageSelect(event) {
       const file = event.target.files[0];
       if (!file) return;
 
-      const reader = new FileReader();
-      showLoading(); // 読み込み開始でローディング表示
+      // ローディング表示
+      showLoading();
 
-      reader.onload = function(e) {
-          // Base64の生データを取得 (data:image/jpeg;base64,... のヘッダーを削除)
-          const base64 = e.target.result.split(',')[1];
-          // AI処理へ
+      // 画像を圧縮してBase64にする処理
+      resizeImage(file, 1024, 0.7, (base64) => {
+          // 圧縮後のデータでAI処理へ
           processSamuraiImage(base64);
+      });
+      
+      // 次回も同じファイルを選べるようにリセット
+      event.target.value = '';
+  }
+
+  // ★ 追加: 画像リサイズ用ユーティリティ関数 ★
+  function resizeImage(file, maxWidth, quality, callback) {
+      const reader = new FileReader();
+      reader.onload = function(e) {
+          const img = new Image();
+          img.onload = function() {
+              // サイズ計算
+              let width = img.width;
+              let height = img.height;
+              if (width > maxWidth) {
+                  height = Math.round(height * (maxWidth / width));
+                  width = maxWidth;
+              }
+
+              // Canvasを使ってリサイズ
+              const canvas = document.createElement('canvas');
+              canvas.width = width;
+              canvas.height = height;
+              const ctx = canvas.getContext('2d');
+              ctx.drawImage(img, 0, 0, width, height);
+
+              // JPEG形式で圧縮 (quality: 0.0〜1.0)
+              // data:image/jpeg;base64,..... の形式で取得される
+              const dataUrl = canvas.toDataURL('image/jpeg', quality);
+              
+              // ヘッダー部分(data:image/jpeg;base64,)を削除して本文だけ返す
+              const base64 = dataUrl.split(',')[1];
+              callback(base64);
+          };
+          img.src = e.target.result;
       };
       reader.readAsDataURL(file);
-      
-      // 同じファイルを連続で選べるようにリセット
-      event.target.value = '';
   }
 
   async function processSamuraiImage(base64) {
