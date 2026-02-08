@@ -12,7 +12,6 @@
 <body>
 <header>
   <div class="nav">
-    <!-- brand: 1ファイル化するので index_en.html には飛ばさない -->
     <a class="brand" href="./index.html">
       <div class="logo"></div>
       <div>
@@ -25,7 +24,6 @@
       <a class="btn ghost" href="#tools" data-i18n="nav_tools">Tools</a>
       <a class="btn ghost" href="#about" data-i18n="nav_about">About</a>
 
-      <!-- 言語切替（JP/EN） -->
       <button class="btn primary" type="button" id="langBtn" aria-label="Switch language">
         <span id="langLabel">JP</span>
       </button>
@@ -34,7 +32,6 @@
 </header>
 
 <main class="wrap">
-  <!-- HERO -->
   <section class="hero">
     <div class="card heroMain">
       <div class="kicker" data-i18n="kicker">SAMURAIROAD PROJECT</div>
@@ -114,7 +111,6 @@
     </aside>
   </section>
 
-  <!-- TOOLS -->
   <section id="tools" class="section">
     <h3 data-i18n="tools_title">Tools & Pages</h3>
 
@@ -145,6 +141,15 @@
           <a class="btn primary" data-link="engine" data-i18n="open">Open</a>
         </div>
       </div>
+      
+      <div class="card feature">
+        <div class="tag" data-i18n="tag_util">Utility</div>
+        <h4 data-i18n="yadoken_title">Accommodation Search</h4>
+        <p data-i18n="yadoken_desc">Cross-search major travel sites (Jalan, Rakuten, Booking, etc) instantly.</p>
+        <div class="actions">
+          <a class="btn primary" data-link="yadoken" data-i18n="open">Open</a>
+        </div>
+      </div>
 
       <div class="card feature">
         <div class="tag" data-i18n="tag_ai">AI</div>
@@ -165,6 +170,16 @@
           <a class="btn" data-link="gemini_api_beginner_guide" data-i18n="gemini_step3">③ Beginner Guide</a>
         </div>
       </div>
+      
+      <div class="card feature">
+        <div class="tag" data-i18n="tag_dev">Dev</div>
+        <h4 data-i18n="icon_maker_title">Icon Generator</h4>
+        <p data-i18n="icon_maker_desc">Create Android-ready app icons (512px) and quick prototypes.</p>
+        <div class="actions">
+          <a class="btn primary" data-link="icon_maker" data-i18n="open">Open</a>
+        </div>
+      </div>
+
       <div class="card feature">
         <div class="tag" data-i18n="tag_rt">Real-time</div>
         <h4 data-i18n="shogi_title">Shogi</h4>
@@ -183,7 +198,6 @@
   </div>
 </div>
 
-<!-- GAME : Samurai Series -->
 <div class="card feature">
   <div class="tag" data-i18n="tag_game">Game</div>
   <h4 data-i18n="samurai_series_title">Samurai Series</h4>
@@ -200,7 +214,6 @@
   </div>
 </div>
 
-<!-- GAME / CHARACTER : Bunosuke -->
 <div class="card feature">
   <div class="tag" data-i18n="tag_game">Game</div>
   <h4 data-i18n="bunosuke_title">Bunosuke</h4>
@@ -217,7 +230,6 @@
 
   </section>
 
-  <!-- ABOUT -->
   <section id="about" class="section">
     <h3 data-i18n="about_title">About</h3>
     <div class="card feature">
@@ -228,9 +240,7 @@
     </div>
   </section>
 </main>
-<!-- Footer mount -->
 <div data-include="./includes/footer.html" aria-label="Footer"></div>
-<!-- 共通JS（defer必須） -->
 <script src="./assets/js/sr-common.js" defer></script>
 <script>
 /* ====== 1) links: one place to manage (dedupe) ====== */
@@ -247,9 +257,9 @@ const LINKS = {
   gemini_api_model_finder: "./gemini_api_model_finder.html",
   gemini_api_intro: "./gemini_api_intro.html",
   gemini_api_beginner_guide: "./gemini_api_model_finder_guid.html",
-    tag_dev: "Dev",
-    icon_maker_title: "Samurai Icon Generator",
-    icon_maker_desc: "Create Android-ready app icons (512px) and quick prototypes.",
+  // Added Links
+  icon_maker: "./icon_maker.html",
+  yadoken: "./yadoken.html",
 };
 
 /* apply links */
@@ -319,21 +329,28 @@ window.SR_I18N = {
     tag_rt: "Real-time",
     shogi_title: "Shogi",
     shogi_desc: "Online Shogi interface.",
-tag_game: "Game",
+    tag_game: "Game",
 
-samurai_series_title: "Samurai Series",
-samurai_series_desc: "Experimental game series inspired by samurai themes.",
+    // Added Translations
+    tag_util: "Utility",
+    icon_maker_title: "Samurai Icon Generator",
+    icon_maker_desc: "Create Android-ready app icons (512px) and quick prototypes.",
+    yadoken_title: "Accommodation Search",
+    yadoken_desc: "Cross-search major travel sites (Jalan, Rakuten, Booking, etc) instantly.",
 
-samurai_000: "#000 Samurai",
-samurai_001: "#001 Samurai – Kengo",
-samurai_002: "#002 Samurai – Ketto",
-samurai_003: "#003 Samurai – Garyo",
-samurai_004: "#004 Samurai – Kessen",
-samurai_hub: "Game Hub",
+    samurai_series_title: "Samurai Series",
+    samurai_series_desc: "Experimental game series inspired by samurai themes.",
 
-bunosuke_title: "Bunosuke",
-bunosuke_desc: "A flying pig wandering historic roads.<br>Mascot game of SAMURAI ROAD.",
-bunosuke_play: "🐷 Fly! Bunosuke",
+    samurai_000: "#000 Samurai",
+    samurai_001: "#001 Samurai – Kengo",
+    samurai_002: "#002 Samurai – Ketto",
+    samurai_003: "#003 Samurai – Garyo",
+    samurai_004: "#004 Samurai – Kessen",
+    samurai_hub: "Game Hub",
+
+    bunosuke_title: "Bunosuke",
+    bunosuke_desc: "A flying pig wandering historic roads.<br>Mascot game of SAMURAI ROAD.",
+    bunosuke_play: "🐷 Fly! Bunosuke",
     about_title: "About",
     about_body: "SamuraiRoad is designed as a personal exploration OS. Pages connect organically, and the platform evolves as content grows.",
     foot_home: "Home",
@@ -361,7 +378,7 @@ bunosuke_play: "🐷 Fly! Bunosuke",
     pill3_d: "ページと機能で育つ",
     tag_map: "地図",
     worldmap_title: "世界マップ",
-    worldmap_desc: "世界の街道マップ（Leaflet）",
+    worldmap_desc: "世界の街道マップ",
     open: "開く",
     quick_title: "クイック",
     qa_world_t: "世界マップ",
@@ -373,8 +390,6 @@ bunosuke_play: "🐷 Fly! Bunosuke",
     qa_shogi_t: "将棋",
     qa_shogi_d: "リアルタイム将棋UI",
     tag_dev: "開発",
-    icon_maker_title: "侍アイコン生成ツール",
-    icon_maker_desc: "Android提出用（512px）アイコンや試作アイコンを素早く作れます。",
     tools_title: "ツール & ページ",
     tag_doc: "ドキュメント",
     intro_title: "プロジェクト概要",
@@ -390,7 +405,7 @@ bunosuke_play: "🐷 Fly! Bunosuke",
     tag_dev: "開発",
     qa_gemini_t: "Gemini API",
     qa_gemini_d: "モデル探索",
-    gemini_dojo_title: "Gemini API 修行",
+    gemini_dojo_title: "Gemini API",
     gemini_dojo_desc: "APIキー取得 → モデル探索 → 初心者ガイド の順で進めます。",
     gemini_step1: "① APIキー取得ガイド",
     gemini_step2: "② モデル探索ツール",
@@ -398,21 +413,28 @@ bunosuke_play: "🐷 Fly! Bunosuke",
     tag_rt: "リアルタイム",
     shogi_title: "将棋",
     shogi_desc: "オンライン将棋UI。",
-tag_game: "ゲーム",
+    tag_game: "ゲーム",
 
-samurai_series_title: "侍シリーズ",
-samurai_series_desc: "侍をテーマにした実験的ゲームシリーズ。",
+    // Added Translations
+    tag_util: "便利ツール",
+    icon_maker_title: "アイコン生成ツール",
+    icon_maker_desc: "Android提出用（512px）アイコンや試作アイコンを素早く作れます。",
+    yadoken_title: "宿泊検索リンク",
+    yadoken_desc: "場所・日程を指定して、主要宿泊サイトの検索結果へ一括で飛びます。",
 
-samurai_000: "#000 侍",
-samurai_001: "#001 侍 剣豪",
-samurai_002: "#002 侍 血闘",
-samurai_003: "#003 侍 画龍",
-samurai_004: "#004 侍 決戦",
-samurai_hub: "ゲームハブ",
+    samurai_series_title: "侍シリーズ",
+    samurai_series_desc: "侍をテーマにした実験的ゲームシリーズ。",
 
-bunosuke_title: "ブ～の介",
-bunosuke_desc: "空を飛ぶブタ、ブ～の介。<br>SAMURAI ROADのマスコットゲーム。",
-bunosuke_play: "🐷 飛べ！ブー之助",
+    samurai_000: "#000 侍",
+    samurai_001: "#001 侍 剣豪",
+    samurai_002: "#002 侍 血闘",
+    samurai_003: "#003 侍 画龍",
+    samurai_004: "#004 侍 決戦",
+    samurai_hub: "ゲームハブ",
+
+    bunosuke_title: "ブ～の介",
+    bunosuke_desc: "空を飛ぶブタ、ブ～の介。<br>SAMURAI ROADのマスコットゲーム。",
+    bunosuke_play: "🐷 飛べ！ブー之助",
     about_title: "概要",
     about_body: "SamuraiRoadは「個人探索OS」として設計しています。ページは有機的につながり、コンテンツが増えるほど進化します。",
     foot_home: "ホーム",
