@@ -4,21 +4,21 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>宿泊検索リンク（メジャーサイト横断）</title>
-  <meta name="description" content="チェックイン/アウト・人数・部屋数・場所を指定して、主要宿泊サイトの検索ページへ一括で遷移できます。" />
+  <meta name="description" content="宿泊日程・人数・部屋数・場所を指定して、主要宿泊サイトの検索ページへ一括で遷移できます。" />
 
   <style>
     :root{
       --bg1:#06121c;
       --bg2:#0a1b2a;
-      --panel: rgba(255,255,255,.08);
-      --panel2: rgba(0,0,0,.20);
       --text:#eaf2ff;
       --muted:#b6c3d9;
       --line:rgba(255,255,255,.18);
+
       --accent:#7dd3fc;   /* sky */
       --accent2:#a7f3d0;  /* mint */
       --warn:#fde68a;     /* sand */
       --danger:#fca5a5;   /* coral */
+
       --radius:18px;
     }
 
@@ -31,21 +31,29 @@
       background:
         radial-gradient(1200px 800px at 20% -10%, rgba(125,211,252,.22), transparent 60%),
         radial-gradient(1000px 700px at 85% 0%, rgba(167,243,208,.16), transparent 55%),
-        radial-gradient(1000px 800px at 50% 110%, rgba(253,230,138,.12), transparent 55%),
+        radial-gradient(900px 700px at 30% 110%, rgba(253,230,138,.12), transparent 55%),
         linear-gradient(180deg, var(--bg1), var(--bg2));
       min-height:100vh;
     }
 
     header{
-      padding:20px 14px 12px;
+      padding:18px 14px 12px;
       border-bottom:1px solid var(--line);
       background:linear-gradient(to bottom, rgba(255,255,255,.07), transparent);
-      backdrop-filter: blur(6px);
+      backdrop-filter: blur(8px);
       position:sticky; top:0; z-index:10;
     }
-
     .wrap{max-width:1100px;margin:0 auto;padding:0 10px}
-    h1{margin:0 0 6px;font-size:20px;letter-spacing:.2px}
+    h1{margin:0 0 6px;font-size:20px;letter-spacing:.2px; display:flex; gap:10px; align-items:center}
+    .tagTop{
+      font-size:11px;
+      padding:6px 10px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.18);
+      color:var(--muted);
+      background:rgba(0,0,0,.14);
+      white-space:nowrap;
+    }
     .sub{margin:0;color:var(--muted);font-size:13px}
 
     main{padding:14px 0 28px}
@@ -56,6 +64,29 @@
       border-radius:var(--radius);
       padding:14px;
       box-shadow: 0 14px 50px rgba(0,0,0,.35);
+      position:relative;
+      overflow:hidden;
+    }
+    .panel::before{
+      content:"";
+      position:absolute; inset:-40px -60px auto auto;
+      width:240px; height:240px;
+      background:radial-gradient(circle at 30% 30%, rgba(167,243,208,.14), transparent 60%);
+      pointer-events:none;
+      transform:rotate(10deg);
+    }
+
+    .sectionTitle{
+      display:flex; align-items:center; gap:10px;
+      margin:0 0 10px;
+      font-weight:900;
+      letter-spacing:.2px;
+      font-size:14px;
+    }
+    .dot{
+      width:10px;height:10px;border-radius:99px;
+      background:linear-gradient(180deg, rgba(125,211,252,.9), rgba(167,243,208,.7));
+      box-shadow:0 0 0 4px rgba(125,211,252,.12);
     }
 
     .grid{
@@ -67,7 +98,7 @@
     .field{grid-column: span 12}
     @media (min-width: 820px){
       .field.place{grid-column: span 6}
-      .field.date{grid-column: span 3}
+      .field.daterange{grid-column: span 6}
       .field.small{grid-column: span 2}
       .field.rooms{grid-column: span 2}
       .field.action{grid-column: span 2}
@@ -90,6 +121,51 @@
       box-shadow:0 0 0 4px rgba(125,211,252,.13)
     }
 
+    /* date range block */
+    .rangeBox{
+      border:1px solid rgba(255,255,255,.18);
+      border-radius:16px;
+      background:rgba(6,10,14,.28);
+      padding:12px;
+    }
+    .rangeRow{
+      display:flex; gap:10px; flex-wrap:wrap;
+      align-items:end;
+    }
+    .rangeRow .col{flex:1; min-width:140px}
+    .rangeTools{
+      display:flex; gap:8px; flex-wrap:wrap;
+      margin-top:10px;
+      align-items:center;
+      justify-content:space-between;
+    }
+    .chipsMini{display:flex; gap:8px; flex-wrap:wrap}
+    .chipMini{
+      padding:8px 10px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.18);
+      background:rgba(0,0,0,.12);
+      color:var(--muted);
+      cursor:pointer;
+      user-select:none;
+      font-size:12px;
+      min-height:36px;
+    }
+    .chipMini[aria-pressed="true"]{
+      border-color:rgba(125,211,252,.55);
+      background:rgba(125,211,252,.10);
+      color:var(--text);
+    }
+    .nightsPill{
+      font-size:12px;
+      padding:8px 10px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.18);
+      background:rgba(255,255,255,.03);
+      color:var(--muted);
+      white-space:nowrap;
+    }
+
     .row2{
       display:flex; gap:10px; flex-wrap:wrap; align-items:center; justify-content:space-between;
       margin-top:12px;
@@ -102,7 +178,7 @@
       background:linear-gradient(180deg, rgba(125,211,252,.20), rgba(125,211,252,.06));
       color:var(--text);
       cursor:pointer;
-      font-weight:800;
+      font-weight:900;
       letter-spacing:.2px;
       min-height:44px; /* mobile tap */
     }
@@ -110,7 +186,7 @@
     .btn.secondary{
       border:1px solid rgba(255,255,255,.18);
       background:rgba(255,255,255,.05);
-      font-weight:700;
+      font-weight:800;
       color:var(--muted);
     }
 
@@ -183,7 +259,8 @@
       border:1px solid rgba(255,255,255,.16);
       border-radius:var(--radius);
       padding:12px;
-      background:linear-gradient(180deg, rgba(255,255,255,.08), rgba(0,0,0,.18));
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.09), rgba(0,0,0,.18));
       position:relative;
       overflow:hidden;
     }
@@ -254,6 +331,29 @@
     .note{margin:8px 0 0; color:var(--muted)}
     .mono{font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Noto Sans Mono", monospace; font-size:11px; opacity:.95; word-break:break-all}
 
+/* Flights fold */
+.flightFold{
+  border:1px solid rgba(255,255,255,.14);
+  border-radius: var(--radius);
+  background: rgba(255,255,255,.03);
+  padding: 10px 12px;
+}
+.flightSummary{
+  cursor:pointer;
+  list-style:none;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+}
+.flightSummary::-webkit-details-marker{ display:none; }
+.flightSummary::after{
+  content:"▼";
+  color: var(--muted);
+  font-weight:900;
+}
+.flightFold[open] .flightSummary::after{ content:"▲"; }
+
     footer{
       border-top:1px solid rgba(255,255,255,.14);
       padding:16px 0 26px;
@@ -262,17 +362,14 @@
     }
 
     /* Mobile: bottom action bar */
-    .mobileBar{
-      display:none;
-    }
+    .mobileBar{display:none;}
     @media (max-width: 640px){
-      header{position:sticky; top:0}
-      .field.action{display:none} /* 上のボタンは隠して、下に固定バー */
+      .field.action{display:none}
       .mobileBar{
         display:flex;
         position:fixed; left:0; right:0; bottom:0;
         padding:10px 10px calc(10px + env(safe-area-inset-bottom));
-        background:linear-gradient(180deg, rgba(0,0,0,.0), rgba(0,0,0,.55));
+        background:linear-gradient(180deg, rgba(0,0,0,.0), rgba(0,0,0,.60));
         backdrop-filter: blur(10px);
         gap:10px;
         z-index:30;
@@ -286,27 +383,48 @@
 <body>
   <header>
     <div class="wrap">
-      <h1>宿泊検索リンク（メジャーサイト横断）</h1>
-      <p class="sub">条件を入れると、主要サイトの検索ページをまとめて生成します（検索結果は各サイトで表示）。</p>
+      <h1>
+        宿泊検索リンク（メジャーサイト横断）
+        <span class="tagTop">✈ 旅の条件 → 公式検索へ</span>
+      </h1>
+      <p class="sub">「場所・宿泊日程・人数」を入れるだけ。比較はこのページ、予約は各サイトで。</p>
     </div>
   </header>
 
   <main class="wrap">
     <section class="panel" aria-label="search-form">
+      <div class="sectionTitle"><span class="dot"></span>検索条件</div>
+
       <div class="grid">
         <div class="field place">
           <label for="place">場所（駅名/地名/観光地/市区町村など）</label>
           <input id="place" placeholder="例：東京 / 京都駅 / 箱根湯本" autocomplete="off" />
         </div>
 
-        <div class="field date">
-          <label for="checkin">チェックイン</label>
-          <input id="checkin" type="date" inputmode="numeric" />
-        </div>
+        <!-- Date range (grouped) -->
+        <div class="field daterange">
+          <label>宿泊日程（チェックイン → チェックアウト）</label>
+          <div class="rangeBox">
+            <div class="rangeRow">
+              <div class="col">
+                <label for="checkin">チェックイン</label>
+                <input id="checkin" type="date" inputmode="numeric" />
+              </div>
+              <div class="col">
+                <label for="checkout">チェックアウト</label>
+                <input id="checkout" type="date" inputmode="numeric" />
+              </div>
+            </div>
 
-        <div class="field date">
-          <label for="checkout">チェックアウト</label>
-          <input id="checkout" type="date" inputmode="numeric" />
+            <div class="rangeTools">
+              <div class="chipsMini" aria-label="nights-quick">
+                <button class="chipMini" type="button" data-nights="1" aria-pressed="true">1泊</button>
+                <button class="chipMini" type="button" data-nights="2" aria-pressed="false">2泊</button>
+                <button class="chipMini" type="button" data-nights="3" aria-pressed="false">3泊</button>
+              </div>
+              <span class="nightsPill" id="nightsPill">泊数：1泊</span>
+            </div>
+          </div>
         </div>
 
         <div class="field small">
@@ -353,13 +471,121 @@
       </div>
 
       <div class="legend" aria-label="legend">
-        <p class="legendTitle">見方（特徴が一目で分かるように）</p>
+        <p class="legendTitle">見方（サイトの特徴が一目で分かる）</p>
         <div class="legendGrid">
           <span class="pill primary">条件引継ぎ◎：日付/人数が渡りやすい</span>
           <span class="pill warn">入口確実：サイト内検索で確実に入口へ</span>
           <span class="pill good">用途タグ：価格/高級/家族/比較</span>
         </div>
       </div>
+
+<!-- ===== Flights (航空券) : 初期は閉 ===== -->
+<details class="flightFold" id="flightFold" aria-label="flights" style="margin-top:14px">
+  <summary class="flightSummary">
+    <span class="sectionTitle" style="margin:0"><span class="dot"></span>航空券（かんたん検索）</span>
+    <span class="hint">（必要なときだけ開く）</span>
+  </summary>
+
+  <section class="panel" style="margin-top:10px">
+    <div class="grid">
+      <div class="field place">
+        <label for="from">出発地（都市/空港）</label>
+        <input id="from" placeholder="例：東京 / HND / NRT" autocomplete="off" />
+      </div>
+
+      <div class="field place">
+        <label for="to">到着地（都市/空港）</label>
+        <input id="to" placeholder="例：札幌 / CTS" autocomplete="off" />
+      </div>
+
+      <div class="field small">
+        <label for="tripType">種別</label>
+        <select id="tripType">
+          <option value="round">往復</option>
+          <option value="oneway">片道</option>
+        </select>
+      </div>
+
+      <div class="field small">
+        <label for="fAdults">大人</label>
+        <input id="fAdults" type="number" min="1" value="2" inputmode="numeric" />
+      </div>
+
+      <div class="field small">
+        <label for="fChildren">子供</label>
+        <input id="fChildren" type="number" min="0" value="2" inputmode="numeric" />
+      </div>
+
+      <div class="field action">
+        <button class="btn" id="btnFlights" type="button">航空券リンク生成</button>
+      </div>
+    </div>
+
+    <div class="legend" style="margin-top:12px">
+      <p class="legendTitle">航空券の見方</p>
+      <div class="legendGrid">
+        <span class="pill primary">Google Flights：まず相場と便の当たり</span>
+        <span class="pill warn">Skyscanner：安い候補探し</span>
+        <span class="pill good">Kayak/Expedia：比較の補助</span>
+      </div>
+    </div>
+
+    <div class="resultsHead">
+      <div class="count" id="flightCount">航空券リンク未生成</div>
+      <div class="hint">リンクは新しいタブで開きます。</div>
+    </div>
+
+    <section class="cards" id="flightCards" aria-label="flight-results"></section>
+  </section>
+</details>
+
+<!-- ===== Night Bus (夜行バス) : 初期は閉 ===== -->
+<details class="flightFold" id="busFold" aria-label="nightbus" style="margin-top:14px">
+  <summary class="flightSummary">
+    <span class="sectionTitle" style="margin:0"><span class="dot"></span>夜行バス（かんたん検索）</span>
+    <span class="hint">（安さ重視・必要なときだけ）</span>
+  </summary>
+
+  <section class="panel" style="margin-top:10px">
+    <div class="grid">
+      <div class="field place">
+        <label for="busFrom">出発地</label>
+        <input id="busFrom" placeholder="例：東京 / 新宿 / 渋谷" />
+      </div>
+
+      <div class="field place">
+        <label for="busTo">到着地</label>
+        <input id="busTo" placeholder="例：大阪 / 梅田 / 難波" />
+      </div>
+
+      <div class="field small">
+        <label for="busAdults">人数</label>
+        <input id="busAdults" type="number" min="1" value="1" inputmode="numeric" />
+      </div>
+
+      <div class="field action">
+        <button class="btn" id="btnBus" type="button">夜行バスリンク生成</button>
+      </div>
+    </div>
+
+    <div class="legend" style="margin-top:12px">
+      <p class="legendTitle">夜行バスの見方</p>
+      <div class="legendGrid">
+        <span class="pill primary">WILLER：UIが分かりやすい</span>
+        <span class="pill warn">高速バスドットコム：便数重視</span>
+        <span class="pill good">比較系：最安チェック</span>
+      </div>
+    </div>
+
+    <div class="resultsHead">
+      <div class="count" id="busCount">夜行バスリンク未生成</div>
+      <div class="hint">リンクは新しいタブで開きます。</div>
+    </div>
+
+    <section class="cards" id="busCards" aria-label="bus-results"></section>
+  </section>
+</details>
+
 
       <div id="error" class="error" role="alert"></div>
 
@@ -388,7 +614,6 @@
     </footer>
   </main>
 
-  <!-- Mobile bottom action bar -->
   <div class="mobileBar" aria-label="mobile-actions">
     <button class="btn" id="btnBuildMobile" type="button">リンク生成</button>
     <button class="btn secondary" id="btnShareMobile" type="button">URL保存</button>
@@ -398,7 +623,6 @@
     const $ = (id) => document.getElementById(id);
     const enc = (s) => encodeURIComponent((s || "").trim());
 
-    // 壊れにくい「サイト内検索」URL（Google / Yahoo）
     function googleSiteSearch(domain, query){
       return `https://www.google.com/search?q=${enc(query + " site:" + domain)}`;
     }
@@ -406,15 +630,10 @@
       return `https://search.yahoo.co.jp/search?p=${enc(query + " site:" + domain)}`;
     }
 
-    // 受け取った日付を "YYYY-MM-DD" に正規化（スラッシュもOK）
     function normalizeDate(raw){
       if(!raw) return "";
       const v = String(raw).trim();
-
-      // already YYYY-MM-DD
       if(/^\d{4}-\d{2}-\d{2}$/.test(v)) return v;
-
-      // YYYY/MM/DD or YYYY/M/D
       const m1 = v.match(/^(\d{4})\/(\d{1,2})\/(\d{1,2})$/);
       if(m1){
         const y = m1[1];
@@ -422,12 +641,9 @@
         const dd = String(m1[3]).padStart(2,"0");
         return `${y}-${mm}-${dd}`;
       }
-
-      // YYYYMMDD
       const m2 = v.match(/^(\d{4})(\d{2})(\d{2})$/);
       if(m2) return `${m2[1]}-${m2[2]}-${m2[3]}`;
-
-      return ""; // unknown
+      return "";
     }
 
     function fmtISO(d){
@@ -437,7 +653,35 @@
       return `${y}-${m}-${day}`;
     }
 
-    // プリセット：今日/明日
+    function addDays(iso, days){
+      const m = iso.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+      if(!m) return "";
+      const d = new Date(Number(m[1]), Number(m[2])-1, Number(m[3]));
+      d.setDate(d.getDate() + days);
+      return fmtISO(d);
+    }
+
+    function daysBetween(checkinIso, checkoutIso){
+      const a = checkinIso.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+      const b = checkoutIso.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+      if(!a || !b) return 0;
+      const da = new Date(Number(a[1]), Number(a[2])-1, Number(a[3]));
+      const db = new Date(Number(b[1]), Number(b[2])-1, Number(b[3]));
+      const diff = Math.round((db - da) / (1000*60*60*24));
+      return diff;
+    }
+
+    // Nights state (UX)
+    let currentNights = 1;
+
+    function setNights(n){
+      currentNights = Math.max(1, Math.min(14, Number(n)||1));
+      document.querySelectorAll(".chipMini").forEach(btn=>{
+        btn.setAttribute("aria-pressed", (Number(btn.dataset.nights) === currentNights) ? "true" : "false");
+      });
+      $("nightsPill").textContent = `泊数：${currentNights}泊`;
+    }
+
     function presetDatesIfEmpty(){
       const inEl = $("checkin");
       const outEl = $("checkout");
@@ -452,159 +696,101 @@
       if(!outV) outEl.value = fmtISO(tomorrow);
     }
 
-    // 生成するサイト定義（特徴/向いてる人 を表示）
+    // When checkin changes, auto-set checkout based on nights (UX)
+    function syncCheckoutFromCheckin(){
+      const inV = normalizeDate($("checkin").value);
+      if(!inV) return;
+      $("checkin").value = inV;
+      const next = addDays(inV, currentNights);
+      if(next) $("checkout").value = next;
+    }
+
+    // When checkout changes, update nights (UX feedback)
+    function syncNightsFromRange(){
+      const inV = normalizeDate($("checkin").value);
+      const outV = normalizeDate($("checkout").value);
+      if(!inV || !outV) return;
+      $("checkin").value = inV;
+      $("checkout").value = outV;
+
+      const n = daysBetween(inV, outV);
+      if(n >= 1){
+        setNights(n);
+      }else{
+        // keep minimum 1 night
+        setNights(1);
+        syncCheckoutFromCheckin();
+      }
+    }
+
     const SITES = [
-      // 国内メジャー
-      {
-        id:"yahoo",
-        name:"Yahoo!トラベル",
-        category:"国内メジャー",
-        kind:"entry",
-        tags:["domestic","value"],
-        badge:"国内",
+      { id:"yahoo", name:"Yahoo!トラベル", category:"国内メジャー", kind:"entry", tags:["domestic","value"], badge:"国内",
         feature:"PayPay連携・セールで“即時割引”が刺さることが多い。",
         forWho:"価格重視 / PayPayユーザー",
-        build: ({q}) => yahooSiteSearch("travel.yahoo.co.jp", `${q} 宿泊`)
-      },
-      {
-        id:"rakuten",
-        name:"楽天トラベル",
-        category:"国内メジャー",
-        kind:"entry",
-        tags:["domestic","value","family"],
-        badge:"国内",
+        build: ({q}) => yahooSiteSearch("travel.yahoo.co.jp", `${q} 宿泊`) },
+
+      { id:"rakuten", name:"楽天トラベル", category:"国内メジャー", kind:"entry", tags:["domestic","value","family"], badge:"国内",
         feature:"掲載数が多く、地方・温泉の選択肢が豊富。",
         forWho:"選択肢重視 / 楽天ポイント派",
-        build: ({q}) => `https://travel.rakuten.co.jp/keyword/Search.do?f_query=${enc(q)}`
-      },
-      {
-        id:"jalan",
-        name:"じゃらん",
-        category:"国内メジャー",
-        kind:"entry",
-        tags:["domestic","family"],
-        badge:"国内",
+        build: ({q}) => `https://travel.rakuten.co.jp/keyword/Search.do?f_query=${enc(q)}` },
+
+      { id:"jalan", name:"じゃらん", category:"国内メジャー", kind:"entry", tags:["domestic","family"], badge:"国内",
         feature:"口コミと写真が“実用寄り”で雰囲気が掴みやすい。",
         forWho:"体験重視 / 失敗回避",
-        build: ({q}) => `https://www.jalan.net/uw/uwp2011/uww2011init.do?keyword=${enc(q)}`
-      },
-      {
-        id:"ikyu",
-        name:"一休.com",
-        category:"国内メジャー",
-        kind:"entry",
-        tags:["domestic","luxury"],
-        badge:"高級",
+        build: ({q}) => `https://www.jalan.net/uw/uwp2011/uww2011init.do?keyword=${enc(q)}` },
+
+      { id:"ikyu", name:"一休.com", category:"国内メジャー", kind:"entry", tags:["domestic","luxury"], badge:"高級",
         feature:"高級・記念日向けが強い。プラン品質が安定。",
         forWho:"大人旅 / 記念日 / 外したくない",
-        build: ({q}) => googleSiteSearch("ikyu.com", `${q} 宿泊`)
-      },
-      {
-        id:"jtb",
-        name:"JTB",
-        category:"国内メジャー",
-        kind:"entry",
-        tags:["domestic","family"],
-        badge:"大手",
+        build: ({q}) => googleSiteSearch("ikyu.com", `${q} 宿泊`) },
+
+      { id:"jtb", name:"JTB", category:"国内メジャー", kind:"entry", tags:["domestic","family"], badge:"大手",
         feature:"安心感とプランの厚み。初めての土地でも頼りになる。",
         forWho:"家族旅行 / 初心者 / 安心優先",
-        build: ({q}) => googleSiteSearch("jtb.co.jp", `${q} ホテル`)
-      },
+        build: ({q}) => googleSiteSearch("jtb.co.jp", `${q} ホテル`) },
 
-      // 海外系
-      {
-        id:"booking",
-        name:"Booking.com",
-        category:"海外系",
-        kind:"direct",
-        tags:["global","value","family"],
-        badge:"海外",
+      { id:"booking", name:"Booking.com", category:"海外系", kind:"direct", tags:["global","value","family"], badge:"海外",
         feature:"世界最大級。比較しやすく、キャンセル条件も見やすいことが多い。",
         forWho:"海外旅行 / 比較重視",
         build: ({q, checkin, checkout, adults, children, rooms}) =>
-          `https://www.booking.com/searchresults.ja.html?ss=${enc(q)}&checkin=${checkin}&checkout=${checkout}&group_adults=${adults}&group_children=${children}&no_rooms=${rooms}`
-      },
-      {
-        id:"agoda",
-        name:"Agoda",
-        category:"海外系",
-        kind:"direct",
-        tags:["global","value"],
-        badge:"割安",
+          `https://www.booking.com/searchresults.ja.html?ss=${enc(q)}&checkin=${checkin}&checkout=${checkout}&group_adults=${adults}&group_children=${children}&no_rooms=${rooms}` },
+
+      { id:"agoda", name:"Agoda", category:"海外系", kind:"direct", tags:["global","value"], badge:"割安",
         feature:"セールが強く“最安”になることがある。価格検算に向く。",
         forWho:"とにかく安く / 価格比較の最後",
         build: ({q, checkin, checkout, adults, children, rooms}) =>
-          `https://www.agoda.com/ja-jp/search?text=${enc(q)}&checkIn=${checkin}&checkOut=${checkout}&adults=${adults}&children=${children}&rooms=${rooms}`
-      },
-      {
-        id:"expedia",
-        name:"Expedia",
-        category:"海外系",
-        kind:"entry",
-        tags:["global","family"],
-        badge:"セット",
+          `https://www.agoda.com/ja-jp/search?text=${enc(q)}&checkIn=${checkin}&checkOut=${checkout}&adults=${adults}&children=${children}&rooms=${rooms}` },
+
+      { id:"expedia", name:"Expedia", category:"海外系", kind:"entry", tags:["global","family"], badge:"セット",
         feature:"航空券＋宿のセットが強い。旅全体をまとめたいとき。",
         forWho:"航空券も一緒 / 旅程まとめ",
-        build: ({q}) => googleSiteSearch("expedia.co.jp", `${q} ホテル`)
-      },
-      {
-        id:"hotels",
-        name:"Hotels.com",
-        category:"海外系",
-        kind:"entry",
-        tags:["global"],
-        badge:"常連",
+        build: ({q}) => googleSiteSearch("expedia.co.jp", `${q} ホテル`) },
+
+      { id:"hotels", name:"Hotels.com", category:"海外系", kind:"entry", tags:["global"], badge:"常連",
         feature:"頻繁に泊まる人向けの特典が魅力のことがある。",
         forWho:"出張 / 常連利用",
-        build: ({q}) => googleSiteSearch("hotels.com", `${q} hotel`)
-      },
-      {
-        id:"trip",
-        name:"Trip.com",
-        category:"海外系",
-        kind:"entry",
-        tags:["global","value"],
-        badge:"海外価格",
+        build: ({q}) => googleSiteSearch("hotels.com", `${q} hotel`) },
+
+      { id:"trip", name:"Trip.com", category:"海外系", kind:"entry", tags:["global","value"], badge:"海外価格",
         feature:"海外向け価格が刺さることがある。比較の補助枠。",
         forWho:"海外比較 / 掘り出し物狙い",
-        build: ({q}) => googleSiteSearch("trip.com", `${q} hotel`)
-      },
-      {
-        id:"airbnb",
-        name:"Airbnb",
-        category:"海外系",
-        kind:"entry",
-        tags:["global","family"],
-        badge:"民泊",
+        build: ({q}) => googleSiteSearch("trip.com", `${q} hotel`) },
+
+      { id:"airbnb", name:"Airbnb", category:"海外系", kind:"entry", tags:["global","family"], badge:"民泊",
         feature:"民泊・長期滞在。家族/グループで“暮らす旅”向き。",
         forWho:"長期 / グループ / キッチン重視",
-        build: ({q}) => googleSiteSearch("airbnb.jp", `${q}`)
-      },
+        build: ({q}) => googleSiteSearch("airbnb.jp", `${q}`) },
 
-      // メタ
-      {
-        id:"googlehotels",
-        name:"Google ホテル",
-        category:"比較/地図",
-        kind:"direct",
-        tags:["meta","recommended"],
-        badge:"比較",
+      { id:"googlehotels", name:"Google ホテル", category:"比較/地図", kind:"direct", tags:["meta","recommended"], badge:"比較",
         feature:"まず全体像を掴む最短ルート。相場感と空室の当たりを見る。",
         forWho:"最初の1クリック",
         build: ({q, checkin, checkout}) =>
-          `https://www.google.com/travel/hotels/${enc(q)}?q=${enc(q)}&checkin=${checkin}&checkout=${checkout}`
-      },
-      {
-        id:"maps",
-        name:"Google マップ",
-        category:"比較/地図",
-        kind:"direct",
-        tags:["meta"],
-        badge:"地図",
+          `https://www.google.com/travel/hotels/${enc(q)}?q=${enc(q)}&checkin=${checkin}&checkout=${checkout}` },
+
+      { id:"maps", name:"Google マップ", category:"比較/地図", kind:"direct", tags:["meta"], badge:"地図",
         feature:"立地・周辺の動線確認。駅近/坂/観光密度の確認に。",
         forWho:"立地で失敗したくない",
-        build: ({q}) => `https://www.google.com/maps/search/${enc(q + " ホテル")}`
-      },
+        build: ({q}) => `https://www.google.com/maps/search/${enc(q + " ホテル")}` },
     ];
 
     const RECOMMENDED_ORDER = [
@@ -623,7 +809,8 @@
         children: u.searchParams.get("children") || "0",
         rooms: u.searchParams.get("rooms") || "1",
         filter: u.searchParams.get("filter") || "all",
-        sort: u.searchParams.get("sort") || "recommended"
+        sort: u.searchParams.get("sort") || "recommended",
+        nights: u.searchParams.get("nights") || ""
       };
     }
 
@@ -637,6 +824,7 @@
       u.searchParams.set("rooms", String(state.rooms));
       u.searchParams.set("filter", state.filter);
       u.searchParams.set("sort", state.sort);
+      u.searchParams.set("nights", String(state.nights));
       history.replaceState(null, "", u.toString());
     }
 
@@ -664,7 +852,7 @@
     function validate(form){
       if(!form.place) return "場所を入力してください。";
       if(!form.checkin || !form.checkout){
-        return "チェックイン/アウトの日付を入力してください。\n（※ スラッシュ形式でもOK。内部で自動変換します）";
+        return "宿泊日程を入力してください。";
       }
       if(form.checkout <= form.checkin) return "チェックアウトはチェックインより後の日付にしてください。";
       return "";
@@ -794,7 +982,6 @@
       setError(err);
       if(err) return;
 
-      // 正規化した日付をinputにも反映（表示ズレ対策）
       $("checkin").value = form.checkin;
       $("checkout").value = form.checkout;
 
@@ -806,26 +993,238 @@
         children: form.children,
         rooms: form.rooms,
         filter: currentFilter(),
-        sort: $("sort").value
+        sort: $("sort").value,
+        nights: currentNights
       });
     }
 
     function runBuild(){
-      // 日付未入力ならプリセットで埋める（要望）
       presetDatesIfEmpty();
+      syncNightsFromRange(); // keep nights consistent
 
       const form = getForm();
       const err = validate(form);
       setError(err);
       if(err) return;
 
-      // ここで正規化日付を反映して「入力したのにエラー」感を消す
-      $("checkin").value = form.checkin;
-      $("checkout").value = form.checkout;
-
       buildCards(form);
       saveToURL();
     }
+
+function getFlightForm(){
+  const from = ($("from").value || "").trim();
+  const to = ($("to").value || "").trim();
+  const tripType = $("tripType").value; // round | oneway
+  const adults = Math.max(1, parseInt($("fAdults").value || "1", 10));
+  const children = Math.max(0, parseInt($("fChildren").value || "0", 10));
+
+  // 宿の宿泊日程を航空券の日程に流用
+  const depart = normalizeDate($("checkin").value);
+  const ret = normalizeDate($("checkout").value);
+
+  return { from, to, tripType, adults, children, depart, ret };
+}
+
+function validateFlight(f){
+  if(!f.from) return "出発地を入力してください。";
+  if(!f.to) return "到着地を入力してください。";
+  if(!f.depart) return "日付（チェックイン側）を入力してください。";
+  if(f.tripType === "round"){
+    if(!f.ret) return "往復の場合、帰り日（チェックアウト側）も必要です。";
+    if(f.ret <= f.depart) return "帰り日は出発日より後にしてください。";
+  }
+  return "";
+}
+
+// “壊れにくい” 航空券リンク（入口重視）
+function buildFlightLinks(f){
+  const qFrom = f.from;
+  const qTo = f.to;
+
+  // Google Flights：URL直リンクは仕様が変わりやすいので、入口検索を基本にする
+  const googleFlights = googleSiteSearch("google.com", `Google Flights ${qFrom} ${qTo} ${f.depart}`); 
+
+  // Skyscanner / Kayak / Expedia：まず入口検索（壊れにくい）
+  const skyscanner = googleSiteSearch("skyscanner.jp", `${qFrom} ${qTo} 航空券 ${f.depart}`);
+  const kayak = googleSiteSearch("kayak.co.jp", `${qFrom} ${qTo} flights ${f.depart}`);
+  const expedia = googleSiteSearch("expedia.co.jp", `${qFrom} ${qTo} 航空券 ${f.depart}`);
+
+  return [
+    {
+      name:"Google Flights（相場/便の当たり）",
+      badge:"相場",
+      feature:"最初に“相場と便の選択肢”を見るのに強い。",
+      forWho:"まず全体像 / 便の当たり確認",
+      tags:["比較/相場","入口確実"],
+      url: googleFlights
+    },
+    {
+      name:"Skyscanner（安い候補探し）",
+      badge:"比較",
+      feature:"安い候補を広く拾う用途に向く。",
+      forWho:"価格優先 / 掘り出し物",
+      tags:["価格重視","入口確実"],
+      url: skyscanner
+    },
+    {
+      name:"KAYAK（比較の補助）",
+      badge:"補助",
+      feature:"比較の補助として使う枠。",
+      forWho:"候補の再検算",
+      tags:["比較","入口確実"],
+      url: kayak
+    },
+    {
+      name:"Expedia（セットも可）",
+      badge:"セット",
+      feature:"航空券＋宿のセット検討にも。",
+      forWho:"まとめたい人",
+      tags:["セット","入口確実"],
+      url: expedia
+    }
+  ];
+}
+
+function renderFlightCards(items){
+  const el = $("flightCards");
+  el.innerHTML = "";
+
+  items.forEach(it=>{
+    const div = document.createElement("article");
+    div.className = "card";
+    div.innerHTML = `
+      <div class="cardTop">
+        <div>
+          <h3 class="name">${it.name}</h3>
+          <div class="feat">特徴：${it.feature}</div>
+          <div class="who">向いてる人：<b>${it.forWho}</b></div>
+        </div>
+        <div class="badge">${it.badge}</div>
+      </div>
+      <div class="tags">
+        ${it.tags.map(t=>`<span class="tag primary">${t}</span>`).join("")}
+      </div>
+      <div class="go">
+        <a href="${it.url}" target="_blank" rel="noopener">この条件で開く →</a>
+        <span class="tiny">航空券</span>
+      </div>
+      <details>
+        <summary>URL（確認用）</summary>
+        <div class="mono">${it.url}</div>
+      </details>
+    `;
+    el.appendChild(div);
+  });
+
+  $("flightCount").textContent = `表示中：${items.length} 件（航空券）`;
+}
+
+
+function getBusForm(){
+  const from = ($("busFrom").value || "").trim();
+  const to = ($("busTo").value || "").trim();
+  const adults = Math.max(1, parseInt($("busAdults").value || "1", 10));
+
+  // 宿のチェックイン日を「出発日」として流用
+  const depart = normalizeDate($("checkin").value);
+
+  return { from, to, adults, depart };
+}
+
+function validateBus(b){
+  if(!b.from) return "夜行バス：出発地を入力してください。";
+  if(!b.to) return "夜行バス：到着地を入力してください。";
+  if(!b.depart) return "夜行バス：日付（チェックイン）を入力してください。";
+  return "";
+}
+
+function buildBusLinks(b){
+  return [
+    {
+      name:"WILLER TRAVEL",
+      badge:"定番",
+      feature:"UIが分かりやすく、初心者でも迷いにくい。",
+      forWho:"初めて夜行バスを使う人",
+      tags:["夜行","安い","入口確実"],
+      url: googleSiteSearch("willer.co.jp", `${b.from} ${b.to} 夜行バス ${b.depart}`)
+    },
+    {
+      name:"高速バスドットコム",
+      badge:"便数",
+      feature:"掲載路線・便数が多い。",
+      forWho:"路線を幅広く見たい人",
+      tags:["夜行","便数","入口確実"],
+      url: googleSiteSearch("kosokubus.com", `${b.from} ${b.to} 夜行`)
+    },
+    {
+      name:"バス比較（Google検索）",
+      badge:"比較",
+      feature:"最安・時間帯の当たりをざっくり確認。",
+      forWho:"価格重視",
+      tags:["比較","最安"],
+      url: `https://www.google.com/search?q=${enc(b.from+" "+b.to+" 夜行バス "+b.depart)}`
+    }
+  ];
+}
+
+function renderBusCards(items){
+  const el = $("busCards");
+  el.innerHTML = "";
+
+  items.forEach(it=>{
+    const div = document.createElement("article");
+    div.className = "card";
+    div.innerHTML = `
+      <div class="cardTop">
+        <div>
+          <h3 class="name">${it.name}</h3>
+          <div class="feat">特徴：${it.feature}</div>
+          <div class="who">向いてる人：<b>${it.forWho}</b></div>
+        </div>
+        <div class="badge">${it.badge}</div>
+      </div>
+      <div class="tags">
+        ${it.tags.map(t=>`<span class="tag primary">${t}</span>`).join("")}
+      </div>
+      <div class="go">
+        <a href="${it.url}" target="_blank" rel="noopener">この条件で開く →</a>
+        <span class="tiny">夜行バス</span>
+      </div>
+    `;
+    el.appendChild(div);
+  });
+
+  $("busCount").textContent = `表示中：${items.length} 件（夜行バス）`;
+}
+
+$("btnBus")?.addEventListener("click", ()=>{
+  presetDatesIfEmpty();
+  const b = getBusForm();
+  const err = validateBus(b);
+  if(err){
+    setError(err);
+    return;
+  }
+  setError("");
+  const items = buildBusLinks(b);
+  renderBusCards(items);
+});
+
+
+
+$("btnFlights")?.addEventListener("click", ()=>{
+  presetDatesIfEmpty();        // 宿側の日付が空なら埋める
+  const f = getFlightForm();
+  const err = validateFlight(f);
+  if(err){
+    setError(err);             // 既存のエラー欄を使う（UI一貫）
+    return;
+  }
+  setError("");
+  const items = buildFlightLinks(f);
+  renderFlightCards(items);
+});
+
 
     function initFromURL(){
       const s = parseStateFromURL();
@@ -838,21 +1237,47 @@
       $("sort").value = s.sort;
       setPressed(s.filter);
 
-      // まず日付をプリセット（要望）
       presetDatesIfEmpty();
 
-      // URLに条件が揃ってたら自動生成
+      // nights from URL (optional)
+      const n = Number(s.nights || "");
+      if(n && n >= 1 && n <= 14) setNights(n);
+      else setNights(1);
+
+      // align checkout with nights if checkin exists and checkout missing
+      if($("checkin").value && !$("checkout").value) syncCheckoutFromCheckin();
+      // if both exist, derive nights
+      syncNightsFromRange();
+
       const form = getForm();
-      const err = (form.place && form.checkin && form.checkout) ? validate(form) : "";
-      setError(err);
-      if(form.place && form.checkin && form.checkout && !err){
-        buildCards(form);
-      }
+      const ok = (form.place && form.checkin && form.checkout && !validate(form));
+      if(ok) buildCards(form);
     }
 
     // Events
     $("btnBuild").addEventListener("click", runBuild);
     $("btnBuildMobile").addEventListener("click", runBuild);
+
+    $("checkin").addEventListener("change", ()=>{
+      presetDatesIfEmpty();
+      syncCheckoutFromCheckin();   // key UX: auto follow
+      saveToURL();
+    });
+
+    $("checkout").addEventListener("change", ()=>{
+      presetDatesIfEmpty();
+      syncNightsFromRange();       // reflect nights
+      saveToURL();
+    });
+
+    document.querySelectorAll(".chipMini").forEach(btn=>{
+      btn.addEventListener("click", ()=>{
+        setNights(Number(btn.dataset.nights));
+        presetDatesIfEmpty();
+        syncCheckoutFromCheckin(); // nights change -> checkout updates
+        saveToURL();
+      });
+    });
 
     $("btnReset").addEventListener("click", ()=>{
       $("place").value = "";
@@ -861,20 +1286,21 @@
       $("rooms").value = "1";
       $("sort").value = "recommended";
       setPressed("all");
+      setNights(1);
+
       $("cards").innerHTML = "";
       $("count").textContent = "リンク未生成";
       setError("");
 
-      // 日付はリセット後も「今日/明日」に戻す（使いやすさ優先）
       $("checkin").value = "";
       $("checkout").value = "";
       presetDatesIfEmpty();
+      syncCheckoutFromCheckin();
 
       history.replaceState(null, "", location.pathname);
     });
 
     async function shareURL(){
-      // 先にURLを確定
       saveToURL();
       try{
         await navigator.clipboard.writeText(location.href);
@@ -883,7 +1309,6 @@
         prompt("このURLをコピーしてください:", location.href);
       }
     }
-
     $("btnShare").addEventListener("click", shareURL);
     $("btnShareMobile").addEventListener("click", shareURL);
 
@@ -900,7 +1325,6 @@
     document.querySelectorAll(".chip").forEach(btn=>{
       btn.addEventListener("click", ()=>{
         setPressed(btn.dataset.filter);
-
         if($("cards").children.length){
           const form = getForm();
           const err = validate(form);
@@ -911,7 +1335,6 @@
       });
     });
 
-    // 初期化
     initFromURL();
   </script>
 </body>
