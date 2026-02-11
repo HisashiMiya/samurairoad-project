@@ -1,0 +1,104 @@
+/* --- Styles --- */
+:root { --primary: #0066cc; --danger: #cc0000; --bg: #ffffff; --text: #333333; --accent: #ff9800; }
+body { margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; overflow: hidden; height: 100vh; width: 100vw; color: var(--text); background: var(--bg); }
+
+body { padding-bottom: 80px; box-sizing: border-box; }
+
+#map { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; }
+
+/* Top Bar */
+.top-bar {
+  position: absolute; top: 10px; left: 68px; right: 10px; z-index: 1000;
+  background: rgba(255,255,255,0.95); backdrop-filter: blur(4px);
+  padding: 10px 14px; border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  display: flex; flex-direction: column; gap: 4px; pointer-events: none;
+}
+.top-bar * { pointer-events: auto; }
+.status-title { font-weight: 800; font-size: 16px; color: var(--primary); pointer-events: auto; }
+.status-info { font-size: 12px; color: #666; pointer-events: auto; }
+
+/* Bottom Bar */
+.bottom-bar {
+  position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 1000;
+  display: flex; gap: 12px;
+  background: rgba(255,255,255,0.95); backdrop-filter: blur(4px);
+  padding: 10px 16px; border-radius: 50px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+}
+.action-btn {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  background: none; border: none; cursor: pointer; color: #555; gap: 2px; min-width: 55px;
+}
+.action-btn svg { width: 24px; height: 24px; fill: currentColor; }
+.action-btn span { font-size: 10px; font-weight: bold; }
+.action-btn:active { transform: scale(0.95); }
+
+/* FABs (Floating Action Buttons) */
+.fab-container {
+  position: absolute; bottom: 100px; right: 20px; z-index: 1000;
+  display: flex; flex-direction: column; gap: 15px; align-items: center;
+}
+.fab-btn {
+  width: 50px; height: 50px; border-radius: 50%;
+  background: white; border: none; box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  font-size: 24px; cursor: pointer; color: #333; display: flex; align-items: center; justify-content: center;
+  transition: transform 0.1s;
+}
+.fab-btn:active { transform: scale(0.95); }
+/* 歴史ガイドボタン用の特別色 */
+#btnHistory { background: var(--primary); color: white; font-size: 22px; }
+
+/* Modal */
+.modal-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 2000;
+  display: none; align-items: center; justify-content: center; backdrop-filter: blur(2px);
+}
+.modal-overlay.open { display: flex; }
+.modal-content {
+  background: white; width: 90%; max-width: 400px; max-height: 80vh;
+  border-radius: 16px; padding: 20px; overflow-y: auto;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+}
+h2 { margin: 0 0 15px; font-size: 18px; border-bottom: 2px solid #eee; padding-bottom: 8px; }
+.list-group { display: flex; flex-direction: column; gap: 8px; }
+.list-item {
+  padding: 12px; background: #f8f9fa; border-radius: 8px; border: 1px solid #eee;
+  cursor: pointer; font-weight: 600; display: flex; justify-content: space-between; align-items: center;
+}
+.list-item:hover { background: #eef4ff; border-color: var(--primary); color: var(--primary); }
+
+/* Samurai Item Special Style */
+.item-samurai { border-color: #ffd700; background: #fffbe6; color: #856404; }
+/* Onsen Item Special Style */
+.item-onsen { border-color: #ff99cc; background: #fff0f5; color: #cc0066; }
+/* Food Item Special Style */
+.item-food { border-color: #ffcc99; background: #fffbf0; color: #cc6600; }
+
+.btn-block { width: 100%; padding: 12px; margin-top: 10px; background: #333; color: white; border: none; border-radius: 8px; font-weight: bold; font-size: 14px; cursor: pointer; }
+.btn-danger { background: var(--danger); }
+.btn-secondary { background: #555; }
+
+/* Settings Row */
+.settings-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; font-size: 14px; font-weight: bold; }
+
+/* Toast */
+.toast {
+  position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+  background: rgba(0,0,0,0.85); color: white; padding: 15px 25px;
+  border-radius: 30px; font-size: 14px; opacity: 0; pointer-events: none; transition: opacity 0.3s; z-index: 3000;
+  max-width: 80%; text-align: center; white-space: pre-wrap; line-height: 1.5;
+}
+.toast.show { opacity: 1; }
+
+/* Hamburger */
+.hamburger {
+  position: absolute; top: 14px; left: 14px; z-index: 1100;
+  width: 44px; height: 44px; border: none; border-radius: 12px;
+  background: rgba(255,255,255,0.95); box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  display: flex; align-items: center; justify-content: center; cursor: pointer;
+}
+.hamburger .bars { width: 18px; height: 12px; display: grid; gap: 3px; }
+.hamburger .bars span { display: block; height: 2px; background: #333; border-radius: 2px; }
+
+@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
