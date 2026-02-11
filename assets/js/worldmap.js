@@ -890,4 +890,3 @@ Focus on the Edo period or old roads if applicable.
   drawTrack();
 
 })();
-</script>
