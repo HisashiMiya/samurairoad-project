@@ -1,0 +1,49 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "No.83 アルバニア石畳（旧市街散歩）",
+        "source": "handmade (approx old bazaar loop; Gjirokastër assumed)"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            20.134722222222223,
+            40.07805555555556
+          ],
+          [
+            20.1387,
+            40.077
+          ],
+          [
+            20.1368,
+            40.0766
+          ],
+          [
+            20.1352,
+            40.0757
+          ],
+          [
+            20.1368,
+            40.075
+          ],
+          [
+            20.1384,
+            40.0756
+          ],
+          [
+            20.1395,
+            40.0766
+          ],
+          [
+            20.134722222222223,
+            40.07805555555556
+          ]
+        ]
+      }
+    }
+  ]
+}
