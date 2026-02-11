@@ -608,7 +608,7 @@ For each spot, provide:
 それぞれのスポットについて、以下の情報を箇条書きで出力してください。
 1. 名称
 2. おすすめメニュー・名物
-3. お店の雰囲気や特徴`;
+3. お店の雰囲気や特徴
 4. Googleマップ検索用URL（形式: https://www.google.com/maps/search/?api=1&query=名称）`;
       }
 
