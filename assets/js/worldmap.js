@@ -537,7 +537,7 @@ Please answer in English.
     }
   }
 
-  // --- 新機能: 温泉検索 ---
+// --- 新機能: 温泉検索 ---
   window.askOnsen = async function(lat, lng) {
       if (!lat || !lng) return;
       map.closePopup();
@@ -545,6 +545,7 @@ Please answer in English.
       let prompt = "";
 
       if (AppState.lang === 'en') {
+          // ▼▼ 変更点: Google Maps URLの出力を要求 ▼▼
           prompt = `I am at Latitude ${lat}, Longitude ${lng}.
 Please list 3 to 5 recommended "Onsen" (Hot Springs) nearby (within ~20km).
 Focus on authentic, historical, or hidden spots that locals love (not just big resorts).
@@ -552,21 +553,28 @@ For each spot, provide:
 1. Name
 2. Distance & Direction (approx.)
 3. Why it is recommended (e.g. water quality, view, history).
+4. Google Maps Search URL (format: https://www.google.com/maps/search/?api=1&query=Name)
 [Constraint]: Output as a clean list.`;
       } else {
+          // ▼▼ 変更点: Googleマップ検索用URLの出力を要求 ▼▼
           prompt = `私は今、緯度${lat}、経度${lng}の場所にいます。
 この場所から半径20km圏内にある、「おすすめの日帰り温泉」を3〜5つ教えてください。
 特に、地元の人に愛される名湯や、秘湯、歴史ある温泉を優先してください（大規模レジャー施設より風情を重視）。
 それぞれの温泉について、以下の情報を箇条書きで出力してください。
 1. 名称
 2. おおよその距離と方角
-3. おすすめポイント（泉質、景色、歴史など）`;
+3. おすすめポイント（泉質、景色、歴史など）
+4. Googleマップ検索用URL（形式: https://www.google.com/maps/search/?api=1&query=名称）`;
       }
 
       try {
           const answer = await callGemini(prompt);
           hideLoading();
-          showAIResult(answer);
+          
+          // ▼▼ 変更点: テキスト内のURLをリンクタグに置換する処理 ▼▼
+          const linkedAnswer = answer.replace(/(https:\/\/www\.google\.com\/maps\/search\/\?api=1&query=[^\s<]+)/g, '<a href="$1" target="_blank" style="color:#0066cc;text-decoration:underline;">Google Mapで見る</a>');
+          
+          showAIResult(linkedAnswer);
       } catch (e) {
           hideLoading();
           console.error(e);
@@ -590,6 +598,7 @@ For each spot, provide:
 1. Name
 2. What to eat/drink (specialty)
 3. Brief description.
+4. Google Maps Search URL (format: https://www.google.com/maps/search/?api=1&query=Name)
 [Constraint]: Output as a clean list.`;
       } else {
           prompt = `私は今、緯度${lat}、経度${lng}の場所にいます。
@@ -600,6 +609,7 @@ For each spot, provide:
 1. 名称
 2. おすすめメニュー・名物
 3. お店の雰囲気や特徴`;
+4. Googleマップ検索用URL（形式: https://www.google.com/maps/search/?api=1&query=名称）`;
       }
 
       try {
