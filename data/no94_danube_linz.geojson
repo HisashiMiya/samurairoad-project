@@ -1,0 +1,74 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "No.94 ドナウ河畔自転車道（リンツ周辺｜ウィルヘリング〜シュタイレク）",
+        "source": "Rough hand-drawn segment of Donauradweg near Linz (Wilhering→Linz→Steyregg). Waypoints are approximate.",
+        "created_yyyymmdd": "2026-02-11"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            14.18806,
+            48.32333
+          ],
+          [
+            14.203,
+            48.325
+          ],
+          [
+            14.22,
+            48.3255
+          ],
+          [
+            14.24,
+            48.3235
+          ],
+          [
+            14.258,
+            48.3205
+          ],
+          [
+            14.275,
+            48.3185
+          ],
+          [
+            14.2889,
+            48.3097
+          ],
+          [
+            14.302,
+            48.313
+          ],
+          [
+            14.318,
+            48.319
+          ],
+          [
+            14.333,
+            48.326
+          ],
+          [
+            14.344,
+            48.337
+          ],
+          [
+            14.353,
+            48.33
+          ],
+          [
+            14.362,
+            48.312
+          ],
+          [
+            14.36972,
+            48.28583
+          ]
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,66 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "No.95 ローマ水道橋路（ローマ郊外｜アックエドッティ公園周回）",
+        "source": "Rough hand-drawn walking loop around Parco degli Acquedotti (Aqueduct Park). Waypoints are approximate.",
+        "created_yyyymmdd": "2026-02-11"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            12.5665,
+            41.8555
+          ],
+          [
+            12.5638,
+            41.8542
+          ],
+          [
+            12.561,
+            41.8528
+          ],
+          [
+            12.5582,
+            41.8516
+          ],
+          [
+            12.55748,
+            41.85036
+          ],
+          [
+            12.5548,
+            41.8502
+          ],
+          [
+            12.5522,
+            41.8512
+          ],
+          [
+            12.5515,
+            41.8532
+          ],
+          [
+            12.5538,
+            41.855
+          ],
+          [
+            12.5576,
+            41.856
+          ],
+          [
+            12.5618,
+            41.8562
+          ],
+          [
+            12.5665,
+            41.8555
+          ]
+        ]
+      }
+    }
+  ]
+}
