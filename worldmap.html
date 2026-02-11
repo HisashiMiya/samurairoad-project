@@ -531,7 +531,7 @@
       });
   }
 
-  // --- Gemini API 呼び出し ---n
+  // --- Gemini API 呼び出し (修正版: HTTPステータスを表示) ---
   async function callGemini(prompt, image = null) {
     const base = (window.AI_HTTP || location.origin).replace(/\/$/, "");
     const endpoint = `${base}/ai/samuraimap`;
@@ -544,7 +544,9 @@
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)
       });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      // ★エラー詳細化: ステータスコードを含める
+      if (!res.ok) throw new Error(`HTTP Error ${res.status}: ${res.statusText}`);
+      
       const json = await res.json();
       return json.text || json.candidates?.[0]?.content?.parts?.[0]?.text || JSON.stringify(json);
     } catch (e) {
@@ -628,7 +630,8 @@ Please answer in English.
     } catch (e) {
         hideLoading();
         console.error(e);
-        alert(t('msg_error'));
+        // ★エラー詳細化
+        alert(t('msg_error') + "\n" + e.message);
     }
   }
   
@@ -660,45 +663,56 @@ Please answer in English.
     } catch (e) {
         hideLoading();
         console.error(e);
-        alert(t('msg_error'));
+        // ★エラー詳細化
+        alert(t('msg_error') + "\n" + e.message);
     }
   }
 
 
-// ■■■ 指定地点の侍解説を実行する関数 ■■■
+// ■■■ 指定地点の侍解説を実行する関数（修正済） ■■■
   window.askSamuraiSpot = async function(lat, lng) {
       map.closePopup(); // ポップアップを閉じる
       showLoading();    // ローディング開始
 
-      let prompt = "";
-      
-      if (AppState.lang === 'en') {
-          prompt = `I am pointing at a location on the map (Latitude ${lat}, Longitude ${longitude}).
+      // 修正: try-catch ブロックを関数全体に拡大して、変数参照エラー等もキャッチできるようにする
+      try {
+          let prompt = "";
+          
+          // 変数名が紛らわしいので、ここで明確化しておく
+          const latitudeVal = lat;
+          const longitudeVal = lng;
+
+          if (AppState.lang === 'en') {
+              // 修正: ${lng} を使用
+              prompt = `I am pointing at a location on the map (Latitude ${latitudeVal}, Longitude ${longitudeVal}).
 Please act as a historical Samurai guide.
 Explain the history, famous landmarks, or hidden gems near this specific location.
 Focus on the Edo period or old roads if applicable.
 [Constraint]: No titles. Start directly with the explanation.`;
-      } else {
-          prompt = `私は地図上のこの地点（緯度${lat}、経度${lng}）を指しています。
+          } else {
+              prompt = `私は地図上のこの地点（緯度${latitudeVal}、経度${longitudeVal}）を指しています。
 この場所、あるいはここから最も近い名所・旧跡・宿場町について、
 「土地勘のある侍」として詳しく解説してください。
 特に、その土地の歴史的背景や、旅人が立ち寄るべきスポットがあれば教えてください。
 【制約事項】
 ・タイトルや見出しは不要です。いきなり本文から語り始めてください。
 ・口調は威厳がありつつも親切な侍言葉で。`;
-      }
+          }
 
-      try {
-          // 既存のAPI呼び出し関数を再利用
+          // API呼び出し
           const answer = await callGemini(prompt);
           hideLoading();
           showAIResult(answer);
+
       } catch (e) {
+          // エラーが発生したら必ずローディングを消す
           hideLoading();
           console.error(e);
-          alert(t('msg_error'));
+          // ★エラー詳細化
+          alert(t('msg_error') + ": " + e.message);
       }
   };
+
   // =========================================
   // 5. 記録・インポート・エクスポート
   // =========================================
