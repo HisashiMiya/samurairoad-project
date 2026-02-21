@@ -8,11 +8,12 @@
       menu_samurai: "侍の目で見る", menu_onsen: "温泉を探す", menu_food: "地元の食事・休憩",
       title_select: "街道を選択", btn_close: "閉じる",
       title_record: "記録 / GPX", lbl_status: "状態", lbl_points: "点数",
-      btn_start: "記録開始", btn_stop: "記録停止", btn_gpx: "保存(DL)", btn_clear: "クリア", btn_import: "GPX読込",
+      btn_start: "記録開始", btn_stop: "記録停止", btn_gpx: "GPXを保存", btn_clear: "記録をリセット", btn_import: "GPX読込",
       title_settings: "設定", lbl_lang: "言語 / Language", lbl_wakelock: "画面常時点灯", lbl_autospeech: "自動読み上げ (AI)",
       btn_usage: "使い方ガイド",
       status_recording: "記録中...", status_stopped: "停止中",
       msg_start: "記録を開始しました", msg_stop: "記録を停止しました", msg_clear: "ログを消去しました",
+      msg_confirm_clear: "⚠️ 未保存のGPSログが【すべて消滅】します。本当によろしいですか？",
       msg_no_data: "データがありません", msg_loaded: "読み込み完了", msg_error: "エラーが発生しました",
       route_no_select: "街道未選択", nav_info_init: "「探す」から街道を選んでください",
       route_loading: "読込中...", region_jp: "日本 (五街道・巡礼)", region_world: "海外 / その他",
@@ -30,11 +31,12 @@
       menu_samurai: "Samurai Vision", menu_onsen: "Find Onsen (Hot Springs)", menu_food: "Local Food & Rest",
       title_select: "Select Route", btn_close: "Close",
       title_record: "GPS & GPX", lbl_status: "Status", lbl_points: "Points",
-      btn_start: "Start", btn_stop: "Stop", btn_gpx: "Download", btn_clear: "Clear", btn_import: "Import GPX",
+      btn_start: "Start", btn_stop: "Stop", btn_gpx: "Save GPX", btn_clear: "Reset Record", btn_import: "Import GPX",
       title_settings: "Settings", lbl_lang: "Language", lbl_wakelock: "Keep Screen On", lbl_autospeech: "Auto Speech (AI)",
       btn_usage: "How to Use",
       status_recording: "Recording...", status_stopped: "Stopped",
       msg_start: "Recording started", msg_stop: "Recording stopped", msg_clear: "Log cleared",
+      msg_confirm_clear: "⚠️ All unsaved GPS logs will be PERMANENTLY LOST. Are you sure?",
       msg_no_data: "No data found", msg_loaded: "Route loaded", msg_error: "Error occurred",
       route_no_select: "No Route", nav_info_init: "Select a route from menu",
       route_loading: "Loading...", region_jp: "Japan", region_world: "World / Other",
@@ -678,6 +680,29 @@ Focus on the Edo period or old roads if applicable.
     const btnText = document.getElementById('lblRecordBtn');
     btnText.textContent = AppState.isRecording ? "STOP" : t('menu_record');
     btnText.style.color = AppState.isRecording ? "#cc0000" : "";
+
+    // ★追加: 未保存バッジの制御
+    const unsavedBadge = document.getElementById('unsavedBadge');
+    if (unsavedBadge) {
+      // データが1点以上あれば「(未保存)」を表示
+      unsavedBadge.style.display = (pts.length > 0) ? "inline" : "none";
+    }
+
+    // ★追加: データがない時は保存とクリアボタンを押せないようにする
+    const btnDownload = document.getElementById('btnDownloadGpx');
+    const btnClear = document.getElementById('btnClearRecord');
+    const hasData = pts.length > 0;
+
+    if (btnDownload) {
+      btnDownload.disabled = !hasData;
+      btnDownload.style.opacity = hasData ? "1" : "0.5";
+      btnDownload.style.cursor = hasData ? "pointer" : "not-allowed";
+    }
+    if (btnClear) {
+      btnClear.disabled = !hasData;
+      btnClear.style.opacity = hasData ? "1" : "0.5";
+      btnClear.style.cursor = hasData ? "pointer" : "not-allowed";
+    }
   }
   function renderRecordButtonState(){
     const btn = document.getElementById('btnStartStopRecord');
@@ -708,7 +733,8 @@ Focus on the Edo period or old roads if applicable.
     renderRecordButtonState();
   }
   function clearRecord() {
-    if(!confirm("Clear log?")) return;
+    if(!confirm(t('msg_confirm_clear'))) return;
+    
     AppState.trackPoints = [];
     localStorage.setItem('kaido_track_points', '[]');
     if(AppState.layers.trackLine) AppState.layers.trackLine.remove();
