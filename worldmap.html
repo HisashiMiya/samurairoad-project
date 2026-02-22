@@ -23,6 +23,7 @@
       <div class="list-group">
         <div class="list-item" id="menuItemRoutes">🗺️ <span data-lang="menu_routes">探す</span></div>
         <div class="list-item" id="menuItemRecord">⏺️ <span data-lang="menu_record">記録</span></div>
+        <div class="list-item" id="menuItemTrace">✍️ <span data-lang="menu_trace">なぞりゲーム</span></div>
         
         <div class="list-item item-samurai" id="menuItemSamurai">
           📷 <span data-lang="menu_samurai">侍の目で見る</span>
@@ -155,6 +156,51 @@
         
         <button onclick="document.getElementById('aiModal').style.display='none'; stopSpeech();" style="padding:15px; background:#0066cc; color:white; border:none; border-radius:8px; font-weight:bold; font-size:16px; cursor:pointer;">閉じる</button>
     </div>
+</div>
+
+<div class="modal" id="modalTraceGame">
+  <div class="modal-content trace-modal">
+    <h2 data-lang="title_trace">なぞりゲーム</h2>
+
+    <div class="trace-info">
+      <div class="trace-row">
+        <div class="trace-label" data-lang="trace_target">お題</div>
+        <div class="trace-value"><span id="traceTargetName">--</span></div>
+      </div>
+      <div class="trace-row">
+        <div class="trace-label" data-lang="trace_best">自己ベスト</div>
+        <div class="trace-value"><span id="traceBestScore">--</span></div>
+      </div>
+      <div class="trace-row">
+        <div class="trace-label" data-lang="trace_rule">ルール</div>
+        <div class="trace-value" data-lang="trace_rule_text">赤いルートに近いほど高得点。塗りつぶし（描きすぎ）は減点。</div>
+      </div>
+    </div>
+
+    <div class="trace-actions">
+      <button class="btn-block trace-btn" id="btnTraceStart" data-lang="trace_start">スタート</button>
+      <div class="trace-actions-row">
+        <button class="btn-half" id="btnTraceReset" data-lang="trace_reset">リセット</button>
+        <button class="btn-half" id="btnTraceSubmit" data-lang="trace_submit">採点</button>
+      </div>
+      <label class="trace-toggle">
+        <input type="checkbox" id="chkTraceHint" checked />
+        <span data-lang="trace_hint">お題を表示（ヒント）</span>
+      </label>
+      <label class="trace-toggle">
+        <input type="checkbox" id="chkTracePanZoom" />
+        <span data-lang="trace_panzoom">描画中も地図操作を許可</span>
+      </label>
+    </div>
+
+    <div class="trace-result" id="traceResult" style="display:none;">
+      <h3 data-lang="trace_result">結果</h3>
+      <div class="trace-scoreline"><span data-lang="trace_score">スコア</span>: <b id="traceScore">--</b></div>
+      <div class="trace-breakdown" id="traceBreakdown">--</div>
+    </div>
+
+    <button class="btn-block" style="background:#888;" onclick="closeModals(); if(window.TraceGame) TraceGame.stop();" data-lang="btn_close">閉じる</button>
+  </div>
 </div>
 
 <div id="pocketModeOverlay">
