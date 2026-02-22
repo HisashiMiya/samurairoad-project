@@ -5,11 +5,11 @@
   const DICT = {
     ja: {
       menu_routes: "探す", menu_record: "記録", menu_report: "報告", menu_settings: "設定",
-      menu_samurai: "侍の目で見る", menu_onsen: "温泉を探す", menu_food: "地元の食事・休憩",
+      menu_samurai: "侍の目で見る", menu_onsen: "温泉を探す", menu_food: "地元の食事・休憩", menu_trace: "なぞりゲーム",
       title_select: "街道を選択", btn_close: "閉じる",
       title_record: "記録 / GPX", lbl_status: "状態", lbl_points: "点数",
       btn_start: "記録開始", btn_stop: "記録停止", btn_gpx: "GPXを保存", btn_clear: "記録をリセット", btn_import: "GPX読込",
-      title_settings: "設定", lbl_lang: "言語 / Language", lbl_wakelock: "画面常時点灯", lbl_autospeech: "自動読み上げ (AI)",
+      title_settings: "設定", title_trace: "なぞりゲーム", trace_target: "お題", trace_best: "自己ベスト", trace_rule: "ルール", trace_rule_text: "赤いルートに近いほど高得点。塗りつぶし（描きすぎ）は減点。", trace_start: "スタート", trace_reset: "リセット", trace_submit: "採点", trace_hint: "お題を表示（ヒント）", trace_panzoom: "描画中も地図操作を許可", trace_result: "結果", trace_score: "スコア", lbl_lang: "言語 / Language", lbl_wakelock: "画面常時点灯", lbl_autospeech: "自動読み上げ (AI)",
       btn_usage: "使い方ガイド",
       status_recording: "記録中...", status_stopped: "停止中",
       msg_start: "記録を開始しました", msg_stop: "記録を停止しました", msg_clear: "ログを消去しました",
@@ -996,6 +996,7 @@ Focus on the Edo period or old roads if applicable.
   document.getElementById('btnHamburger').onclick = () => openModal('modalMainMenu');
   document.getElementById('menuItemRoutes').onclick = () => { closeModals(); openModal('modalRoutes'); };
   document.getElementById('menuItemRecord').onclick = () => { closeModals(); openModal('modalRecord'); };
+  document.getElementById('menuItemTrace').onclick = () => { closeModals(); openModal('modalTraceGame'); if (window.TraceGame) TraceGame.refreshUI(); };
   document.getElementById('menuItemReport').onclick = () => { closeModals(); openReportForm(); };
   document.getElementById('menuItemSettings').onclick = () => { closeModals(); openModal('modalSettings'); };
 
@@ -1049,6 +1050,19 @@ Focus on the Edo period or old roads if applicable.
       if(AppState.layers.me) AppState.layers.me.remove();
       AppState.layers.me = L.circleMarker([latitude, longitude], { radius:8, color:'white', fillColor:'#0066cc', fillOpacity:1 }).addTo(map);
     }, err => alert("GPS Error: " + err.message));
+  };
+
+
+// =========================================
+  // 99. 公開API（プラグイン用）
+  // =========================================
+  window.SRWorldMap = {
+    getMap: () => map,
+    getLang: () => AppState.lang,
+    t: (k) => t(k),
+    getCurrentRouteId: () => AppState.currentRouteId,
+    getActiveRouteGeoJSON: () => (AppState.layers.route ? AppState.layers.route.toGeoJSON() : null),
+    getActiveRouteBounds: () => (AppState.layers.route ? AppState.layers.route.getBounds() : null)
   };
 
   // 初期化実行
