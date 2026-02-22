@@ -205,6 +205,21 @@
         <span data-lang="re_snap">参照ルートへスナップ（近い時だけ）</span>
       </label>
 
+
+<div class="trace-actions-row">
+  <button class="btn-half" id="btnRESimplify" data-lang="re_simplify">簡略化</button>
+  <div class="re-slider-wrap">
+    <div class="re-slider-label"><span data-lang="re_tolerance">許容</span>: <b id="lblRETol">15m</b></div>
+    <input type="range" id="rngRESimplify" min="2" max="80" step="1" value="15" />
+  </div>
+</div>
+
+<label class="trace-toggle">
+  <input type="checkbox" id="chkREEdit" />
+  <span data-lang="re_vertex_edit">頂点編集（ドラッグ）</span>
+</label>
+
+
       <label class="trace-toggle">
         <span data-lang="re_name">名前</span>
         <input class="input" id="inpREName" placeholder="例：中山道（妻籠→馬籠）" style="flex:1; padding:10px; border:1px solid #ddd; border-radius:10px;" />
