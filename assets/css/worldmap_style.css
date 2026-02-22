@@ -118,3 +118,64 @@ h2 { margin: 0 0 15px; font-size: 18px; border-bottom: 2px solid #eee; padding-b
 .hamburger .bars span { display: block; height: 2px; background: #333; border-radius: 2px; }
 
 @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+/* --- Trace Game --- */
+.modal-content.trace-modal { max-width: 520px; }
+.trace-info { background: #f7f7f7; border: 1px solid #e5e5e5; border-radius: 10px; padding: 10px; margin: 8px 0 12px; }
+.trace-row { display: flex; gap: 10px; padding: 6px 0; border-bottom: 1px dashed #ddd; }
+.trace-row:last-child { border-bottom: none; }
+.trace-label { width: 88px; color: #666; font-size: 13px; }
+.trace-value { flex: 1; color: #222; font-size: 13px; line-height: 1.4; }
+.trace-actions { display: grid; gap: 10px; }
+.trace-actions-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.trace-btn { background: var(--primary); color: white; font-weight: 700; }
+.btn-half { width: 100%; padding: 12px; border: none; border-radius: 10px; font-weight: 700; cursor: pointer; background: #eee; color: #222; }
+.trace-toggle { display: flex; align-items: center; gap: 10px; font-size: 13px; color: #333; user-select: none; }
+.trace-toggle input { transform: scale(1.15); }
+.trace-result { background: #fff; border: 1px solid #e5e5e5; border-radius: 10px; padding: 10px; margin-top: 10px; }
+.trace-scoreline { font-size: 15px; margin: 6px 0; }
+.trace-breakdown { font-size: 12px; color: #444; white-space: pre-line; }
+
+.trace-hud {
+  position: absolute;
+  left: 12px;
+  top: 60px;
+  z-index: 9999;
+  background: rgba(255,255,255,0.92);
+  border: 1px solid rgba(0,0,0,0.12);
+  border-radius: 12px;
+  padding: 8px 10px;
+  font-size: 12px;
+  color: #222;
+  display: none;
+  backdrop-filter: blur(6px);
+}
+.trace-hud b { font-size: 13px; }
+.trace-hud .muted { color: #666; }
+
+.trace-crosshair {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 22px;
+  height: 22px;
+  margin-left: -11px;
+  margin-top: -11px;
+  z-index: 9998;
+  pointer-events: none;
+  display: none;
+  opacity: 0.65;
+}
+.trace-crosshair:before, .trace-crosshair:after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  background: #111;
+}
+.trace-crosshair:before { width: 22px; height: 2px; margin-left: -11px; margin-top: -1px; }
+.trace-crosshair:after { width: 2px; height: 22px; margin-left: -1px; margin-top: -11px; }
+
+
+/* --- Route Editor --- */
+.trace-toggle .input{min-width: 0;}
