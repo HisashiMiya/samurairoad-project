@@ -821,6 +821,138 @@ Focus on the Edo period or old roads if applicable.
     closeModals();
     document.getElementById(id).classList.add('open');
   }
+  // =========================================
+  // ★ Zemini 防弾ハック：WakeLock延命 & ポケットモード
+  // =========================================
+  let wakeLock = null;
+  const chkWakeLock = document.getElementById('chkWakeLock');
+
+  async function requestWakeLock() {
+    if (!('wakeLock' in navigator)) return;
+    try {
+      if (wakeLock !== null) return;
+      wakeLock = await navigator.wakeLock.request('screen');
+      wakeLock.addEventListener('release', () => {
+        console.log('WakeLock released by OS');
+        wakeLock = null;
+      });
+      console.log('WakeLock active');
+    } catch (err) {
+      console.error('WakeLock error:', err);
+      wakeLock = null;
+    }
+  }
+
+  function releaseWakeLock() {
+    if (wakeLock !== null) {
+      wakeLock.release();
+      wakeLock = null;
+    }
+  }
+
+  if (chkWakeLock) {
+    chkWakeLock.addEventListener('change', async (e) => {
+      if (e.target.checked) {
+        await requestWakeLock();
+        showToast("画面常時点灯：ON");
+      } else {
+        releaseWakeLock();
+        showToast("画面常時点灯：OFF");
+      }
+    });
+  }
+
+  // OS仕様対策：強力な再点火（延命）ロジック
+  const handleReignition = async () => {
+    const isWakeLockIntended = (chkWakeLock && chkWakeLock.checked) || (pocketOverlay && pocketOverlay.style.display === 'flex');
+    if (isWakeLockIntended && document.visibilityState === 'visible') {
+      await requestWakeLock();
+    }
+  };
+  document.addEventListener('visibilitychange', handleReignition);
+  window.addEventListener('focus', handleReignition);
+  window.addEventListener('pageshow', handleReignition);
+
+  // --- ポケットモード（OLED節電・誤作動防止）制御 ---
+  const pocketOverlay = document.getElementById('pocketModeOverlay');
+  const pocketProgress = document.getElementById('pocketModeProgress');
+  const btnPocket = document.getElementById('btnPocket');
+  
+  let holdInterval = null;
+  let holdProgress = 0;
+  let tapCount = 0;
+  let tapTimer = null;
+
+  if (btnPocket && pocketOverlay) {
+    btnPocket.onclick = async () => {
+      if (chkWakeLock && !chkWakeLock.checked) {
+        chkWakeLock.checked = true;
+      }
+      await requestWakeLock(); 
+      pocketOverlay.style.display = 'flex';
+      showToast("ポケットモード起動");
+    };
+
+    function startUnlock(e) {
+      e.preventDefault(); 
+      cancelUnlock();
+      holdProgress = 0;
+      if (pocketProgress) pocketProgress.style.width = '0%';
+      
+      holdInterval = setInterval(() => {
+        holdProgress += (100 / 30); // 3秒で100%
+        if (pocketProgress) pocketProgress.style.width = `${holdProgress}%`;
+        
+        if (holdProgress >= 100) {
+          forceUnlock();
+          showToast("ポケットモード解除");
+        }
+      }, 100);
+    }
+
+    function cancelUnlock() {
+      if (holdInterval) {
+        clearInterval(holdInterval);
+        holdInterval = null;
+      }
+      holdProgress = 0;
+      if (pocketProgress) pocketProgress.style.width = '0%';
+    }
+
+    function forceUnlock() {
+      cancelUnlock();
+      pocketOverlay.style.display = 'none';
+      tapCount = 0;
+    }
+
+    // Pointer Eventsによる堅牢なロック解除（水滴等によるtouchcancel対策）
+    pocketOverlay.addEventListener('pointerdown', startUnlock);
+    pocketOverlay.addEventListener('pointerup', cancelUnlock);
+    pocketOverlay.addEventListener('pointercancel', cancelUnlock);
+    pocketOverlay.addEventListener('pointerleave', cancelUnlock);
+    pocketOverlay.addEventListener('touchmove', (e) => e.preventDefault(), {passive: false});
+
+    // フェイルセーフ1: ESCキー
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && pocketOverlay.style.display === 'flex') {
+        forceUnlock();
+        showToast("緊急解除 (ESC)");
+      }
+    });
+
+    // フェイルセーフ2: パニック5連打
+    pocketOverlay.addEventListener('pointerdown', () => {
+      tapCount++;
+      clearTimeout(tapTimer);
+      if (tapCount >= 5) {
+        forceUnlock();
+        showToast("緊急解除 (5連打)");
+      } else {
+        tapTimer = setTimeout(() => { tapCount = 0; }, 500);
+      }
+    });
+  }
+  
   function renderRouteMenu() {
     const container = document.getElementById('routeListContainer');
     container.innerHTML = "";
