@@ -91,6 +91,22 @@ h2 { margin: 0 0 15px; font-size: 18px; border-bottom: 2px solid #eee; padding-b
 }
 .toast.show { opacity: 1; }
 
+/* =========================================
+   有機ELブラックアウト（ポケットモード）
+   ========================================= */
+#pocketModeOverlay {
+  position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+  background-color: #000000; /* 完全な黒（発光ゼロ） */
+  z-index: 100000; /* 全てのUIの上に被せる */
+  display: none; flex-direction: column; align-items: center; justify-content: center;
+  color: #555; font-size: 16px; font-weight: bold; user-select: none;
+  touch-action: none; /* スワイプ等のOS標準動作を無効化 */
+}
+#pocketModeProgress {
+  width: 0%; height: 4px; background-color: #555; margin-top: 30px; 
+  border-radius: 2px; transition: width 0.1s linear; max-width: 200px;
+}
+
 /* Hamburger */
 .hamburger {
   position: absolute; top: 14px; left: 14px; z-index: 1100;
