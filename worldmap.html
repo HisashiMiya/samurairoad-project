@@ -23,6 +23,7 @@
       <div class="list-group">
         <div class="list-item" id="menuItemRoutes">🗺️ <span data-lang="menu_routes">探す</span></div>
         <div class="list-item" id="menuItemRecord">⏺️ <span data-lang="menu_record">記録</span></div>
+        <div class="list-item" id="menuItemRouteEdit">✍️ <span data-lang="menu_routeedit">ルート作成</span></div>
         <div class="list-item" id="menuItemTrace">✍️ <span data-lang="menu_trace">なぞりゲーム</span></div>
         
         <div class="list-item item-samurai" id="menuItemSamurai">
@@ -30,10 +31,10 @@
         </div>
         
         <div class="list-item item-onsen" id="menuItemOnsen">
-          ♨️ <span data-lang="menu_onsen">温泉を探す</span>
+          ♨️ <span data-lang="menu_onsen">温泉を探す(現在地)</span>
         </div>
         <div class="list-item item-food" id="menuItemFood">
-          🍴 <span data-lang="menu_food">地元の食事・休憩</span>
+          🍴 <span data-lang="menu_food">地元の食事・休憩(現在地)</span>
         </div>
 
         <input type="file" id="inpSamuraiCamera" accept="image/*" capture="environment" style="display:none;">
@@ -118,6 +119,10 @@
           <span data-lang="lbl_lang">言語 / Language</span>
           <button id="btnToggleLang" style="padding:6px 12px; border-radius:6px; border:1px solid #ccc; background:#eee; cursor:pointer;">日本語</button>
         </div>
+        <div class="settings-row" style="flex-direction: column; align-items: flex-start;">
+          <span data-lang="lbl_search_cond">検索時の詳細条件</span>
+          <textarea id="inpSearchCond" rows="3" style="width: 100%; margin-top: 5px; padding: 8px; border-radius: 6px; border: 1px solid #ccc; box-sizing: border-box; font-family: inherit;" placeholder="例：車椅子対応、子供連れ、予算1000円以内など"></textarea>
+        </div>
 
         <div class="settings-row">
           <span data-lang="lbl_wakelock">画面常時点灯</span>
@@ -178,6 +183,49 @@
     </div>
 
     <div class="trace-actions">
+      <button class="btn-block trace-btn" id="btnREStart" data-lang="re_start">Start（描画）</button>
+
+      <div class="trace-actions-row">
+        <button class="btn-half" id="btnREUndo" data-lang="re_undo">Undo</button>
+        <button class="btn-half" id="btnREReset" data-lang="re_reset">Reset</button>
+      </div>
+
+      <div class="trace-actions-row">
+        <button class="btn-half" id="btnREFinish" data-lang="re_finish">Finish</button>
+        <button class="btn-half" id="btnREExport" data-lang="re_export">Export</button>
+      </div>
+
+      <label class="trace-toggle">
+        <input type="checkbox" id="chkRERef" checked />
+        <span data-lang="re_showref">参照ルートを表示</span>
+      </label>
+
+      <label class="trace-toggle">
+        <input type="checkbox" id="chkRESnap" />
+        <span data-lang="re_snap">参照ルートへスナップ（近い時だけ）</span>
+      </label>
+
+      <label class="trace-toggle">
+        <span data-lang="re_name">名前</span>
+        <input class="input" id="inpREName" placeholder="例：中山道（妻籠→馬籠）" style="flex:1; padding:10px; border:1px solid #ddd; border-radius:10px;" />
+      </label>
+
+      <label class="trace-toggle">
+        <span data-lang="re_note">メモ</span>
+        <input class="input" id="inpRENote" placeholder="例：現地でなぞった復元版" style="flex:1; padding:10px; border:1px solid #ddd; border-radius:10px;" />
+      </label>
+    </div>
+
+    <div class="trace-result" id="reResult" style="display:none;">
+      <h3 data-lang="re_result">プレビュー</h3>
+      <div class="trace-breakdown" id="reBreakdown">--</div>
+    </div>
+
+    <button class="btn-block" style="background:#888;" onclick="closeModals(); if(window.RouteEditor) RouteEditor.stop();" data-lang="btn_close">閉じる</button>
+  </div>
+</div>
+
+    <div class="trace-actions">
       <button class="btn-block trace-btn" id="btnTraceStart" data-lang="trace_start">スタート</button>
       <div class="trace-actions-row">
         <button class="btn-half" id="btnTraceReset" data-lang="trace_reset">リセット</button>
@@ -210,5 +258,7 @@
 
 <script src="./assets/js/config.js?v=20260118" defer></script>
 <script src="./assets/js/worldmap.js" defer></script>
+<script src="./assets/js/trace_game.js"  defer></script>
+<script src="./assets/js/route_editor.js" defer></script>
 </body>
 </html>
