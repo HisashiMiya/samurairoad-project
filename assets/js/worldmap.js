@@ -24,7 +24,9 @@
       samurai_thinking: "侍が考え中...",
       onsen_thinking: "温泉を探しています...",
       food_thinking: "地元の味を探しています...",
-      btn_speech_start: "読み上げ", btn_speech_stop: "停止"
+      btn_speech_start: "読み上げ", btn_speech_stop: "停止",
+      lbl_search_cond: "検索時の詳細条件",
+      spot_thinking: "おすすめスポットを探しています...",
     },
     en: {
       menu_routes: "Routes", menu_record: "Record", menu_report: "Report", menu_settings: "Config",
@@ -47,7 +49,9 @@
       samurai_thinking: "The Samurai is thinking...",
       onsen_thinking: "Searching for Onsen...",
       food_thinking: "Searching for local food...",
-      btn_speech_start: "Read Aloud", btn_speech_stop: "Stop"
+      btn_speech_start: "Read Aloud", btn_speech_stop: "Stop",
+      lbl_search_cond: "Search Conditions",
+      spot_thinking: "Searching for spots...",
     }
   };
 
@@ -155,6 +159,7 @@
     watchId: null,
     currentPos: null,
     autoSpeech: (localStorage.getItem('kaido_auto_speech') === 'true'), // ★追加: 自動読み上げ (初期値はfalse)
+    searchCondition: localStorage.getItem('kaido_search_cond') || '', // ★追加: 検索条件
     layers: {}
   };
 
@@ -226,6 +231,10 @@
                 🍴 食事
               </button>
             </div>
+            <button onclick="window.askSpotSearch(${lat}, ${lng})" 
+              style="background: #33cc33; color: white; border: none; padding: 8px 12px; border-radius: 20px; font-weight: bold; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
+              🔍 スポット
+            </button>
         </div>
       `;
 
@@ -538,43 +547,49 @@ Please answer in English.
         alert(t('msg_error') + "\n" + e.message);
     }
   }
-
-// --- 新機能: 温泉検索 ---
+// --- 新機能: 温泉検索（詳細条件＋両対応の最適化版） ---
   window.askOnsen = async function(lat, lng) {
       if (!lat || !lng) return;
       map.closePopup();
       showLoading('onsen_thinking');
-      let prompt = "";
 
+      // 設定画面で入力された詳細条件を取得
+      const condText = AppState.searchCondition ? AppState.searchCondition.trim() : "";
+      const condPromptJa = condText ? `\n【最優先条件】以下の要望を満たす温泉を提案してください：\n「${condText}」\n` : "";
+      const condPromptEn = condText ? `\n[Priority Condition] Please consider the following user request:\n"${condText}"\n` : "";
+
+      let prompt = "";
       if (AppState.lang === 'en') {
-          // ▼▼ 変更点: Google Maps URLの出力を要求 ▼▼
-          prompt = `I am at Latitude ${lat}, Longitude ${lng}.
-Please list 3 to 5 recommended "Onsen" (Hot Springs) nearby (within ~20km).
-Focus on authentic, historical, or hidden spots that locals love (not just big resorts).
+          prompt = `Regarding the location at Latitude ${lat}, Longitude ${lng}:
+Please list 3 to 5 recommended "Onsen" (Day-use Hot Springs) nearby (within ~20km).
+The user might be there right now or planning a future trip. Please provide information useful for both.
+Focus on authentic, historical, or hidden spots that locals love (not just big resorts). ${condPromptEn}
 For each spot, provide:
 1. Name
 2. Distance & Direction (approx.)
-3. Why it is recommended (e.g. water quality, view, history).
-4. Google Maps Search URL (format: https://www.google.com/maps/search/?api=1&query=Name)
-[Constraint]: Output as a clean list.`;
+3. Why it is recommended & Best timing/Tips (e.g., water quality, view, history, and advice for planning such as checking business hours).
+4. Google Maps Search URL (Strictly use this format: https://www.google.com/maps/search/?api=1&query=Name)
+[Constraint]: Output as a clean list without extra conversation.`;
       } else {
-          // ▼▼ 変更点: Googleマップ検索用URLの出力を要求 ▼▼
-          prompt = `私は今、緯度${lat}、経度${lng}の場所にいます。
-この場所から半径20km圏内にある、「おすすめの日帰り温泉」を3〜5つ教えてください。
-特に、地元の人に愛される名湯や、秘湯、歴史ある温泉を優先してください（大規模レジャー施設より風情を重視）。
-それぞれの温泉について、以下の情報を箇条書きで出力してください。
+          prompt = `指定された地点（緯度${lat}、経度${lng}）から半径20km圏内にある、「おすすめの日帰り温泉」を3〜5つ教えてください。
+
+【重要条件】
+ユーザーは今まさにその場にいる可能性もあれば、事前の旅行計画を立てている可能性もあります。どちらの用途でも役立つように解説してください。
+特に、地元の人に愛される名湯や、秘湯、歴史ある温泉を優先してください（大規模レジャー施設より風情を重視）。${condPromptJa}
+
+それぞれの温泉について、以下の4点を箇条書きで出力してください。
 1. 名称
 2. おおよその距離と方角
-3. おすすめポイント（泉質、景色、歴史など）
-4. Googleマップ検索用URL（形式: https://www.google.com/maps/search/?api=1&query=名称）`;
+3. おすすめポイントと訪問時のアドバイス（泉質、景色、歴史などの魅力に加え、計画のヒントや営業時間確認の注意喚起などを簡潔に含めること）
+4. Googleマップ検索用URL（必ずこの形式で出力: https://www.google.com/maps/search/?api=1&query=温泉名 ）`;
       }
 
       try {
           const answer = await callGemini(prompt);
           hideLoading();
           
-          // ▼▼ 変更点: テキスト内のURLをリンクタグに置換する処理 ▼▼
-          const linkedAnswer = answer.replace(/(https:\/\/www\.google\.com\/maps\/search\/\?api=1&query=[^\s<]+)/g, '<a href="$1" target="_blank" style="color:#0066cc;text-decoration:underline;">Google Mapで見る</a>');
+          // GoogleマップURLを確実にリンクタグに変換する
+          const linkedAnswer = answer.replace(/(https:\/\/www\.google\.com\/maps\/search\/\?api=1&query=[^\s<)\n]+)/g, '<a href="$1" target="_blank" style="color:#0066cc;text-decoration:underline;">Google Mapで見る</a>');
           
           showAIResult(linkedAnswer);
       } catch (e) {
@@ -584,40 +599,52 @@ For each spot, provide:
       }
   };
 
-  // --- 新機能: 地元の食事・休憩 ---
+
+  // --- 新機能: 地元の食事・休憩（詳細条件＋両対応の最適化版） ---
   window.askLocalFood = async function(lat, lng) {
       if (!lat || !lng) return;
       map.closePopup();
       showLoading('food_thinking');
-      let prompt = "";
 
+      // 設定画面で入力された詳細条件を取得
+      const condText = AppState.searchCondition ? AppState.searchCondition.trim() : "";
+      const condPromptJa = condText ? `\n【最優先条件】以下の要望を満たす食事処・休憩スポットを提案してください：\n「${condText}」\n` : "";
+      const condPromptEn = condText ? `\n[Priority Condition] Please consider the following user request:\n"${condText}"\n` : "";
+
+      let prompt = "";
       if (AppState.lang === 'en') {
-          prompt = `I am at Latitude ${lat}, Longitude ${lng}.
+          prompt = `Regarding the location at Latitude ${lat}, Longitude ${lng}:
 Please list 3 to 5 recommended "Local Food Spots" or "Historical Rest Areas" nearby.
-Exclude convenience stores and major fast-food chains.
-Focus on places offering local specialties, traditional atmosphere, or old teahouses suitable for walkers.
+The user might be there right now or planning a future trip. Please provide information useful for both.
+Exclude convenience stores and major fast-food chains. Focus on places offering local specialties, traditional atmosphere, or old teahouses suitable for walkers. ${condPromptEn}
 For each spot, provide:
 1. Name
-2. What to eat/drink (specialty)
-3. Brief description.
-4. Google Maps Search URL (format: https://www.google.com/maps/search/?api=1&query=Name)
-[Constraint]: Output as a clean list.`;
+2. Distance & Direction (approx.)
+3. Recommended menu & Best timing/Tips (e.g., lunch vs dinner vibe, or advice to check holidays).
+4. Google Maps Search URL (Strictly use this format: https://www.google.com/maps/search/?api=1&query=Name)
+[Constraint]: Output as a clean list without extra conversation.`;
       } else {
-          prompt = `私は今、緯度${lat}、経度${lng}の場所にいます。
-この場所周辺で、歩き旅の休憩や食事に最適な「地元の食事処」または「歴史的な休憩スポット」を3〜5つ教えてください。
-コンビニや大手チェーン店は除外してください。
-その土地ならではの郷土料理、古い茶屋、地元の人に愛される食堂などを優先してください。
-それぞれのスポットについて、以下の情報を箇条書きで出力してください。
+          prompt = `指定された地点（緯度${lat}、経度${lng}）の周辺で、歩き旅の休憩や食事に最適な「地元の食事処」または「歴史的な休憩スポット」を3〜5つ教えてください。
+
+【重要条件】
+ユーザーは今まさにその場にいる可能性もあれば、事前の旅行計画を立てている可能性もあります。どちらの用途でも役立つように解説してください。
+コンビニや大手チェーン店は除外してください。その土地ならではの郷土料理、古い茶屋、地元の人に愛される食堂などを優先してください。${condPromptJa}
+
+それぞれのスポットについて、以下の4点を箇条書きで出力してください。
 1. 名称
-2. おすすめメニュー・名物
-3. お店の雰囲気や特徴
-4. Googleマップ検索用URL（形式: https://www.google.com/maps/search/?api=1&query=名称）`;
+2. おおよその距離と方角
+3. おすすめメニューと訪問時のアドバイス（お店の雰囲気や特徴に加え、昼夜の用途の違いや定休日確認の注意喚起など、計画のヒントを簡潔に含めること）
+4. Googleマップ検索用URL（必ずこの形式で出力: https://www.google.com/maps/search/?api=1&query=店舗名 ）`;
       }
 
       try {
           const answer = await callGemini(prompt);
           hideLoading();
-          showAIResult(answer);
+          
+          // GoogleマップURLを確実にリンクタグに変換する
+          const linkedAnswer = answer.replace(/(https:\/\/www\.google\.com\/maps\/search\/\?api=1&query=[^\s<)\n]+)/g, '<a href="$1" target="_blank" style="color:#0066cc;text-decoration:underline;">Google Mapで見る</a>');
+          
+          showAIResult(linkedAnswer);
       } catch (e) {
           hideLoading();
           console.error(e);
@@ -669,6 +696,56 @@ Focus on the Edo period or old roads if applicable.
       }
   };
 
+// --- 新機能: おすすめスポット検索（リアルタイム・事前調べ両対応版） ---
+  window.askSpotSearch = async function(lat, lng) {
+      if (!lat || !lng) return;
+      map.closePopup();
+      showLoading('spot_thinking');
+
+      // 設定画面で入力された詳細条件を取得
+      const condText = AppState.searchCondition ? AppState.searchCondition.trim() : "";
+      const condPromptJa = condText ? `\n【最優先条件】以下のユーザーからの要望を満たす場所を提案してください：\n「${condText}」\n` : "";
+      const condPromptEn = condText ? `\n[Priority Condition] Please consider the following user request:\n"${condText}"\n` : "";
+
+      let prompt = "";
+      if (AppState.lang === 'en') {
+          prompt = `Regarding the location at Latitude ${lat}, Longitude ${lng}:
+Please list 5 to 10 recommended spots (sightseeing, cafes, historical places, scenic views, etc.) nearby.
+The user might be there right now, or planning a future trip. Please provide information useful for both situations. ${condPromptEn}
+For each spot, provide:
+1. Name
+2. Distance & Direction (approx. walking distance from the specified point)
+3. Why it is recommended & Best timing (Briefly mention the best season, time of day, or differences between day/night to help with planning).
+4. Google Maps Search URL (Strictly use this format: https://www.google.com/maps/search/?api=1&query=[Spot Name])
+[Constraint]: Output as a clean list without extra conversation.`;
+      } else {
+          prompt = `指定された地点（緯度${lat}、経度${lng}）の周辺について。
+歩き旅の旅人が立ち寄るべき「おすすめスポット（観光地、カフェ、名所、絶景ポイントなど）」を5〜10件教えてください。
+
+【重要条件】
+ユーザーは今まさにその場にいる可能性もあれば、事前の旅行計画を立てている可能性もあります。どちらの用途でも役立つように解説してください。${condPromptJa}
+
+それぞれのスポットについて、以下の4点を箇条書きで出力してください。
+1. 名称
+2. おおよその距離と方角（指定地点からの徒歩での目安）
+3. おすすめポイントと最適な訪問タイミング（「昼夜での見え方の違い」や「特におすすめの季節・時間帯」など、計画のヒントになる情報を簡潔に含めること）
+4. Googleマップ検索用URL（必ずこの形式で出力: https://www.google.com/maps/search/?api=1&query=スポット名 ）`;
+      }
+
+      try {
+          const answer = await callGemini(prompt);
+          hideLoading();
+          
+          // GoogleマップURLを確実にリンクタグに変換する
+          const linkedAnswer = answer.replace(/(https:\/\/www\.google\.com\/maps\/search\/\?api=1&query=[^\s<)\n]+)/g, '<a href="$1" target="_blank" style="color:#0066cc;text-decoration:underline;">Google Mapで見る</a>');
+          
+          showAIResult(linkedAnswer);
+      } catch (e) {
+          hideLoading();
+          console.error(e);
+          alert(t('msg_error') + "\n" + e.message);
+      }
+  };
   // =========================================
   // 5. 記録・インポート・エクスポート
   // =========================================
@@ -996,7 +1073,6 @@ Focus on the Edo period or old roads if applicable.
   document.getElementById('btnHamburger').onclick = () => openModal('modalMainMenu');
   document.getElementById('menuItemRoutes').onclick = () => { closeModals(); openModal('modalRoutes'); };
   document.getElementById('menuItemRecord').onclick = () => { closeModals(); openModal('modalRecord'); };
-  document.getElementById('menuItemRouteEdit').onclick = () => { closeModals(); openModal('modalRouteEdit'); if (window.RouteEditor) RouteEditor.refreshUI(); };
   document.getElementById('menuItemRouteEdit').onclick = () => { closeModals(); openModal('modalRouteEdit'); if (window.RouteEditor) RouteEditor.refreshUI(); };
   document.getElementById('menuItemReport').onclick = () => { closeModals(); openReportForm(); };
   document.getElementById('menuItemSettings').onclick = () => { closeModals(); openModal('modalSettings'); };
