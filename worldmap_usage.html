@@ -23,6 +23,9 @@
     .tag-red { background: #cc0000; }
     .tag-blue { background: #0066cc; }
     .tag-purple { background: #8e44ad; }
+    .tag-green { background: #33cc33; }
+    .tag-pink { background: #cc0066; }
+    .tag-orange { background: #cc6600; }
     
     ul { padding-left: 20px; margin: 8px 0; font-size: 14px; color: #555; }
     li { margin-bottom: 6px; }
@@ -34,10 +37,11 @@
     .lang-switch { text-align: right; margin-bottom: 10px; }
     .lang-switch button { background: white; border: 1px solid #ccc; padding: 6px 12px; border-radius: 20px; cursor: pointer; color: #666; font-size: 12px; font-weight: bold; }
 
-        /* 言語表示制御 */
+    /* 言語表示制御 */
     [data-lang-content] { display: none !important; }
     body.lang-ja [data-lang-content="ja"] { display: block !important; }
-    body.lang-en [data-lang-content="en"] { display: block !important; }/* 特定のタグに対するflex補正 */
+    body.lang-en [data-lang-content="en"] { display: block !important; }
+    /* 特定のタグに対するflex補正 */
     body.lang-ja div[data-lang-content="ja"] { display: block !important; }
     body.lang-ja h1[data-lang-content="ja"], body.lang-ja h2[data-lang-content="ja"] { display: block !important; }
     
@@ -49,47 +53,57 @@
     <button onclick="toggleLang()">🌐 English / 日本語</button>
   </div>
 
-  <h1 data-lang-content="ja">使い方ガイド</h1>
-  <h1 data-lang-content="en">User Guide</h1>
+  <h1 data-lang-content="ja">Samurai World Map (SWM) 使い方ガイド</h1>
+  <h1 data-lang-content="en">Samurai World Map (SWM) User Guide</h1>
 
   <div class="card" style="border-left: 5px solid #8e44ad;">
-    <h2 data-lang-content="ja" style="color: #8e44ad;"><span class="icon">🤖</span> AI歴史ガイド・侍の目</h2>
-    <h2 data-lang-content="en" style="color: #8e44ad;"><span class="icon">🤖</span> AI Samurai Guide</h2>
+    <h2 data-lang-content="ja" style="color: #8e44ad;"><span class="icon">🤖</span> AIガイド機能</h2>
+    <h2 data-lang-content="en" style="color: #8e44ad;"><span class="icon">🤖</span> AI Guide Features</h2>
     
     <div data-lang-content="ja">
-      <p>最新のAI <span class="tag tag-purple">Gemini</span> があなたの旅をサポートします。</p>
+      <p>最新のAI <span class="tag tag-purple">Gemini</span> があなたの旅をサポートします。すべてのAI解説は「読み上げ機能」で音声で聞くことも可能です。</p>
       <ul>
-        <li><strong>📍 歴史ガイド (GPS):</strong> 現在地の歴史や、江戸時代の宿場町のエピソードをAIが解説します。「昔の旅人」になった気分で楽しめます。</li>
-        <li><strong>📷 侍の目 (画像):</strong> 街道の写真をアップロードすると、AIがその風景を解析し、歴史的な背景を教えてくれます。</li>
+        <li><strong>📍 歴史ガイド (右下のボタン):</strong> 現在地の歴史や、江戸時代の宿場町のエピソードをAIが解説し、おすすめスポットを5つ提案します。</li>
+        <li><strong>📷 侍の目で見る (メニュー):</strong> 街道の写真をアップロードすると、AIがその風景を解析し、歴史的な背景を教えてくれます。</li>
       </ul>
       
       <hr style="border: 0; border-top: 1px solid #eee; margin: 15px 0;">
       
-      <p><strong>👆 指定した場所を解説してもらう (新機能)</strong></p>
+      <p><strong>👆 地図から調べる (長押しメニュー)</strong></p>
       <p>
-        地図上の気になった場所を<strong>長押し</strong>（PCの場合は右クリック）してください。<br>
-        吹き出しが表示され、「🏯 侍解説」ボタンを押すと、侍がその土地の歴史や見どころをピンポイントで解説します。<br>
-        <small>※ 今いる場所だけでなく、遠く離れた目的地や山の中など、どこでも指定可能です。</small>
+        地図上の気になった場所を<strong>長押し</strong>（PCの場合は右クリック）するとメニューが表示され、その場所についてAIに調べさせることができます。<br>
+        <small>※ 今いる場所だけでなく、遠く離れた目的地なども指定可能です。</small>
       </p>
+      <ul>
+          <li><span class="tag tag-blue">🏯 侍</span> : 土地勘のある侍として、その場所の歴史や見どころをピンポイントで解説します。</li>
+          <li><span class="tag tag-pink">♨️ 温泉</span> : 周辺の日帰り温泉や名湯を探して提案します。</li>
+          <li><span class="tag tag-orange">🍴 食事</span> : 歩き旅の休憩に最適な、地元の食事処や古い茶屋を探して提案します。</li>
+          <li><span class="tag tag-green">🔍 スポット</span> : 周辺の観光地や名所など、立ち寄るべきスポットを探して提案します。</li>
+      </ul>
 
       <p style="margin-top: 15px;"><small>※AI機能にはインターネット接続が必要です。</small></p>
     </div>
 
     <div data-lang-content="en">
-      <p>Powered by <span class="tag tag-purple">Gemini</span> AI to enhance your journey.</p>
+      <p>Powered by <span class="tag tag-purple">Gemini</span> AI to enhance your journey. All AI explanations can be read aloud using the speech function.</p>
       <ul>
-        <li><strong>📍 History Guide (GPS):</strong> The AI explains the history of your current location, focusing on the Edo period context.</li>
-        <li><strong>📷 Samurai Eye (Image):</strong> Upload a photo of the scenery, and the AI will analyze it to provide historical context.</li>
+        <li><strong>📍 History Guide (Bottom Right):</strong> The AI explains the history of your current location, focusing on the Edo period context, and suggests 5 recommended spots.</li>
+        <li><strong>📷 Samurai Vision (Menu):</strong> Upload a photo of the scenery, and the AI will analyze it to provide historical context.</li>
       </ul>
 
       <hr style="border: 0; border-top: 1px solid #eee; margin: 15px 0;">
 
-      <p><strong>👆 Ask about a specific location (New)</strong></p>
+      <p><strong>👆 Ask from the Map (Long-press Menu)</strong></p>
       <p>
-        <strong>Long-press</strong> any point on the map (Right-click on PC).<br>
-        A popup will appear. Tap the "🏯 Samurai Guide" button, and the Samurai will explain the history and highlights of that specific spot.<br>
+        <strong>Long-press</strong> any point on the map (Right-click on PC) to open a menu and ask the AI about that specific location.<br>
         <small>* You can point to any location, not just your current position.</small>
       </p>
+      <ul>
+          <li><span class="tag tag-blue">🏯 Samurai</span>: The Samurai will explain the history and highlights of that specific spot.</li>
+          <li><span class="tag tag-pink">♨️ Onsen</span>: Finds and suggests day-use hot springs and famous baths nearby.</li>
+          <li><span class="tag tag-orange">🍴 Food</span>: Finds and suggests local eateries and old teahouses perfect for a rest.</li>
+          <li><span class="tag tag-green">🔍 Spot</span>: Finds and suggests places to visit, such as sightseeing spots and landmarks nearby.</li>
+      </ul>
 
       <p style="margin-top: 15px;"><small>* Internet connection is required for AI features.</small></p>
     </div>
@@ -103,14 +117,14 @@
       <p>画面下の「探す」ボタンを押すと、世界中の街道リストが表示されます。</p>
       <ul>
         <li>歩きたい街道を選ぶと、地図上に <span class="tag tag-red">赤線</span> でルートが表示されます。</li>
-        <li>現在地ボタン「◎」を押すと、自分の位置が表示されます。</li>
+        <li>右下の「◎」ボタンを押すと、自分の位置が表示されます。</li>
       </ul>
     </div>
     <div data-lang-content="en">
       <p>Tap the "Routes" button at the bottom to explore trails.</p>
       <ul>
         <li>Select a route to see the <span class="tag tag-red">Red Line</span> on the map.</li>
-        <li>Tap the "◎" button to show your current location.</li>
+        <li>Tap the "◎" button on the bottom right to show your current location.</li>
       </ul>
     </div>
   </div>
@@ -125,6 +139,7 @@
         <li>「記録」メニューから「記録開始」を押してください。</li>
         <li>歩いた道が <span class="tag tag-blue">青線</span> で地図に描かれます。</li>
         <li>ブラウザを閉じても記録は保存されますが、長時間の記録時は画面を消さないことをおすすめします（設定で「画面常時点灯」可能）。</li>
+        <li>左下の月のアイコン「🌙」を押すと、誤操作を防ぎつつ画面を点灯し続ける「ポケットモード」になります。</li>
       </ul>
     </div>
     <div data-lang-content="en">
@@ -133,6 +148,7 @@
         <li>Go to the "Record" menu and tap "Start".</li>
         <li>Your track will be drawn as a <span class="tag tag-blue">Blue Line</span>.</li>
         <li>Recording works in the background, but keeping the screen on (via Settings) is recommended for long treks.</li>
+        <li>Tap the moon icon "🌙" on the bottom left to activate "Pocket Mode", which keeps the screen on while preventing accidental touches.</li>
       </ul>
     </div>
   </div>
@@ -156,6 +172,26 @@
       </ul>
     </div>
   </div>
+  
+  <div class="card">
+    <h2 data-lang-content="ja"><span class="icon">✍️</span> 遊ぶ・作る</h2>
+    <h2 data-lang-content="en"><span class="icon">✍️</span> Play & Create</h2>
+
+    <div data-lang-content="ja">
+      <p>左上のメニュー（三本線）から、以下の機能を利用できます。</p>
+      <ul>
+        <li><strong>ルート作成:</strong> 地図上をなぞって自分だけのルート（GeoJSON）を作成・保存できます。</li>
+        <li><strong>なぞりゲーム:</strong> 街道の形をどれだけ正確になぞれるかを競うミニゲームです。</li>
+      </ul>
+    </div>
+    <div data-lang-content="en">
+      <p>Access the following features from the top-left menu (three lines).</p>
+      <ul>
+        <li><strong>Route Edit:</strong> Trace on the map to create and save your own routes (GeoJSON).</li>
+        <li><strong>Trace Game:</strong> A mini-game to see how accurately you can trace the shape of historical routes.</li>
+      </ul>
+    </div>
+  </div>
 
   <div class="card">
     <h2 data-lang-content="ja"><span class="icon">📝</span> 報告機能</h2>
@@ -176,13 +212,17 @@
     <div data-lang-content="ja">
       <ul>
         <li><strong>言語:</strong> 日本語と英語を切り替えられます。</li>
+        <li><strong>検索時の詳細条件:</strong> ここに入力した要望（例：車椅子対応、予算1000円以内など）は、AIがスポットや食事を探す際に優先して考慮されます。</li>
         <li><strong>画面常時点灯:</strong> 記録中にスマホがスリープするのを防ぎます（バッテリー消費に注意してください）。</li>
+        <li><strong>自動読み上げ:</strong> ONにすると、AIの解説が表示された際に自動的に音声で読み上げを開始します。</li>
       </ul>
     </div>
     <div data-lang-content="en">
       <ul>
         <li><strong>Language:</strong> Switch between Japanese and English.</li>
+        <li><strong>Search Conditions:</strong> Requests entered here (e.g., wheelchair accessible, under $10) will be prioritized by the AI when searching for spots or food.</li>
         <li><strong>Keep Screen On:</strong> Prevents the phone from sleeping while recording (Note: consumes more battery).</li>
+        <li><strong>Auto Speech:</strong> When enabled, AI explanations will automatically be read aloud when displayed.</li>
       </ul>
     </div>
   </div>
