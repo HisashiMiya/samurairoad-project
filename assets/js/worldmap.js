@@ -892,11 +892,17 @@ For each spot, provide:
     setTimeout(() => t.classList.remove('show'), 3000);
   }
   window.closeModals = function() {
-    document.querySelectorAll('.modal-overlay').forEach(e => e.classList.remove('open'));
+    document.querySelectorAll('.modal-overlay, .modal').forEach(e => e.classList.remove('open'));
   };
   function openModal(id) {
     closeModals();
-    document.getElementById(id).classList.add('open');
+    const el = document.getElementById(id);
+    if (!el) {
+      console.warn(`[openModal] not found: #${id}`);
+      (window.showToast ? showToast : console.log)(`Modal not found: ${id}`);
+      return;
+    }
+    el.classList.add('open');
   }
   // =========================================
   // ★ Zemini 防弾ハック：WakeLock延命 & ポケットモード
@@ -1074,6 +1080,7 @@ For each spot, provide:
   document.getElementById('menuItemRoutes').onclick = () => { closeModals(); openModal('modalRoutes'); };
   document.getElementById('menuItemRecord').onclick = () => { closeModals(); openModal('modalRecord'); };
   document.getElementById('menuItemRouteEdit').onclick = () => { closeModals(); openModal('modalRouteEdit'); if (window.RouteEditor) RouteEditor.refreshUI(); };
+  document.getElementById('menuItemTrace').onclick = () => { closeModals(); openModal('modalTraceGame'); if (window.TraceGame) TraceGame.refreshUI?.(); };
   document.getElementById('menuItemReport').onclick = () => { closeModals(); openReportForm(); };
   document.getElementById('menuItemSettings').onclick = () => { closeModals(); openModal('modalSettings'); };
 
