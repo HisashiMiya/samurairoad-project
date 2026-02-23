@@ -912,6 +912,25 @@ window.closeModals = function() {
     }
   });
 };
+
+
+// --- Modal open helper (global) ---
+window.openModal = function(id) {
+  // 既存モーダルを閉じる（ただし closeModals の中で最小化ロジックがあるならそのまま効く）
+  if (window.closeModals) window.closeModals();
+
+  const el = document.getElementById(id);
+  if (!el) {
+    console.warn(`[openModal] not found: #${id}`);
+    return;
+  }
+
+  // 最小化してたら復帰
+  el.classList.remove('minimized');
+
+  // 表示
+  el.classList.add('open');
+};
   // =========================================
   // ★ Zemini 防弾ハック：WakeLock延命 & ポケットモード
   // =========================================
