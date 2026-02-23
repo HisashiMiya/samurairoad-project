@@ -891,37 +891,36 @@ For each spot, provide:
     t.textContent = msg; t.classList.add('show');
     setTimeout(() => t.classList.remove('show'), 3000);
   }
-// 「閉じる」＝ UIだけ隠して描画モードは継続（RouteEdit/TraceGameだけ特別扱い）
-window.closeModals = function() {
+window.closeModals = function(opts = {}) {
+  const force = !!opts.force;
+
   const re = document.getElementById('modalRouteEdit');
   const tg = document.getElementById('modalTraceGame');
 
-  // ルート編集：開いていて、RouteEditorがいるなら最小化
-  if (re && re.classList.contains('open') && window.RouteEditor) {
+  // ルート編集：開いていて、RouteEditorがいるなら最小化（= UIだけ閉じる）
+  if (!force && re && re.classList.contains('open') && window.RouteEditor) {
     re.classList.add('minimized');
     return;
   }
 
-  // なぞり：開いていて、TraceGameがいるなら最小化
-  if (tg && tg.classList.contains('open') && window.TraceGame) {
+  // なぞり：開いていて、TraceGameがいるなら最小化（= UIだけ閉じる）
+  if (!force && tg && tg.classList.contains('open') && window.TraceGame) {
     tg.classList.add('minimized');
     return;
   }
 
-  // その他は普通に閉じる
+  // force=true も含め、ここまで来たら「全部」閉じる（UIのみ）
   document.querySelectorAll('.modal-overlay, .modal').forEach(e => {
     e.classList.remove('open');
     e.classList.remove('minimized');
   });
 };
 
-// ついでに：openModalしたら最小化解除（UIを戻せる）
-window.openModal = function(id){
-  const el = document.getElementById(id);
-  if (!el) return;
-  el.classList.remove('minimized');
-  el.classList.add('open');
+// 終了用（UI強制クローズ）
+window.closeModalsForce = function() {
+  window.closeModals({ force: true });
 };
+
 
 
 // --- Modal open helper (global) ---
@@ -941,8 +940,22 @@ window.openModal = function(id) {
   // 表示
   el.classList.add('open');
 };
+
+
+// --- Exit（終了）: stop() → UI強制全閉じ ---
+const btnRouteEditExit = document.getElementById('btnRouteEditExit');
+if (btnRouteEditExit) btnRouteEditExit.onclick = () => {
+  try { window.RouteEditor?.stop?.(); } catch(e) { console.warn(e); }
+  window.closeModalsForce?.();
+};
+
+const btnTraceGameExit = document.getElementById('btnTraceGameExit');
+if (btnTraceGameExit) btnTraceGameExit.onclick = () => {
+  try { window.TraceGame?.stop?.(); } catch(e) { console.warn(e); }
+  window.closeModalsForce?.();
+};
   // =========================================
-  // ★ Zemini 防弾ハック：WakeLock延命 & ポケットモード
+  // ：WakeLock延命 & ポケットモード
   // =========================================
   let wakeLock = null;
   const chkWakeLock = document.getElementById('chkWakeLock');
