@@ -896,20 +896,19 @@ window.closeModals = function() {
   const re = document.getElementById('modalRouteEdit');
   const tg = document.getElementById('modalTraceGame');
 
-  // RouteEditorが存在していて、RouteEditが開いているなら「最小化」へ
-  // (RouteEditorの内部状態が分からなくても、現象からopen維持が必要)
+  // ルート編集：開いていて、RouteEditorがいるなら最小化
   if (re && re.classList.contains('open') && window.RouteEditor) {
     re.classList.add('minimized');
     return;
   }
 
-  // TraceGameも同様（あれば）
+  // なぞり：開いていて、TraceGameがいるなら最小化
   if (tg && tg.classList.contains('open') && window.TraceGame) {
     tg.classList.add('minimized');
     return;
   }
 
-  // それ以外は普通に閉じる
+  // その他は普通に閉じる
   document.querySelectorAll('.modal-overlay, .modal').forEach(e => {
     e.classList.remove('open');
     e.classList.remove('minimized');
