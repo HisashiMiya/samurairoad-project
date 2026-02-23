@@ -891,19 +891,27 @@ For each spot, provide:
     t.textContent = msg; t.classList.add('show');
     setTimeout(() => t.classList.remove('show'), 3000);
   }
-  window.closeModals = function() {
-    document.querySelectorAll('.modal-overlay, .modal').forEach(e => e.classList.remove('open'));
-  };
-  function openModal(id) {
-    closeModals();
-    const el = document.getElementById(id);
-    if (!el) {
-      console.warn(`[openModal] not found: #${id}`);
-      (window.showToast ? showToast : console.log)(`Modal not found: ${id}`);
-      return;
+window.closeModals = function() {
+  document.querySelectorAll('.modal-overlay.open, .modal.open').forEach(el => {
+    // --- “描画・トレース中”っぽい状態なら「閉じる＝最小化」にする ---
+    // route_editor.js / trace_game.js 側が付ける可能性があるクラス名を広めに拾う（回帰防止）
+    const keepDrawing =
+      el.classList.contains('route-editor-open') ||
+      el.classList.contains('routeEdit-open') ||
+      el.classList.contains('trace-open') ||
+      el.classList.contains('tracegame-open') ||
+      el.classList.contains('drawing') ||
+      el.classList.contains('tracing');
+
+    if (keepDrawing) {
+      el.classList.add('minimized');   // UIだけ隠す
+      // open は外さない（＝モード維持）
+    } else {
+      el.classList.remove('open');
+      el.classList.remove('minimized');
     }
-    el.classList.add('open');
-  }
+  });
+};
   // =========================================
   // ★ Zemini 防弾ハック：WakeLock延命 & ポケットモード
   // =========================================
