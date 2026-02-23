@@ -6,6 +6,15 @@ body { padding-bottom: 80px; box-sizing: border-box; }
 
 #map { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; }
 
+
+.modal-overlay.route-editor-open {
+  pointer-events: none;
+}
+
+.modal-overlay.route-editor-open .modal-content {
+  pointer-events: auto;
+}
+
 /* Top Bar */
 .top-bar {
   position: absolute; top: 10px; left: 68px; right: 10px; z-index: 1000;
@@ -176,6 +185,21 @@ h2 { margin: 0 0 15px; font-size: 18px; border-bottom: 2px solid #eee; padding-b
 .trace-crosshair:before { width: 22px; height: 2px; margin-left: -11px; margin-top: -1px; }
 .trace-crosshair:after { width: 2px; height: 22px; margin-left: -1px; margin-top: -11px; }
 
+/* ===== Route Editor vertex markers ===== */
+.sr-re-vertex {
+  width: 14px;
+  height: 14px;
+  border-radius: 999px;
+  background: #ffffff;
+  border: 3px solid #1565c0;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+}
+.sr-re-vertex.sr-re-start { border-color: #2e7d32; } /* start: green */
+.sr-re-vertex.sr-re-end   { border-color: #c62828; } /* end: red */
+.sr-re-vertex.sr-re-mid   { border-color: #1565c0; } /* mid: blue */
+
+.re-slider-wrap { flex: 1; display:flex; flex-direction:column; gap:6px; }
+.re-slider-label { font-size:12px; color:#444; }
 
 /* --- Route Editor --- */
 .trace-toggle .input{min-width: 0;}
