@@ -270,7 +270,11 @@
       <div class="trace-breakdown" id="traceBreakdown">--</div>
     </div>
 
-    <button class="btn-block" style="background:#888;" onclick="closeModals(); if(window.TraceGame) TraceGame.stop();" data-lang="btn_close">閉じる</button>
+    <button class="btn-block" style="background:#888;" onclick="closeModals();" data-lang="btn_close">閉じる</button>
+    <button class="btn-block btn-danger"
+  onclick="if(window.TraceGame) TraceGame.stop(); document.getElementById('modalTraceGame')?.classList.remove('open','minimized');">
+  終了
+</button>
   </div>
 </div>
 
