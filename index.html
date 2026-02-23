@@ -7,6 +7,57 @@
   <meta name="description" content="SamuraiRoad Project: a smartphone-first platform for walking Japan’s historic roads." />
   <meta name="theme-color" content="#0b1020" />
   <link rel="stylesheet" href="./assets/css/samurairoad_common.css" />
+
+  <style>
+    /* minimal additions (keep samurairoad_common.css as main) */
+    .tocRow{
+      display:flex; flex-wrap:wrap; gap:8px; margin-top:12px;
+    }
+    .filterBar{
+      display:flex; flex-wrap:wrap; gap:10px; align-items:center;
+      margin: 14px 0 10px;
+    }
+    .filterBar .searchWrap{
+      display:flex; align-items:center; gap:8px; flex: 1 1 340px;
+      background: rgba(255,255,255,.04);
+      border: 1px solid rgba(255,255,255,.10);
+      border-radius: 12px;
+      padding: 8px 10px;
+    }
+    .filterBar input{
+      width:100%; background: transparent; border:0; outline:none;
+      color: inherit; font-size: 14px;
+    }
+    .chipRow{ display:flex; flex-wrap:wrap; gap:8px; }
+    .chip{
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.02);
+      color: inherit;
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 13px;
+      cursor: pointer;
+      user-select: none;
+    }
+    .chip.active{
+      border-color: rgba(120,170,255,.65);
+      box-shadow: 0 0 0 2px rgba(120,170,255,.18) inset;
+    }
+    .subsectionTitle{
+      margin-top: 18px;
+      display:flex; align-items:baseline; justify-content:space-between; gap:10px;
+    }
+    .subsectionTitle h4{ margin: 0; }
+    .countBadge{
+      font-size: 12px;
+      opacity: .75;
+      border: 1px solid rgba(255,255,255,.10);
+      border-radius: 999px;
+      padding: 4px 10px;
+    }
+    .grid.tight{ margin-top: 10px; }
+    .mutedSmall{ opacity:.75; font-size: 13px; }
+  </style>
 </head>
 
 <body>
@@ -21,9 +72,9 @@
     </a>
 
     <nav class="navlinks">
+      <a class="btn ghost" href="#start" data-i18n="nav_start">Start</a>
       <a class="btn ghost" href="#tools" data-i18n="nav_tools">Tools</a>
       <a class="btn ghost" href="#about" data-i18n="nav_about">About</a>
-
       <button class="btn primary" type="button" id="langBtn" aria-label="Switch language">
         <span id="langLabel">JP</span>
       </button>
@@ -32,7 +83,7 @@
 </header>
 
 <main class="wrap">
-  <section class="hero">
+  <section id="start" class="hero">
     <div class="card heroMain">
       <div class="kicker" data-i18n="kicker">SAMURAIROAD PROJECT</div>
       <h2 class="title" data-i18n="hero_title">
@@ -47,7 +98,15 @@
       <div class="ctaRow">
         <a class="btn primary" data-link="hub" data-i18n="cta_hub">Open Hub</a>
         <a class="btn" data-link="intro" data-i18n="cta_intro">Project Overview</a>
-          <a class="btn" data-link="world_routes" data-i18n="cta_routes">World Routes</a>
+        <a class="btn" data-link="world_routes" data-i18n="cta_routes">World Routes</a>
+      </div>
+
+      <!-- Quick jump TOC -->
+      <div class="tocRow">
+        <a class="btn ghost" href="#travel" data-i18n="toc_travel">Travel</a>
+        <a class="btn ghost" href="#ai_dev" data-i18n="toc_ai">AI & Dev</a>
+        <a class="btn ghost" href="#games" data-i18n="toc_games">Games</a>
+        <a class="btn ghost" href="#research" data-i18n="toc_research">Research</a>
       </div>
 
       <div class="metaRow">
@@ -66,7 +125,7 @@
       </div>
     </div>
 
-    <div class="card feature">
+    <div class="card feature" data-tags="travel map" data-title="World Map">
       <div class="tag" data-i18n="tag_map">Map</div>
       <h4 data-i18n="worldmap_title">World Map</h4>
       <p data-i18n="worldmap_desc">Global Kaido map (Leaflet).</p>
@@ -83,20 +142,16 @@
           <p data-i18n="qa_world_d">Global Kaido map</p>
           <a class="btn" data-link="worldmap" data-i18n="open">Open</a>
         </li>
-
         <li class="li">
           <b data-i18n="qa_hub_t">Search Hub</b>
           <p data-i18n="qa_hub_d">Main navigation hub</p>
           <a class="btn" data-link="hub" data-i18n="open">Open</a>
         </li>
-
         <li class="li">
           <b data-i18n="qa_engine_t">Search Engine</b>
           <p data-i18n="qa_engine_d">Direct search interface</p>
           <a class="btn" data-link="engine" data-i18n="open">Open</a>
         </li>
-
-
         <li class="li">
           <b data-i18n="qa_gemini_t">Gemini API</b>
           <p data-i18n="qa_gemini_d">Model Finder</p>
@@ -113,9 +168,33 @@
 
   <section id="tools" class="section">
     <h3 data-i18n="tools_title">Tools & Pages</h3>
+    <p class="mutedSmall" data-i18n="tools_hint">
+      Tip: Use search + tags. This page is designed to keep working even when the project grows.
+    </p>
 
-    <div class="grid">
-      <div class="card feature">
+    <!-- Search + Tag filter -->
+    <div class="filterBar">
+      <div class="searchWrap" aria-label="Search tools">
+        🔎 <input id="cardSearch" type="text" data-i18n-placeholder="search_placeholder" placeholder="Search pages (e.g., map, gemini, shogi, mech-wolf)…" />
+      </div>
+      <div class="chipRow" role="group" aria-label="Tag filters">
+        <button class="chip active" type="button" data-filter="all" data-i18n="chip_all">All</button>
+        <button class="chip" type="button" data-filter="travel" data-i18n="chip_travel">Travel</button>
+        <button class="chip" type="button" data-filter="ai" data-i18n="chip_ai">AI</button>
+        <button class="chip" type="button" data-filter="dev" data-i18n="chip_dev">Dev</button>
+        <button class="chip" type="button" data-filter="game" data-i18n="chip_game">Game</button>
+        <button class="chip" type="button" data-filter="research" data-i18n="chip_research">Research</button>
+      </div>
+      <div class="countBadge" id="countBadge">—</div>
+    </div>
+
+    <!-- ===== Travel ===== -->
+    <div id="travel" class="subsectionTitle">
+      <h4 data-i18n="sec_travel">Travel</h4>
+      <span class="countBadge" data-i18n="sec_travel_hint">Maps / routes / booking</span>
+    </div>
+    <div class="grid tight" id="gridTravel">
+      <div class="card feature mw-card" data-tags="travel doc" data-title="Project Overview">
         <div class="tag" data-i18n="tag_doc">Documentation</div>
         <h4 data-i18n="intro_title">Project Overview</h4>
         <p data-i18n="intro_desc">Project purpose and structure.</p>
@@ -124,7 +203,7 @@
         </div>
       </div>
 
-      <div class="card feature">
+      <div class="card feature mw-card" data-tags="travel nav" data-title="Search Hub">
         <div class="tag" data-i18n="tag_nav">Navigation</div>
         <h4 data-i18n="hub_title">Search Hub</h4>
         <p data-i18n="hub_desc">Central access point.</p>
@@ -133,7 +212,7 @@
         </div>
       </div>
 
-      <div class="card feature">
+      <div class="card feature mw-card" data-tags="travel search" data-title="Search Engine">
         <div class="tag" data-i18n="tag_search">Search</div>
         <h4 data-i18n="engine_title">Search Engine</h4>
         <p data-i18n="engine_desc">Search interface.</p>
@@ -141,17 +220,33 @@
           <a class="btn primary" data-link="engine" data-i18n="open">Open</a>
         </div>
       </div>
-      
-      <div class="card feature">
+
+      <div class="card feature mw-card" data-tags="travel map" data-title="World Routes">
+        <div class="tag" data-i18n="tag_map">Map</div>
+        <h4 data-i18n="routes_title">World Routes</h4>
+        <p data-i18n="routes_desc">List of historic roads and routes.</p>
+        <div class="actions">
+          <a class="btn primary" data-link="world_routes" data-i18n="open">Open</a>
+        </div>
+      </div>
+
+      <div class="card feature mw-card" data-tags="travel util" data-title="Accommodation Search">
         <div class="tag" data-i18n="tag_util">Utility</div>
         <h4 data-i18n="yadoken_title">Accommodation Search</h4>
-        <p data-i18n="yadoken_desc">Cross-search major travel sites (Jalan, Rakuten, Booking, etc) instantly.</p>
+        <p data-i18n="yadoken_desc">Cross-search major travel sites instantly.</p>
         <div class="actions">
           <a class="btn primary" data-link="yadoken" data-i18n="open">Open</a>
         </div>
       </div>
+    </div>
 
-      <div class="card feature">
+    <!-- ===== AI & Dev ===== -->
+    <div id="ai_dev" class="subsectionTitle">
+      <h4 data-i18n="sec_ai_dev">AI & Dev</h4>
+      <span class="countBadge" data-i18n="sec_ai_dev_hint">API / tools / experiments</span>
+    </div>
+    <div class="grid tight" id="gridAiDev">
+      <div class="card feature mw-card" data-tags="ai dev" data-title="Search AI">
         <div class="tag" data-i18n="tag_ai">AI</div>
         <h4 data-i18n="ai_title">Search AI</h4>
         <p data-i18n="ai_desc">AI-powered search page.</p>
@@ -160,27 +255,46 @@
         </div>
       </div>
 
-      <div class="card feature">
+      <div class="card feature mw-card" data-tags="ai dev" data-title="Gemini API Dojo">
         <div class="tag" data-i18n="tag_dev">Dev</div>
         <h4 data-i18n="gemini_dojo_title">Gemini API Dojo</h4>
-        <p data-i18n="gemini_dojo_desc">Get your API key, explore models, then follow the beginner guide — in that order.</p>
+        <p data-i18n="gemini_dojo_desc">API key → model finder → beginner guide.</p>
         <div class="actions" style="flex-direction:column; gap:6px; align-items:stretch">
           <a class="btn" data-link="gemini_api_intro" data-i18n="gemini_step1">① API Key Guide</a>
           <a class="btn primary" data-link="gemini_api_model_finder" data-i18n="gemini_step2">② Model Finder Tool</a>
           <a class="btn" data-link="gemini_api_beginner_guide" data-i18n="gemini_step3">③ Beginner Guide</a>
         </div>
       </div>
-      
-      <div class="card feature">
+
+      <div class="card feature mw-card" data-tags="dev" data-title="Icon Generator">
         <div class="tag" data-i18n="tag_dev">Dev</div>
         <h4 data-i18n="icon_maker_title">Icon Generator</h4>
-        <p data-i18n="icon_maker_desc">Create Android-ready app icons (512px) and quick prototypes.</p>
+        <p data-i18n="icon_maker_desc">Create Android-ready icons quickly.</p>
         <div class="actions">
           <a class="btn primary" data-link="icon_maker" data-i18n="open">Open</a>
         </div>
       </div>
 
-      <div class="card feature">
+      <!-- Mech-Wolf hub -->
+      <div class="card feature mw-card" data-tags="research ai dev" data-title="Project Mech-Wolf">
+        <div class="tag" data-i18n="tag_mechwolf">Mech-Wolf</div>
+        <h4 data-i18n="mw_title">Project Mech-Wolf</h4>
+        <p data-i18n="mw_desc">Externalized experiential engine: Observation × Goal × ΔValue × Irreversibility.</p>
+        <div class="actions" style="flex-direction:column; gap:6px; align-items:stretch">
+          <a class="btn" data-link="mw_strategy" data-i18n="mw_btn_strategy">① Strategy</a>
+          <a class="btn primary" data-link="mw_extension" data-i18n="mw_btn_extension">② Engine Extension</a>
+          <a class="btn" data-link="mw_notes" data-i18n="mw_btn_notes">③ Implementation Notes</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== Games ===== -->
+    <div id="games" class="subsectionTitle">
+      <h4 data-i18n="sec_games">Games</h4>
+      <span class="countBadge" data-i18n="sec_games_hint">Play / real-time / prototypes</span>
+    </div>
+    <div class="grid tight" id="gridGames">
+      <div class="card feature mw-card" data-tags="game rt" data-title="Shogi">
         <div class="tag" data-i18n="tag_rt">Real-time</div>
         <h4 data-i18n="shogi_title">Shogi</h4>
         <p data-i18n="shogi_desc">Online Shogi interface.</p>
@@ -189,44 +303,45 @@
         </div>
       </div>
 
-<div class="card feature">
-  <div class="tag">Ideas</div>
-  <h4>Future Works</h4>
-  <p>Concepts, experiments, and future directions.</p>
-  <div class="actions">
-    <a class="btn primary" href="./idea/01.html">Open</a>
-  </div>
-</div>
+      <div class="card feature mw-card" data-tags="game" data-title="Samurai Series">
+        <div class="tag" data-i18n="tag_game">Game</div>
+        <h4 data-i18n="samurai_series_title">Samurai Series</h4>
+        <p data-i18n="samurai_series_desc">Experimental game series inspired by samurai themes.</p>
+        <div class="actions" style="flex-direction:column; gap:6px;">
+          <a class="btn" href="./g/000/000_samurai.html" data-i18n="samurai_000">#000 Samurai</a>
+          <a class="btn" href="./g/000/001_samurai_kengo.html" data-i18n="samurai_001">#001 Samurai – Kengo</a>
+          <a class="btn" href="./g/000/002_samurai_ketto.html" data-i18n="samurai_002">#002 Samurai – Ketto</a>
+          <a class="btn" href="./g/000/003_samurai_garyo.html" data-i18n="samurai_003">#003 Samurai – Garyo</a>
+          <a class="btn" href="./g/000/004_samurai_kessen.html" data-i18n="samurai_004">#004 Samurai – Kessen</a>
+          <a class="btn primary" href="./g/001/game.html" data-i18n="samurai_hub">Game Hub</a>
+        </div>
+      </div>
 
-<div class="card feature">
-  <div class="tag" data-i18n="tag_game">Game</div>
-  <h4 data-i18n="samurai_series_title">Samurai Series</h4>
-  <p data-i18n="samurai_series_desc">
-    Experimental game series inspired by samurai themes.
-  </p>
-  <div class="actions" style="flex-direction:column; gap:6px;">
-    <a class="btn" href="./g/000/000_samurai.html" data-i18n="samurai_000">#000 Samurai</a>
-    <a class="btn" href="./g/000/001_samurai_kengo.html" data-i18n="samurai_001">#001 Samurai – Kengo</a>
-    <a class="btn" href="./g/000/002_samurai_ketto.html" data-i18n="samurai_002">#002 Samurai – Ketto</a>
-    <a class="btn" href="./g/000/003_samurai_garyo.html" data-i18n="samurai_003">#003 Samurai – Garyo</a>
-    <a class="btn" href="./g/000/004_samurai_kessen.html" data-i18n="samurai_004">#004 Samurai – Kessen</a>
-    <a class="btn primary" href="./g/001/game.html" data-i18n="samurai_hub">Game Hub</a>
-  </div>
-</div>
+      <div class="card feature mw-card" data-tags="game" data-title="Bunosuke">
+        <div class="tag" data-i18n="tag_game">Game</div>
+        <h4 data-i18n="bunosuke_title">Bunosuke</h4>
+        <p data-i18n="bunosuke_desc">A flying pig wandering historic roads.<br>Mascot game of SAMURAI ROAD.</p>
+        <div class="actions">
+          <a class="btn primary" href="./g/001/game.html" data-i18n="bunosuke_play">🐷 Fly! Bunosuke</a>
+        </div>
+      </div>
+    </div>
 
-<div class="card feature">
-  <div class="tag" data-i18n="tag_game">Game</div>
-  <h4 data-i18n="bunosuke_title">Bunosuke</h4>
-  <p data-i18n="bunosuke_desc">
-    A flying pig wandering historic roads.<br>
-    Mascot game of SAMURAI ROAD.
-  </p>
-  <div class="actions">
-    <a class="btn primary" href="./g/001/game.html" data-i18n="bunosuke_play">
-      🐷 Fly! Bunosuke
-    </a>
-  </div>
-</div>
+    <!-- ===== Research / Future ===== -->
+    <div id="research" class="subsectionTitle">
+      <h4 data-i18n="sec_research">Research / Future</h4>
+      <span class="countBadge" data-i18n="sec_research_hint">Ideas / experiments</span>
+    </div>
+    <div class="grid tight" id="gridResearch">
+      <div class="card feature mw-card" data-tags="research" data-title="Future Works">
+        <div class="tag">Ideas</div>
+        <h4>Future Works</h4>
+        <p>Concepts, experiments, and future directions.</p>
+        <div class="actions">
+          <a class="btn primary" href="./idea/01.html" data-i18n="open">Open</a>
+        </div>
+      </div>
+    </div>
 
   </section>
 
@@ -240,14 +355,15 @@
     </div>
   </section>
 </main>
+
 <div data-include="./includes/footer.html" aria-label="Footer"></div>
 <script src="./assets/js/sr-common.js" defer></script>
+
 <script>
-/* ====== 1) links: one place to manage (dedupe) ====== */
+/* ====== links ====== */
 const LINKS = {
-  // 最新：Cloudflareの/worldmap（グローバル視野）
   worldmap: "https://samurairoad-project.pages.dev/worldmap",
-  world_routes: "./world-routes.html", 
+  world_routes: "./world-routes.html",
   hub: "./search_hub.html",
   engine: "./search_engine.html",
   ai: "./serchAI.html",
@@ -257,9 +373,13 @@ const LINKS = {
   gemini_api_model_finder: "./gemini_api_model_finder.html",
   gemini_api_intro: "./gemini_api_intro.html",
   gemini_api_beginner_guide: "./gemini_api_model_finder_guid.html",
-  // Added Links
   icon_maker: "./icon_maker.html",
   yadoken: "./yadoken.html",
+
+  /* Mech-Wolf pages */
+  mw_strategy: "./mekauluf_strategy.html",
+  mw_notes: "./mekauluf_implementation_notes.html",
+  mw_extension: "./mekauluf_implementation_exp.html",
 };
 
 /* apply links */
@@ -275,11 +395,53 @@ document.querySelectorAll("[data-link]").forEach(a => {
   }
 });
 
-/* ====== 2) i18n: JP/EN toggle in same file ====== */
+/* ====== filter/search ====== */
+(function(){
+  const searchEl = document.getElementById("cardSearch");
+  const chips = Array.from(document.querySelectorAll(".chip[data-filter]"));
+  const badge = document.getElementById("countBadge");
+  const cards = Array.from(document.querySelectorAll(".mw-card"));
+
+  let active = "all";
+
+  function norm(s){ return (s || "").toLowerCase().trim(); }
+
+  function update(){
+    const q = norm(searchEl.value);
+    let visible = 0;
+
+    cards.forEach(card => {
+      const tags = norm(card.getAttribute("data-tags"));
+      const title = norm(card.getAttribute("data-title")) + " " + norm(card.innerText);
+      const hitTag = (active === "all") ? true : tags.split(/\s+/).includes(active);
+      const hitText = (!q) ? true : title.includes(q);
+      const show = hitTag && hitText;
+      card.style.display = show ? "" : "none";
+      if (show) visible++;
+    });
+
+    badge.textContent = `${visible} / ${cards.length}`;
+  }
+
+  chips.forEach(chip => {
+    chip.addEventListener("click", () => {
+      chips.forEach(c => c.classList.remove("active"));
+      chip.classList.add("active");
+      active = chip.getAttribute("data-filter");
+      update();
+    });
+  });
+
+  searchEl.addEventListener("input", update);
+  update();
+})();
+
+/* ====== i18n (JP/EN) ====== */
 window.SR_I18N = {
   en: {
     brand_title: "SamuraiRoad",
     brand_tagline: "Travel Edo at your fingertips. Connecting the world’s historic roads from past to future with AI.",
+    nav_start: "Start",
     nav_tools: "Tools",
     nav_about: "About",
     kicker: "SAMURAIROAD PROJECT",
@@ -287,6 +449,11 @@ window.SR_I18N = {
     hero_subtitle: "A mobile-first platform for historic road walking. Maps, POIs, and personal exploration — all connected.",
     cta_hub: "Open Hub",
     cta_intro: "Project Overview",
+    cta_routes: "World Routes",
+    toc_travel: "Travel",
+    toc_ai: "AI & Dev",
+    toc_games: "Games",
+    toc_research: "Research",
     pill1_t: "Mobile-first",
     pill1_d: "Designed for outdoor walking",
     pill2_t: "Layered Maps",
@@ -304,9 +471,19 @@ window.SR_I18N = {
     qa_hub_d: "Main navigation hub",
     qa_engine_t: "Search Engine",
     qa_engine_d: "Direct search interface",
+    qa_gemini_t: "Gemini API",
+    qa_gemini_d: "Model Finder",
     qa_shogi_t: "Shogi",
     qa_shogi_d: "Real-time Shogi UI",
     tools_title: "Tools & Pages",
+    tools_hint: "Tip: Use search + tags. This page is designed to keep working even when the project grows.",
+    search_placeholder: "Search pages (e.g., map, gemini, shogi, mech-wolf)…",
+    chip_all: "All",
+    chip_travel: "Travel",
+    chip_ai: "AI",
+    chip_dev: "Dev",
+    chip_game: "Game",
+    chip_research: "Research",
     tag_doc: "Documentation",
     intro_title: "Project Overview",
     intro_desc: "Project purpose and structure.",
@@ -316,53 +493,59 @@ window.SR_I18N = {
     tag_search: "Search",
     engine_title: "Search Engine",
     engine_desc: "Search interface.",
+    routes_title: "World Routes",
+    routes_desc: "List of historic roads and routes.",
+    tag_util: "Utility",
+    yadoken_title: "Accommodation Search",
+    yadoken_desc: "Cross-search major travel sites instantly.",
+    tag_ai: "AI",
     ai_title: "Search AI",
     ai_desc: "AI-powered search page.",
     tag_dev: "Dev",
-    qa_gemini_t: "Gemini API",
-    qa_gemini_d: "Model Finder",
     gemini_dojo_title: "Gemini API Dojo",
-    gemini_dojo_desc: "Get your API key, explore models, then follow the beginner guide — in that order.",
+    gemini_dojo_desc: "API key → model finder → beginner guide.",
     gemini_step1: "① API Key Guide",
     gemini_step2: "② Model Finder Tool",
     gemini_step3: "③ Beginner Guide",
+    icon_maker_title: "Icon Generator",
+    icon_maker_desc: "Create Android-ready icons quickly.",
+    tag_mechwolf: "Mech-Wolf",
+    mw_title: "Project Mech-Wolf",
+    mw_desc: "Externalized experiential engine: Observation × Goal × ΔValue × Irreversibility.",
+    mw_btn_strategy: "① Strategy",
+    mw_btn_extension: "② Engine Extension",
+    mw_btn_notes: "③ Implementation Notes",
     tag_rt: "Real-time",
     shogi_title: "Shogi",
     shogi_desc: "Online Shogi interface.",
     tag_game: "Game",
-
-    // Added Translations
-    tag_util: "Utility",
-    icon_maker_title: "Samurai Icon Generator",
-    icon_maker_desc: "Create Android-ready app icons (512px) and quick prototypes.",
-    yadoken_title: "Accommodation Search",
-    yadoken_desc: "Cross-search major travel sites (Jalan, Rakuten, Booking, etc) instantly.",
-
     samurai_series_title: "Samurai Series",
     samurai_series_desc: "Experimental game series inspired by samurai themes.",
-
     samurai_000: "#000 Samurai",
     samurai_001: "#001 Samurai – Kengo",
     samurai_002: "#002 Samurai – Ketto",
     samurai_003: "#003 Samurai – Garyo",
     samurai_004: "#004 Samurai – Kessen",
     samurai_hub: "Game Hub",
-
     bunosuke_title: "Bunosuke",
     bunosuke_desc: "A flying pig wandering historic roads.<br>Mascot game of SAMURAI ROAD.",
     bunosuke_play: "🐷 Fly! Bunosuke",
+    sec_travel: "Travel",
+    sec_travel_hint: "Maps / routes / booking",
+    sec_ai_dev: "AI & Dev",
+    sec_ai_dev_hint: "API / tools / experiments",
+    sec_games: "Games",
+    sec_games_hint: "Play / real-time / prototypes",
+    sec_research: "Research / Future",
+    sec_research_hint: "Ideas / experiments",
     about_title: "About",
     about_body: "SamuraiRoad is designed as a personal exploration OS. Pages connect organically, and the platform evolves as content grows.",
-    foot_home: "Home",
-    foot_overview: "Project Overview",
-    foot_hub: "Search Hub",
-    foot_map: "World Map",
-    cta_routes: "World Routes",
   },
 
   ja: {
     brand_title: "SamuraiRoad",
     brand_tagline: "指先で旅する、江戸の道。過去から未来をAIでつなぐ、世界の街道。",
+    nav_start: "スタート",
     nav_tools: "ツール",
     nav_about: "概要",
     kicker: "SAMURAIROAD PROJECT",
@@ -370,6 +553,11 @@ window.SR_I18N = {
     hero_subtitle: "街道歩きをスマホ中心に。地図・ポイント・探索を、ひとつにつなぐ。",
     cta_hub: "ハブを開く",
     cta_intro: "プロジェクト概要",
+    cta_routes: "世界の街道一覧",
+    toc_travel: "旅",
+    toc_ai: "AI/開発",
+    toc_games: "ゲーム",
+    toc_research: "研究",
     pill1_t: "スマホ中心",
     pill1_d: "外歩きに最適化",
     pill2_t: "レイヤー地図",
@@ -387,10 +575,19 @@ window.SR_I18N = {
     qa_hub_d: "主要ナビゲーション",
     qa_engine_t: "検索エンジン",
     qa_engine_d: "直接検索画面",
+    qa_gemini_t: "Gemini API",
+    qa_gemini_d: "モデル探索",
     qa_shogi_t: "将棋",
     qa_shogi_d: "リアルタイム将棋UI",
-    tag_dev: "開発",
     tools_title: "ツール & ページ",
+    tools_hint: "ヒント：検索＋タグで探せます。ページ数が増えても破綻しない構成にしています。",
+    search_placeholder: "ページ検索（例：map / gemini / shogi / mech-wolf）…",
+    chip_all: "すべて",
+    chip_travel: "旅",
+    chip_ai: "AI",
+    chip_dev: "開発",
+    chip_game: "ゲーム",
+    chip_research: "研究",
     tag_doc: "ドキュメント",
     intro_title: "プロジェクト概要",
     intro_desc: "目的と構造をまとめています。",
@@ -400,50 +597,88 @@ window.SR_I18N = {
     tag_search: "検索",
     engine_title: "検索エンジン",
     engine_desc: "検索インターフェース。",
+    routes_title: "世界の街道一覧",
+    routes_desc: "世界の街道・ルート一覧。",
+    tag_util: "便利ツール",
+    yadoken_title: "宿泊検索リンク",
+    yadoken_desc: "主要宿泊サイトの検索結果へ一括で飛びます。",
+    tag_ai: "AI",
     ai_title: "検索AI",
     ai_desc: "AI検索ページ。",
     tag_dev: "開発",
-    qa_gemini_t: "Gemini API",
-    qa_gemini_d: "モデル探索",
     gemini_dojo_title: "Gemini API",
-    gemini_dojo_desc: "APIキー取得 → モデル探索 → 初心者ガイド の順で進めます。",
+    gemini_dojo_desc: "APIキー取得 → モデル探索 → 初心者ガイド。",
     gemini_step1: "① APIキー取得ガイド",
     gemini_step2: "② モデル探索ツール",
     gemini_step3: "③ 初心者ガイド",
+    icon_maker_title: "アイコン生成ツール",
+    icon_maker_desc: "Android提出用（512px）等のアイコンを素早く作れます。",
+    tag_mechwolf: "Mech-Wolf",
+    mw_title: "Project Mech-Wolf",
+    mw_desc: "外部構造型の擬似体験エンジン：観測×目的×価値更新×不可逆。",
+    mw_btn_strategy: "① 戦略（計画）",
+    mw_btn_extension: "② 拡張ノート",
+    mw_btn_notes: "③ 実装ノート",
     tag_rt: "リアルタイム",
     shogi_title: "将棋",
     shogi_desc: "オンライン将棋UI。",
     tag_game: "ゲーム",
-
-    // Added Translations
-    tag_util: "便利ツール",
-    icon_maker_title: "アイコン生成ツール",
-    icon_maker_desc: "Android提出用（512px）アイコンや試作アイコンを素早く作れます。",
-    yadoken_title: "宿泊検索リンク",
-    yadoken_desc: "場所・日程を指定して、主要宿泊サイトの検索結果へ一括で飛びます。",
-
     samurai_series_title: "侍シリーズ",
     samurai_series_desc: "侍をテーマにした実験的ゲームシリーズ。",
-
     samurai_000: "#000 侍",
     samurai_001: "#001 侍 剣豪",
     samurai_002: "#002 侍 血闘",
     samurai_003: "#003 侍 画龍",
     samurai_004: "#004 侍 決戦",
     samurai_hub: "ゲームハブ",
-
     bunosuke_title: "ブ～の介",
     bunosuke_desc: "空を飛ぶブタ、ブ～の介。<br>SAMURAI ROADのマスコットゲーム。",
     bunosuke_play: "🐷 飛べ！ブー之助",
+    sec_travel: "旅",
+    sec_travel_hint: "地図 / ルート / 宿",
+    sec_ai_dev: "AI/開発",
+    sec_ai_dev_hint: "API / ツール / 実験",
+    sec_games: "ゲーム",
+    sec_games_hint: "遊ぶ / リアルタイム / 試作",
+    sec_research: "研究/未来",
+    sec_research_hint: "アイデア / 実験",
     about_title: "概要",
     about_body: "SamuraiRoadは「個人探索OS」として設計しています。ページは有機的につながり、コンテンツが増えるほど進化します。",
-    foot_home: "ホーム",
-    foot_overview: "プロジェクト概要",
-    foot_hub: "検索ハブ",
-    foot_map: "世界マップ",
-    cta_routes: "世界の街道一覧",
   }
 };
+
+/* language toggle */
+(function(){
+  const KEY = "sr_lang";
+  const btn = document.getElementById("langBtn");
+  const label = document.getElementById("langLabel");
+
+  function apply(lang){
+    const t = (window.SR_I18N && window.SR_I18N[lang]) || window.SR_I18N.en;
+    document.documentElement.lang = lang;
+
+    document.querySelectorAll("[data-i18n]").forEach(el=>{
+      const k = el.getAttribute("data-i18n");
+      if (t[k] != null) el.innerHTML = t[k];
+    });
+
+    document.querySelectorAll("[data-i18n-placeholder]").forEach(el=>{
+      const k = el.getAttribute("data-i18n-placeholder");
+      if (t[k] != null) el.setAttribute("placeholder", t[k]);
+    });
+
+    if (label) label.textContent = (lang === "en" ? "JP" : "EN");
+    localStorage.setItem(KEY, lang);
+  }
+
+  const init = localStorage.getItem(KEY) || "en";
+  apply(init);
+
+  btn?.addEventListener("click", ()=>{
+    const cur = localStorage.getItem(KEY) || "en";
+    apply(cur === "en" ? "ja" : "en");
+  });
+})();
 </script>
 </body>
 </html>

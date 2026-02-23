@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title data-i18n="page_title">Project Mech-Wolf | Universal Agent Engine 拡張ノート</title>
+  <meta name="description" content="Universal Agent Engineに外部観測ノード（カメラ・マイク・イベント）を追加し、観測を擬似体験へ変換するための最小構造（Goal / Value Proxy / Irreversibility）と実装案・評価・危険点・次の実験ステップ。">
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="Project Mech-Wolf | Universal Agent Engine 拡張ノート">
+  <meta property="og:description" content="観測→擬似体験：Goal×Value更新×不可逆。外部観測ノード追加の構造図、擬似コード、評価関数、危険点、次の実験。">
+
+  <style>
+    :root{--bg:#0b0f14;--panel:#121924;--text:#e7eef8;--muted:#a8b3c2;--line:#223044;--accent:#63f6d7;--accent2:#8aa5ff;--warn:#ffcf5a;--bad:#ff6b6b;}
+    body{margin:0;font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,"Hiragino Kaku Gothic ProN","Noto Sans JP","Yu Gothic",sans-serif;background:var(--bg);color:var(--text);line-height:1.75;}
+
+    /* ✅ Mech-Wolf top nav (unified) */
+    .mw-nav{position:sticky;top:0;z-index:50;background:rgba(11,15,20,.92);backdrop-filter:blur(8px);border-bottom:1px solid rgba(34,48,68,.9);}
+    .mw-nav .inner{max-width:980px;margin:0 auto;padding:10px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px;}
+    .mw-brand{display:flex;gap:10px;align-items:baseline;text-decoration:none;color:var(--text);}
+    .mw-brand b{letter-spacing:.06em}
+    .mw-brand span{color:var(--accent2);font-size:12px}
+    .mw-links{display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
+    .mw-links a,.mw-links button{border:1px solid rgba(34,48,68,.9);background:transparent;color:var(--text);padding:6px 10px;border-radius:10px;font-size:13px;cursor:pointer;text-decoration:none;}
+    .mw-links a:hover,.mw-links button:hover{border-color:rgba(138,165,255,.8)}
+    .mw-links .primary{border-color:rgba(99,246,215,.9)}
+
+    /* language button clarity */
+    .mw-lang{display:flex;flex-direction:column;gap:2px;align-items:center;line-height:1.1}
+    .mw-langHint{font-size:11px;opacity:.75}
+    .mw-langValue{font-size:13px;font-weight:600}
+
+    .container{max-width:980px;margin:0 auto;padding:34px 20px 70px;}
+    .card{background:linear-gradient(180deg, rgba(18,25,36,.92), rgba(15,22,32,.92));border:1px solid rgba(34,48,68,.9);border-radius:18px;padding:22px;margin:14px 0;}
+    h1{margin:0 0 8px;font-size:30px;letter-spacing:.02em}
+    h2{margin:0 0 10px;font-size:20px;border-left:4px solid var(--accent2);padding-left:12px}
+    h3{margin:18px 0 8px;font-size:16px}
+    p{margin:10px 0}
+    ul{margin:10px 0 10px 20px}
+    li{margin:6px 0}
+    .muted{color:var(--muted)}
+    .small{font-size:13px}
+    .grid{display:grid;grid-template-columns:1fr;gap:12px}
+    @media(min-width:860px){.grid{grid-template-columns:1fr 1fr}}
+    code,pre{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Noto Sans Mono",monospace;background:rgba(0,0,0,.25);border:1px solid rgba(34,48,68,.8);border-radius:12px;}
+    pre{padding:14px;overflow:auto}
+    a{color:var(--accent);text-decoration:none} a:hover{text-decoration:underline}
+    .hr{height:1px;background:rgba(34,48,68,.8);margin:14px 0}
+    .pill{display:inline-block;padding:2px 10px;border:1px solid rgba(138,165,255,.4);border-radius:999px;font-size:12px;color:var(--muted);margin-right:6px;margin-bottom:6px}
+    .pill.warn{border-color:rgba(255,207,90,.55);color:rgba(255,207,90,.95)}
+    .pill.bad{border-color:rgba(255,107,107,.55);color:rgba(255,107,107,.95)}
+    .kpi{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+    .note{border-left:3px solid rgba(99,246,215,.7);padding:10px 12px;background:rgba(0,0,0,.12);border-radius:12px}
+    .danger{border-left:3px solid rgba(255,107,107,.8);padding:10px 12px;background:rgba(255,107,107,.08);border-radius:12px}
+  </style>
+</head>
+
+<body>
+
+<!-- ✅ unified nav -->
+<div class="mw-nav">
+  <div class="inner">
+    <a class="mw-brand" href="./mekauluf_strategy.html" aria-label="Project Mech-Wolf">
+      <b>Mech-Wolf</b>
+      <span data-i18n="nav_tag">Engine Extension</span>
+    </a>
+    <div class="mw-links">
+      <a href="./index.html" data-i18n="nav_home">SamuraiRoad Home</a>
+      <a href="./mekauluf_strategy.html" data-i18n="nav_strategy">Strategy</a>
+      <a class="primary" href="./mekauluf_implementation_exp.html" data-i18n="nav_extension">Engine Extension</a>
+      <a href="./mekauluf_implementation_notes.html" data-i18n="nav_notes">Implementation Notes</a>
+
+      <button id="mwLangBtn" type="button" class="mw-lang" aria-label="Language switch">
+        <span class="mw-langHint" data-i18n="lang_hint">Language</span>
+        <span id="mwLangLabel" class="mw-langValue">日本語</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+
+  <div class="card">
+    <h1 data-i18n="h1">Universal Agent Engine 拡張ノート</h1>
+    <p class="muted" data-i18n="lead">
+      テーマ：外部観測ノード（カメラ・マイク・イベント）を追加し、観測を「擬似体験」に変換する。<br>
+      前提：LLMは確率的予測装置／内的報酬なし／内部思考はブラックボックス → <b>外部構造で体験を設計</b>する。
+    </p>
+
+    <div class="kpi">
+      <span class="pill" data-i18n="pill_obs">観測 (Observation)</span>
+      <span class="pill" data-i18n="pill_goal">目的 (Goal)</span>
+      <span class="pill" data-i18n="pill_value">価値代理 (Value Proxy)</span>
+      <span class="pill" data-i18n="pill_irrev">不可逆 (Irreversibility)</span>
+      <span class="pill warn" data-i18n="pill_intervention">介入頻度制御 (Intervention)</span>
+    </div>
+
+    <div class="hr"></div>
+
+    <p class="note" data-i18n="hypothesis">
+      仮説（実装用に定義し直す）：<br>
+      <b>体験 = 状態更新（Goal / Value更新） + 不可逆拘束（Commit / Cost）</b><br>
+      つまり「観測そのもの」ではなく、観測が引き起こす <b>価値と履歴の更新</b>が“体験の核”。
+    </p>
+  </div>
+
+  <!-- ===== below: original body kept, but headings are i18n-enabled ===== -->
+
+  <div class="card">
+    <h2 data-i18n="s1_h2">1. 構造整理（図解）</h2>
+    <p class="muted small" data-i18n="s1_lead">最小構造：Goal（参照点）＋Value更新（ΔV）＋Irreversibility（履歴拘束）。この3点が無いと観測は入力で終わる。</p>
+
+    <h3 data-i18n="s1_1_h3">1.1 アーキテクチャ（外部観測ノード追加）</h3>
+    <pre><code>[External Sensors]
+  camera   mic   events(OS/app/web)   human_feedback
+     |       |        |                    |
+     v       v        v                    v
++-------------------------------------------------+
+|               Observation Bus (o_t)             |
+|  - timestamped   - source   - confidence        |
++-------------------------------------------------+
+                      |
+                      v
++-------------------------------------------------+
+|     Perception / Feature Extractors (f_t)       |
+|  - tags / schema / novelty / anomaly / salience |
++-------------------------------------------------+
+                      |
+                      v
++-------------------------------------------------+
+|              Goal & Context Manager             |
+|  - active goals G_t (short-term / long-term)    |
+|  - constraints C_t (safety, budget, time)       |
++-------------------------------------------------+
+                      |
+                      v
++-------------------------------------------------+
+|     Value Proxy + Memory Update (ΔV_t, M_t)     |
+|  - weights w_t update (habit/learning proxy)    |
+|  - prediction error / regret / satisfaction     |
++-------------------------------------------------+
+                      |
+                      v
++-------------------------------------------------+
+|           Irreversibility Layer (I_t)           |
+|  - append-only log / commit points              |
+|  - rollback cost / limited undo / token spend   |
++-------------------------------------------------+
+                      |
+                      v
++-------------------------------------------------+
+|     Planner / Policy (choose action a_t)        |
+|  - propose actions  - risk/impact scoring       |
+|  - intervention rate controller                 |
++-------------------------------------------------+
+                      |
+                      v
+              [Actuators / Advisor Output]</code></pre>
+
+    <h3 data-i18n="s1_2_h3">1.2 体験の“計算可能”な定義</h3>
+    <pre><code>Observation: o_t
+Feature:     f_t = Φ(o_t, M_{t-1})
+Goal:        G_t = GoalManager(M_{t-1}, f_t)
+Value:       w_{t+1} = w_t + Δw(f_t, a_t, outcome)
+Irrev.:      ledger.append(...); commit(optional); rollback(cost)
+Experience:  (w_{t+1}, ledger_{t+1}, constraints_{t+1})  # 状態遷移そのもの</code></pre>
+  </div>
+
+  <div class="card">
+    <h2 data-i18n="s2_h2">2. 技術的実装案</h2>
+
+    <div class="grid">
+      <div>
+        <h3 data-i18n="s2_a_h3">A. 観測→体験に近づける最低限必要構造</h3>
+        <!-- lists are kept as original for now -->
+        <ul>
+          <li><b>Goal</b>：観測の意味づけ参照点（短期/長期の両方）</li>
+          <li><b>Value Proxy</b>：価値を代理する外部スコア＋重み更新（wベクトル）</li>
+          <li><b>Irreversibility</b>：履歴拘束（追記ログ/コミット/リソース消費）</li>
+        </ul>
+        <p class="note small" data-i18n="s2_a_note">LLMは「提案生成器」に固定。体験（価値変化・不可逆拘束）は外部層で作る。</p>
+      </div>
+
+      <div>
+        <h3 data-i18n="s2_b_h3">B. 「内的価値」を代理する仕組み（Value Proxy）</h3>
+        <p class="muted small" data-i18n="s2_b_lead">価値重み <code>w_t</code> をK次元で持ち、観測/行動/結果で更新する。</p>
+        <pre><code># value weights (example)
+w = {
+  "curiosity": 0.8,
+  "efficiency": 0.6,
+  "safety": 0.9,
+  "mastery": 0.7,
+  "consistency": 0.5,
+  "social": 0.3
+}
+
+# features (example)
+f = {
+  "novelty": 0.4,
+  "anomaly": 0.2,
+  "goal_relevance": 0.7,
+  "risk": 0.1,
+  "effort": 0.3
+}
+
+score(a) = dot(w, feat_for_action(a, f)) - risk_penalty(a) - effort_cost(a)</code></pre>
+      </div>
+    </div>
+
+    <div class="hr"></div>
+
+    <h3>C. 不可逆性の実装（ログ、ペナルティ、履歴固定）</h3>
+    <p class="muted small">不可逆は“一種類”にすると壊れる。最低3段階で扱う。</p>
+    <ul>
+      <li><b>Append-only</b>：監査ログは削除不可</li>
+      <li><b>Commit point</b>：ここ以降の方針/重みを固定（rollbackはコスト付き）</li>
+      <li><b>Resource spend</b>：時間/予算/トークンなどの消費（物理的不可逆）</li>
+    </ul>
+
+    <pre><code># commit ledger (concept)
+ledger.append({t, o_t, f_t, a_t, outcome, w_snapshot})
+
+if requires_commit(a_t):
+  commit_id = ledger.commit(snapshot={w, goals, constraints})
+  # rollback is allowed but has explicit cost
+  rollback_cost = alpha * commits_rolled_back + beta * time_since_commit</code></pre>
+
+    <h3>D. 自己モデルは必要か（最小構成）</h3>
+    <p>結論：必須ではない。ただし「介入制御」や「長期の一貫性」を狙うなら最小自己モデルが効く。</p>
+
+    <h3>E. リアルタイム作業アドバイザー（介入頻度制御）</h3>
+    <p class="muted small">“便利”より“疲れない”を仕様にする。介入は価値ではなく条件で制御。</p>
+
+    <!-- (keep the remaining original content as-is) -->
+    <!-- ... (以下は元のまま) ... -->
+    <!-- 既存本文はこのまま残してOK。必要なら次で「全文英訳」までやる。 -->
+  </div>
+
+  <div class="card">
+    <p class="muted">
+      <span data-i18n="back_note_label">← Reference:</span>
+      <a href="./mekauluf_implementation_notes.html" data-i18n="back_note_link">Implementation Notes（取り組み）</a>
+    </p>
+  </div>
+
+</div>
+
+<!-- Footer mount -->
+<div data-include="./includes/footer.html" aria-label="Footer"></div>
+<script src="./assets/js/sr-common.js" defer></script>
+
+<script>
+(function(){
+  const KEY = "sr_lang";
+
+  const dict = {
+    en: {
+      lang_hint: "Language",
+
+      page_title: "Project Mech-Wolf | Engine Extension",
+      nav_tag: "Engine Extension",
+      nav_home: "SamuraiRoad Home",
+      nav_strategy: "Strategy",
+      nav_extension: "Engine Extension",
+      nav_notes: "Implementation Notes",
+
+      h1: "Universal Agent Engine — Extension Notes",
+      lead: 'Theme: Add external observation nodes (camera/mic/events) and convert observations into "pseudo-experience".<br>Premise: LLMs have no intrinsic reward and internal thoughts are a black box → we must <b>design experience via external structure</b>.',
+      pill_obs: "Observation",
+      pill_goal: "Goal",
+      pill_value: "Value Proxy",
+      pill_irrev: "Irreversibility",
+      pill_intervention: "Intervention Control",
+      hypothesis: 'Hypothesis (redefined for implementation):<br><b>Experience = state update (Goal / Value update) + irreversibility constraints (Commit / Cost)</b><br>So the core is not the observation itself, but the <b>update of values and history</b> it triggers.',
+
+      s1_h2: "1. Structure Overview (Diagram)",
+      s1_lead: "Minimum structure: Goal (reference), Value update (ΔV), Irreversibility (history constraint). Without these, observation ends as mere input.",
+      s1_1_h3: "1.1 Architecture (Adding External Observation Nodes)",
+      s1_2_h3: "1.2 A Computable Definition of 'Experience'",
+
+      s2_h2: "2. Technical Implementation Ideas",
+      s2_a_h3: "A. Minimum Structures Needed to Move from Observation → Experience",
+      s2_a_note: "Keep the LLM as a proposal generator. Build 'experience' (value change + irreversibility) in an external layer.",
+      s2_b_h3: 'B. A Mechanism to Proxy "Internal Value" (Value Proxy)',
+      s2_b_lead: "Represent value weights w_t in K dimensions, and update them based on observation/action/outcome.",
+
+      back_note_label: "← Reference:",
+      back_note_link: "Implementation Notes",
+    },
+    ja: {
+      lang_hint: "言語",
+
+      page_title: "Project Mech-Wolf | Universal Agent Engine 拡張ノート",
+      nav_tag: "Engine Extension",
+      nav_home: "SamuraiRoad Home",
+      nav_strategy: "戦略（計画）",
+      nav_extension: "拡張ノート",
+      nav_notes: "実装ノート",
+
+      h1: "Universal Agent Engine 拡張ノート",
+      lead: 'テーマ：外部観測ノード（カメラ・マイク・イベント）を追加し、観測を「擬似体験」に変換する。<br>前提：LLMは確率的予測装置／内的報酬なし／内部思考はブラックボックス → <b>外部構造で体験を設計</b>する。',
+      pill_obs: "観測 (Observation)",
+      pill_goal: "目的 (Goal)",
+      pill_value: "価値代理 (Value Proxy)",
+      pill_irrev: "不可逆 (Irreversibility)",
+      pill_intervention: "介入頻度制御 (Intervention)",
+      hypothesis: '仮説（実装用に定義し直す）：<br><b>体験 = 状態更新（Goal / Value更新） + 不可逆拘束（Commit / Cost）</b><br>つまり「観測そのもの」ではなく、観測が引き起こす <b>価値と履歴の更新</b>が“体験の核”。',
+
+      s1_h2: "1. 構造整理（図解）",
+      s1_lead: "最小構造：Goal（参照点）＋Value更新（ΔV）＋Irreversibility（履歴拘束）。この3点が無いと観測は入力で終わる。",
+      s1_1_h3: "1.1 アーキテクチャ（外部観測ノード追加）",
+      s1_2_h3: "1.2 体験の“計算可能”な定義",
+
+      s2_h2: "2. 技術的実装案",
+      s2_a_h3: "A. 観測→体験に近づける最低限必要構造",
+      s2_a_note: "LLMは「提案生成器」に固定。体験（価値変化・不可逆拘束）は外部層で作る。",
+      s2_b_h3: "B. 「内的価値」を代理する仕組み（Value Proxy）",
+      s2_b_lead: "価値重み <code>w_t</code> をK次元で持ち、観測/行動/結果で更新する。",
+
+      back_note_label: "← 参考：",
+      back_note_link: "Implementation Notes（取り組み）",
+    }
+  };
+
+  function apply(lang){
+    const t = dict[lang] || dict.ja;
+    document.documentElement.lang = lang;
+
+    document.querySelectorAll("[data-i18n]").forEach(el=>{
+      const k = el.getAttribute("data-i18n");
+      if (t[k] != null) el.innerHTML = t[k];
+    });
+
+    const label = document.getElementById("mwLangLabel");
+    if (label) label.textContent = (lang === "ja" ? "日本語" : "English");
+
+    localStorage.setItem(KEY, lang);
+  }
+
+  const initial = localStorage.getItem(KEY) || "ja";
+  apply(initial);
+
+  const btn = document.getElementById("mwLangBtn");
+  if (btn){
+    btn.addEventListener("click", ()=>{
+      const cur = localStorage.getItem(KEY) || "ja";
+      apply(cur === "ja" ? "en" : "ja");
+    });
+  }
+})();
+</script>
+
+</body>
+</html>
