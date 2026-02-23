@@ -34,13 +34,10 @@
     .lang-switch { text-align: right; margin-bottom: 10px; }
     .lang-switch button { background: white; border: 1px solid #ccc; padding: 6px 12px; border-radius: 20px; cursor: pointer; color: #666; font-size: 12px; font-weight: bold; }
 
-    /* 言語表示制御 */
-    [data-lang-content="ja"], [data-lang-content="en"] { display: none !important; }
-    
+        /* 言語表示制御 */
+    [data-lang-content] { display: none !important; }
     body.lang-ja [data-lang-content="ja"] { display: block !important; }
-    body.lang-en [data-lang-content="en"] { display: block !important; }
-    
-    /* 特定のタグに対するflex補正 */
+    body.lang-en [data-lang-content="en"] { display: block !important; }/* 特定のタグに対するflex補正 */
     body.lang-ja div[data-lang-content="ja"] { display: block !important; }
     body.lang-ja h1[data-lang-content="ja"], body.lang-ja h2[data-lang-content="ja"] { display: block !important; }
     
@@ -200,27 +197,25 @@
   const STORAGE_KEY = 'kaido_lang';
 
   function applyLanguage(lang) {
+    const safe = (lang === 'en') ? 'en' : 'ja';
     document.body.classList.remove('lang-ja', 'lang-en');
-    document.body.classList.add('lang-' + lang);
-    document.documentElement.lang = lang;
+    document.body.classList.add('lang-' + safe);
+    document.documentElement.lang = safe;
+    try { localStorage.setItem(STORAGE_KEY, safe); } catch (_) {}
   }
 
   function toggleLang() {
-    const current = document.body.classList.contains('lang-ja') ? 'ja' : 'en';
-    const next = current === 'ja' ? 'en' : 'ja';
-    applyLanguage(next);
-    localStorage.setItem(STORAGE_KEY, next);
+    const current = document.body.classList.contains('lang-en') ? 'en' : 'ja';
+    applyLanguage(current === 'ja' ? 'en' : 'ja');
   }
 
-  (function init() {
-    const savedLang = localStorage.getItem(STORAGE_KEY);
-    if (savedLang === 'en') {
-      applyLanguage('en');
-    } else {
-      applyLanguage('ja');
-    }
+  // 初期表示：保存値があれば優先
+  (function initLang() {
+    let saved = 'ja';
+    try { saved = localStorage.getItem(STORAGE_KEY) || 'ja'; } catch (_) {}
+    applyLanguage(saved);
   })();
-</script>
 
+</script>
 </body>
 </html>
