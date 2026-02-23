@@ -168,7 +168,7 @@ h2 { margin: 0 0 15px; font-size: 18px; border-bottom: 2px solid #eee; padding-b
 }
 .trace-crosshair:before, .trace-crosshair:after {
   content: "";
-  position: absolute;
+  position: fixed !important;
   left: 50%;
   top: 50%;
   background: #111;
