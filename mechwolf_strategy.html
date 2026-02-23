@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-i18n="page_title">メカウルフ計画 (Project Mech-Wolf)</title>
+    <meta name="description" content="Project Mech-Wolfの戦略ページ。普遍的自律エージェント基盤、制約と淘汰による進化、外部化された憲法、経験のバージョン管理。">
+    <meta property="og:type" content="article">
+    <meta property="og:title" content="メカウルフ計画 | Project Mech-Wolf">
+    <meta property="og:description" content="機能の加算ではなく「淘汰」による進化。LLMの確率的揺らぎを制約と経験（淘汰）によって個性へ昇華。">
+
+    <style>
+        :root {
+            --bg-color: #0d1117;
+            --text-color: #c9d1d9;
+            --accent-color: #58a6ff;
+            --danger-color: #f85149;
+            --border-color: #30363d;
+            --code-bg: #161b22;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.8;
+            margin: 0;
+            padding: 0;
+        }
+        .container { max-width: 900px; margin: 0 auto; padding: 40px 20px; }
+
+        /* ✅ Mech-Wolf top nav */
+        .mw-nav {
+            position: sticky; top: 0; z-index: 50;
+            background: rgba(13,17,23,.92);
+            backdrop-filter: blur(8px);
+            border-bottom: 1px solid var(--border-color);
+        }
+        .mw-nav .inner {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 10px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+        .mw-brand { display:flex; gap:10px; align-items:baseline; text-decoration:none; color:#fff; }
+        .mw-brand b { letter-spacing: .06em; }
+        .mw-brand span { color: var(--accent-color); font-size: 12px; }
+        .mw-links { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+        .mw-links a, .mw-links button {
+            border: 1px solid var(--border-color);
+            background: transparent;
+            color: var(--text-color);
+            padding: 6px 10px;
+            border-radius: 8px;
+            font-size: 13px;
+            cursor: pointer;
+            text-decoration:none;
+        }
+        .mw-links a:hover, .mw-links button:hover { border-color: rgba(88,166,255,.7); }
+        .mw-links .primary { border-color: rgba(88,166,255,.8); color:#fff; }
+
+        header { border-bottom: 1px solid var(--border-color); padding-bottom: 20px; margin-bottom: 40px; }
+        h1 { font-size: 2.5em; color: #ffffff; letter-spacing: 2px; margin-bottom: 10px; }
+        .subtitle { font-size: 1.2em; color: var(--accent-color); font-weight: 300; }
+        h2 { font-size: 1.8em; color: #ffffff; margin-top: 50px; border-left: 4px solid var(--accent-color); padding-left: 15px; }
+        h3 { font-size: 1.4em; color: #ffffff; margin-top: 30px; }
+        p { font-size: 1.1em; letter-spacing: 0.5px; }
+        .highlight { color: var(--accent-color); font-weight: bold; }
+        .warning { color: var(--danger-color); font-weight: bold; }
+        .box { background-color: var(--code-bg); border: 1px solid var(--border-color); border-radius: 6px; padding: 20px; margin: 20px 0; }
+        code { font-family: ui-monospace, SFMono-Regular, monospace; background-color: rgba(110,118,129,0.4); padding: 0.2em 0.4em; border-radius: 3px; font-size: 0.9em; }
+        pre { background-color: var(--code-bg); border: 1px solid var(--border-color); border-radius: 6px; padding: 16px; overflow: auto; font-family: ui-monospace, SFMono-Regular, monospace; font-size: 0.9em; }
+        .quote { border-left: 4px solid #8b949e; padding-left: 20px; color: #8b949e; font-style: italic; margin: 30px 0; }
+        footer { margin-top: 60px; padding-top: 20px; border-top: 1px solid var(--border-color); text-align: center; font-size: 0.9em; color: #8b949e; }
+    </style>
+</head>
+<body>
+
+<!-- ✅ Mech-Wolf nav -->
+<div class="mw-nav">
+  <div class="inner">
+    <a class="mw-brand" href="./mechwolf_strategy.html" aria-label="Project Mech-Wolf">
+      <b>Mech-Wolf</b>
+      <span data-i18n="nav_tag">Cognitive Architecture</span>
+    </a>
+
+    <div class="mw-links">
+      <a href="./index.html" data-i18n="nav_home">SamuraiRoad Home</a>
+      <a class="primary" href="./mechwolf_strategy.html" data-i18n="nav_strategy">Strategy</a>
+      <a href="./mechwolf_implementation_exp.html" data-i18n="nav_extension">Engine Extension</a>
+      <a href="./mechwolf_implementation_notes.html" data-i18n="nav_notes">Implementation Notes</a>
+<button id="mwLangBtn" type="button" class="mw-lang" aria-label="Language switch">
+  <span class="mw-langHint" data-i18n="lang_hint">Language</span>
+  <span id="mwLangLabel" class="mw-langValue">日本語</span>
+</button>
+    </div>
+  </div>
+</div>
+
+<article class="container">
+    <header>
+        <h1 data-i18n="h1">メカウルフ計画</h1>
+        <div class="subtitle" data-i18n="subtitle">Project Mech-Wolf : Cognitive Architecture for Agentic Workflow</div>
+    </header>
+
+    <!-- ===== 原文本文（そのまま） ===== -->
+    <section>
+        <h2>1. 序文：既存のエージェントフレームワークへのアンチテーゼ</h2>
+        <p>現在のAI開発は、致命的な幻想に囚われている。ReActループや複雑なプロンプトチェーンを与えれば、LLMが「自律的」に課題を解決してくれるという擬人化の罠だ。</p>
+        <p>我々はそのロマンを否定する。LLMはステートレスな確率的計算機であり、放っておけばハルシネーションを起こし、自己物語化によって文脈を崩壊させる。<span class="highlight">LangChainやAutoGPTが陥った「プロンプトの肥大化による制御不能」</span>こそがその証明である。</p>
+        <p>メカウルフ計画（Project Mech-Wolf）は、現在の Agentic Workflow が抱える脆弱性を、<strong>「極限の制約（Constitutional AI）」と「自己組織化による忘却」</strong>によって克服するためのコグニティブ・アーキテクチャ（Cognitive Architecture）の提案である。</p>
+    </section>
+
+    <section>
+        <h2>2. コア・パラダイム（Core Paradigm）</h2>
+
+        <div class="box">
+            <h3>I. 進化とは加算ではなく「淘汰（Pruning）」である</h3>
+            <p>記憶（Context）を足し続ければエージェントが賢くなるというデータ至上主義は誤りである。学習の本質とは「何がノイズであるかを見抜き、正則化（Regularization）すること」だ。本アーキテクチャは、タスク完了時に自己のログを監査し、「未来で不要になるルール」を自己評価して削ぎ落とすメタ学習機構（Librarian Node）を内包する。</p>
+        </div>
+
+        <div class="box">
+            <h3>II. エンジンと哲学の完全分離（LLM OSの具現化）</h3>
+            <p>実行エンジン（ステートマシン）の内部にはプロンプトを一切記述しない。LLMの「人格（Persona）」「目的（Purpose）」「ルール（Constraints）」はすべて外部のイミュータブルなファイル群として隔離される。エンジンはグラフ遷移を司る純粋な「LLM OS」のカーネルとして振る舞い、特定のドメインに依存しない。</p>
+        </div>
+
+        <div class="box">
+            <h3>III. 経験の構造化とバージョン管理</h3>
+            <p>個性とは、検証された経験の沈殿物である。エージェント自身が抽出した教訓（L2 Memory）は、決して無制限に上書きされない。厳格なJSONスキーマへの準拠と、Gitライクなバージョン管理を強制することで、人格のドリフトを防ぎ、いつでも過去の推論状態へロールバック可能にする。</p>
+        </div>
+    </section>
+
+    <section>
+        <h2>3. 実装アーキテクチャ（System Design）</h2>
+        <p>本計画の中核をなす自律パイプラインは、以下の堅牢な設計に基づく。</p>
+
+        <h3>3.1. 有向非巡回グラフ（DAG）とステートマシン</h3>
+        <p>直線的なバケツリレーを廃止。システムは常に <code>State = {Purpose, Experience, L1 Log, Artifact, External Factors}</code> を保持し、各ノードのLLMが自律的に条件分岐（Conditional Edges）を決定する。無限ループ（Deadlock）はハードコードされたステップ上限によって物理的に遮断される。</p>
+
+        <h3>3.2. 記憶整理官（The Librarian Node）</h3>
+        <p>エージェントが最終状態（END）に到達した直後、監査役としてLibrarianが起動する。過去の短期ログ（L1）と既存の長期経験（L2）を比較し、<strong>過学習（Overfitting）を引き起こす特定状況下のノイズをパージ</strong>し、普遍的教訓のみを新たなL2として抽出する。これが「進化（淘汰）」の心臓部である。</p>
+
+        <h3>3.3. 厳格なJSON Schemaと自己修復（Self-Healing Output）</h3>
+        <p>プロンプトインジェクションとパースエラーを根絶するため、出力はすべて検証可能なJSONに強制される。構文エラー（JSONDecodeError）発生時は、エンジンが例外をキャッチし、LLMにエラーログをフィードバックして自律的に修正させるリトライ機構を備える。</p>
+    </section>
+
+    <section>
+        <h2>8. 議論と批判の招待（Call for Critiques）</h2>
+        <p class="quote">「人間が与えるのは『魂』ではない。汎用AIを、自分専用の鋭利な『刃物』に変えるための『研磨（制約）』である。」</p>
+        <p>本アーキテクチャは完成ではない。これは「ノイズに塗れた世界から、いかにして真理を抽出するか」という情報工学と認知科学の境界における実験である。</p>
+        <p>我々は、世界中の研究者・開発者からの<strong>アーキテクチャの脆弱性に対する指摘、既存論文との比較、および設計思想へのマサカリ（徹底的な批判）</strong>を歓迎する。既存のパラダイムを破壊し、真の自律エージェントの基盤を錬成するための議論を共に深めたい。</p>
+    </section>
+
+    <footer>
+        <p>&copy; 2026 Project Mech-Wolf. All rights reserved.</p>
+        <p>Built with extreme constraints and the elimination of romanticism.</p>
+    </footer>
+</article>
+
+<!-- Footer mount -->
+<div data-include="./includes/footer.html" aria-label="Footer"></div>
+<script src="./assets/js/sr-common.js" defer></script>
+
+<!-- ✅ Minimal i18n for nav + headings (keep body JP as default) -->
+<script>
+(function(){
+  const KEY = "sr_lang"; // SamuraiRoad global language state
+  const dict = {
+    en: {
+      lang_hint: "Language",
+      page_title: "Project Mech-Wolf | Strategy",
+      nav_tag: "Cognitive Architecture",
+      nav_home: "SamuraiRoad Home",
+      nav_strategy: "Strategy",
+      nav_extension: "Engine Extension",
+      nav_notes: "Implementation Notes",
+      h1: "Mech-Wolf Strategy",
+      subtitle: "Project Mech-Wolf : Cognitive Architecture for Agentic Workflow",
+    },
+    ja: {
+      lang_hint: "言語",
+      page_title: "メカウルフ計画 (Project Mech-Wolf)",
+      nav_tag: "Cognitive Architecture",
+      nav_home: "SamuraiRoad Home",
+      nav_strategy: "戦略（計画）",
+      nav_extension: "拡張ノート",
+      nav_notes: "実装ノート",
+      h1: "メカウルフ計画",
+      subtitle: "Project Mech-Wolf : Cognitive Architecture for Agentic Workflow",
+    }
+  };
+
+  function apply(lang){
+    const t = dict[lang] || dict.ja;
+    document.documentElement.lang = lang;
+    document.querySelectorAll("[data-i18n]").forEach(el=>{
+      const k = el.getAttribute("data-i18n");
+      if (t[k] != null) el.innerHTML = t[k];
+    });
+    const btn = document.getElementById("mwLangLabel");
+    if (btn) btn.textContent = (lang === "ja" ? "EN" : "JP");
+    localStorage.setItem(KEY, lang);
+  }
+
+  const initial = localStorage.getItem(KEY) || "ja";
+  apply(initial);
+
+  const btn = document.getElementById("mwLangBtn");
+  if (btn){
+    btn.addEventListener("click", ()=>{
+      const cur = localStorage.getItem(KEY) || "ja";
+      apply(cur === "ja" ? "en" : "ja");
+    });
+  }
+})();
+</script>
+</body>
+</html>
