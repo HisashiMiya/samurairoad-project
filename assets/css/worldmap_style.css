@@ -195,6 +195,9 @@ h2 { margin: 0 0 15px; font-size: 18px; border-bottom: 2px solid #eee; padding-b
 /* --- Route Editor --- */
 .trace-toggle .input{min-width: 0;}
 
+/* =========================================
+   ルート作成、なぞる用設定
+   ========================================= */
 /* =========================================================
    FIX: TraceGame is <div class="modal"> (NOT modal-overlay)
    - Hide .modal by default
@@ -253,6 +256,26 @@ h2 { margin: 0 0 15px; font-size: 18px; border-bottom: 2px solid #eee; padding-b
 .modal-overlay.minimized,
 .modal.minimized {
   background: transparent !important;
+}
+
+/* minimized: open(=モード継続)のまま、UIだけ隠す */
+.modal-overlay.minimized .modal-content,
+.modal.minimized .modal-content{
+  display:none !important;
+}
+
+/* RouteEdit/TraceGame が open or minimized の時は地図へイベントを通す */
+#modalRouteEdit.open,
+#modalRouteEdit.minimized,
+#modalTraceGame.open,
+#modalTraceGame.minimized{
+  pointer-events:none;
+}
+#modalRouteEdit.open .modal-content,
+#modalRouteEdit.minimized .modal-content,
+#modalTraceGame.open .modal-content,
+#modalTraceGame.minimized .modal-content{
+  pointer-events:auto;
 }
 
 
