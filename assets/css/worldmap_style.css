@@ -243,7 +243,17 @@ h2 { margin: 0 0 15px; font-size: 18px; border-bottom: 2px solid #eee; padding-b
   pointer-events: auto; /* ダイアログ内のボタンは押せる */
 }
 
+/* === Start後：モーダルを閉じてもモードを継続させるための“最小化” === */
+.modal-overlay.minimized .modal-content,
+.modal.minimized .modal-content {
+  display: none !important;   /* UIだけ消す */
+}
 
+/* ついでに背景も消したい場合（任意） */
+.modal-overlay.minimized,
+.modal.minimized {
+  background: transparent !important;
+}
 
 
 /* --- Route Editor: vertex markers & simplify UI --- */
