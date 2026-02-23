@@ -891,26 +891,37 @@ For each spot, provide:
     t.textContent = msg; t.classList.add('show');
     setTimeout(() => t.classList.remove('show'), 3000);
   }
+// 「閉じる」＝ UIだけ隠して描画モードは継続（RouteEdit/TraceGameだけ特別扱い）
 window.closeModals = function() {
-  document.querySelectorAll('.modal-overlay.open, .modal.open').forEach(el => {
-    // --- “描画・トレース中”っぽい状態なら「閉じる＝最小化」にする ---
-    // route_editor.js / trace_game.js 側が付ける可能性があるクラス名を広めに拾う（回帰防止）
-    const keepDrawing =
-      el.classList.contains('route-editor-open') ||
-      el.classList.contains('routeEdit-open') ||
-      el.classList.contains('trace-open') ||
-      el.classList.contains('tracegame-open') ||
-      el.classList.contains('drawing') ||
-      el.classList.contains('tracing');
+  const re = document.getElementById('modalRouteEdit');
+  const tg = document.getElementById('modalTraceGame');
 
-    if (keepDrawing) {
-      el.classList.add('minimized');   // UIだけ隠す
-      // open は外さない（＝モード維持）
-    } else {
-      el.classList.remove('open');
-      el.classList.remove('minimized');
-    }
+  // RouteEditorが存在していて、RouteEditが開いているなら「最小化」へ
+  // (RouteEditorの内部状態が分からなくても、現象からopen維持が必要)
+  if (re && re.classList.contains('open') && window.RouteEditor) {
+    re.classList.add('minimized');
+    return;
+  }
+
+  // TraceGameも同様（あれば）
+  if (tg && tg.classList.contains('open') && window.TraceGame) {
+    tg.classList.add('minimized');
+    return;
+  }
+
+  // それ以外は普通に閉じる
+  document.querySelectorAll('.modal-overlay, .modal').forEach(e => {
+    e.classList.remove('open');
+    e.classList.remove('minimized');
   });
+};
+
+// ついでに：openModalしたら最小化解除（UIを戻せる）
+window.openModal = function(id){
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.classList.remove('minimized');
+  el.classList.add('open');
 };
 
 
