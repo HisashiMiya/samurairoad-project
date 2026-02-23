@@ -1,74 +1,120 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title data-i18n="page_title">メカウルフ計画 (Project Mech-Wolf)</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<style>
-:root{
-  --bg:#0d1117;
-  --text:#c9d1d9;
-  --accent:#58a6ff;
-  --border:#30363d;
-  --code:#161b22;
-}
-body{
-  margin:0;
-  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
-  background:var(--bg);
-  color:var(--text);
-  line-height:1.8;
-}
-.container{max-width:900px;margin:0 auto;padding:40px 20px;}
+  <title data-i18n="page_title">
+    メカウルフ計画 (Project Mech-Wolf) | Agentic WorkflowとConstitutional AIの実装アーキテクチャ
+  </title>
 
-.mw-nav{
-  position:sticky;top:0;z-index:50;
-  background:rgba(13,17,23,.92);
-  backdrop-filter:blur(8px);
-  border-bottom:1px solid var(--border);
-}
-.mw-nav .inner{
-  max-width:900px;margin:0 auto;padding:10px 20px;
-  display:flex;align-items:center;justify-content:space-between;gap:12px;
-}
-.mw-brand{display:flex;gap:10px;align-items:baseline;text-decoration:none;color:#fff;}
-.mw-brand b{letter-spacing:.06em;}
-.mw-brand span{color:var(--accent);font-size:12px;}
+  <meta name="description" content="AIの自律性という幻想を破壊する普遍的自律エージェント基盤。LangChain等の既存フレームワークの限界を克服し、LLMの確率的揺らぎを制約と経験（淘汰）によって制御するコグニティブ・アーキテクチャの実装と哲学。">
+  <meta name="keywords" content="Agentic Workflow, Cognitive Architecture, Constitutional AI, LLM OS, State Machine, プロンプトエンジニアリング, LangChain 代替, 自律型AIエージェント, メタ学習">
+  <meta name="author" content="Project Mech-Wolf">
 
-.mw-links{display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
-.mw-links a,.mw-links button{
-  border:1px solid var(--border);
-  background:transparent;
-  color:var(--text);
-  padding:6px 10px;
-  border-radius:8px;
-  font-size:13px;
-  cursor:pointer;
-  text-decoration:none;
-}
-.mw-links a:hover,.mw-links button:hover{border-color:rgba(88,166,255,.7);}
-.mw-links .primary{border-color:rgba(88,166,255,.8);color:#fff;}
+  <!-- OGP -->
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="メカウルフ計画 | 普遍的自律エージェント基盤">
+  <meta property="og:description" content="機能の加算ではなく「淘汰」による進化。LLMの確率的揺らぎを制約と経験（淘汰）によって制御する次世代AIパイプライン。">
+  <meta property="og:site_name" content="Project Mech-Wolf">
 
-.mw-lang{display:flex;flex-direction:column;gap:2px;align-items:center;line-height:1.1}
-.mw-langHint{font-size:11px;opacity:.75}
-.mw-langValue{font-size:13px;font-weight:600}
+  <!-- JSON-LD（日本語版を基本に。必要なら英語版も追加できます） -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "TechArticle",
+    "headline": "メカウルフ計画 (Project Mech-Wolf) - 普遍的自律エージェント基盤",
+    "abstract": "現在のAgentic Workflowにおける『プロンプトへの過剰依存』と『記憶の肥大化』を解決するため、ステートマシン駆動の実行エンジンと外部化された絶対憲法(Constitutional AI)を組み合わせた独自のコグニティブ・アーキテクチャを提案する。",
+    "keywords": "Agentic Workflow, Constitutional AI, Cognitive Architecture, LLM OS",
+    "author": {
+      "@type": "Organization",
+      "name": "Project Mech-Wolf"
+    }
+  }
+  </script>
 
-header{border-bottom:1px solid var(--border);padding-bottom:20px;margin-bottom:40px;}
-h1{font-size:2.5em;color:#fff;letter-spacing:2px;margin-bottom:10px;}
-.subtitle{font-size:1.2em;color:var(--accent);font-weight:300;}
-h2{font-size:1.8em;color:#fff;margin-top:50px;border-left:4px solid var(--accent);padding-left:15px;}
-.box{background:var(--code);border:1px solid var(--border);border-radius:6px;padding:20px;margin:20px 0;}
-footer{margin-top:60px;padding-top:20px;border-top:1px solid var(--border);text-align:center;font-size:.9em;color:#8b949e;}
-a{color:var(--accent);}
-</style>
+  <style>
+    :root{
+      --bg-color:#0d1117;
+      --text-color:#c9d1d9;
+      --accent-color:#58a6ff;
+      --danger-color:#f85149;
+      --border-color:#30363d;
+      --code-bg:#161b22;
+    }
+    body{
+      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
+      background-color:var(--bg-color);
+      color:var(--text-color);
+      line-height:1.8;
+      margin:0;
+      padding:0;
+    }
+
+    /* ✅ unified nav (SamuraiRoad style) */
+    .mw-nav{
+      position:sticky; top:0; z-index:50;
+      background:rgba(13,17,23,.92);
+      backdrop-filter:blur(8px);
+      border-bottom:1px solid var(--border-color);
+    }
+    .mw-nav .inner{
+      max-width:900px;
+      margin:0 auto;
+      padding:10px 20px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+    }
+    .mw-brand{display:flex; gap:10px; align-items:baseline; text-decoration:none; color:#fff;}
+    .mw-brand b{letter-spacing:.06em;}
+    .mw-brand span{color:var(--accent-color); font-size:12px;}
+    .mw-links{display:flex; gap:8px; flex-wrap:wrap; align-items:center;}
+    .mw-links a,.mw-links button{
+      border:1px solid var(--border-color);
+      background:transparent;
+      color:var(--text-color);
+      padding:6px 10px;
+      border-radius:8px;
+      font-size:13px;
+      cursor:pointer;
+      text-decoration:none;
+    }
+    .mw-links a:hover,.mw-links button:hover{border-color:rgba(88,166,255,.7);}
+    .mw-links .primary{border-color:rgba(88,166,255,.8); color:#fff;}
+
+    /* Language button clarity */
+    .mw-lang{display:flex;flex-direction:column;gap:2px;align-items:center;line-height:1.1}
+    .mw-langHint{font-size:11px;opacity:.75}
+    .mw-langValue{font-size:13px;font-weight:600}
+
+    .container{max-width:900px;margin:0 auto;padding:40px 20px;}
+    header{border-bottom:1px solid var(--border-color);padding-bottom:20px;margin-bottom:40px;}
+    h1{font-size:2.5em;color:#ffffff;letter-spacing:2px;margin-bottom:10px;}
+    .subtitle{font-size:1.2em;color:var(--accent-color);font-weight:300;}
+    h2{font-size:1.8em;color:#ffffff;margin-top:50px;border-left:4px solid var(--accent-color);padding-left:15px;}
+    h3{font-size:1.4em;color:#ffffff;margin-top:30px;}
+    p{font-size:1.08em;letter-spacing:.3px;}
+    .highlight{color:var(--accent-color);font-weight:bold;}
+    .warning{color:var(--danger-color);font-weight:bold;}
+    .box{background-color:var(--code-bg);border:1px solid var(--border-color);border-radius:6px;padding:20px;margin:20px 0;}
+    code{font-family:ui-monospace,SFMono-Regular,monospace;background-color:rgba(110,118,129,0.4);padding:0.2em 0.4em;border-radius:3px;font-size:0.9em;}
+    pre{background-color:var(--code-bg);border:1px solid var(--border-color);border-radius:6px;padding:16px;overflow:auto;font-family:ui-monospace,SFMono-Regular,monospace;font-size:0.9em;}
+    .quote{border-left:4px solid #8b949e;padding-left:20px;color:#8b949e;font-style:italic;margin:30px 0;}
+    footer{margin-top:60px;padding-top:20px;border-top:1px solid var(--border-color);text-align:center;font-size:0.9em;color:#8b949e;}
+    a{color:var(--accent-color);}
+    .cta{margin-top:14px;}
+    .cta a{display:inline-block;margin:6px 6px 0 0;}
+  </style>
 </head>
 
 <body>
 
+<!-- ✅ Mech-Wolf nav -->
 <div class="mw-nav">
   <div class="inner">
-    <a class="mw-brand" href="./mechwolf_strategy.html">
+    <a class="mw-brand" href="./mechwolf_strategy.html" aria-label="Project Mech-Wolf">
       <b>Mech-Wolf</b>
       <span data-i18n="nav_tag">Cognitive Architecture</span>
     </a>
@@ -79,15 +125,19 @@ a{color:var(--accent);}
       <a href="./mechwolf_implementation_exp.html" data-i18n="nav_extension">Engine Extension</a>
       <a href="./mechwolf_implementation_notes.html" data-i18n="nav_notes">Implementation Notes</a>
 
-      <a href="https://github.com/YOUR_ACCOUNT/Project-Mech-Wolf"
+      <a href="https://github.com/HisashiMiya/mech-wolf"
          target="_blank" rel="noopener"
          data-i18n="nav_repo">GitHub</a>
 
-      <a href="https://github.com/YOUR_ACCOUNT/Project-Mech-Wolf/issues"
+      <a href="https://github.com/HisashiMiya/mech-wolf/issues"
          target="_blank" rel="noopener"
          data-i18n="nav_issues">Issues</a>
 
-      <button id="mwLangBtn" type="button" class="mw-lang">
+      <a href="https://github.com/HisashiMiya/mech-wolf/issues/new/choose"
+         target="_blank" rel="noopener"
+         data-i18n="nav_new_issue">Open an Issue</a>
+
+      <button id="mwLangBtn" type="button" class="mw-lang" aria-label="Language switch">
         <span class="mw-langHint" data-i18n="lang_hint">Language</span>
         <span id="mwLangLabel" class="mw-langValue">日本語</span>
       </button>
@@ -96,115 +146,292 @@ a{color:var(--accent);}
 </div>
 
 <article class="container">
+  <header>
+    <h1 data-i18n="h1">メカウルフ計画</h1>
+    <div class="subtitle" data-i18n="subtitle">Project Mech-Wolf : Cognitive Architecture for Agentic Workflow</div>
+  </header>
 
-<header>
-<h1 data-i18n="h1">メカウルフ計画</h1>
-<div class="subtitle" data-i18n="subtitle">
-Project Mech-Wolf : Cognitive Architecture for Agentic Workflow
-</div>
-</header>
+  <section>
+    <h2 data-i18n="s1_h2">1. 序文：既存のエージェントフレームワークへのアンチテーゼ</h2>
+    <p data-i18n="s1_p1">
+      現在のAI開発は、致命的な幻想に囚われている。ReActループや複雑なプロンプトチェーンを与えれば、LLMが「自律的」に課題を解決してくれるという擬人化の罠だ。
+    </p>
+    <p data-i18n="s1_p2">
+      我々はそのロマンを否定する。LLMはステートレスな確率的計算機であり、放っておけばハルシネーションを起こし、自己物語化によって文脈を崩壊させる。
+      <span class="highlight">LangChainやAutoGPTが陥った「プロンプトの肥大化による制御不能」</span>こそがその証明である。
+    </p>
+    <p data-i18n="s1_p3">
+      メカウルフ計画（Project Mech-Wolf）は、現在の Agentic Workflow が抱える脆弱性を、
+      <strong>「極限の制約（Constitutional AI）」と「自己組織化による忘却」</strong>によって克服するためのコグニティブ・アーキテクチャ（Cognitive Architecture）の提案である。
+    </p>
+  </section>
 
-<section>
-<h2>1. 序文</h2>
-<p>メカウルフ計画は、確率的LLMを構造制御で鋭利化する試みである。</p>
-</section>
+  <section>
+    <h2 data-i18n="s2_h2">2. コア・パラダイム（Core Paradigm）</h2>
 
-<section>
-<h2>2. コア・パラダイム</h2>
+    <div class="box">
+      <h3 data-i18n="s2_b1_h3">I. 進化とは加算ではなく「淘汰（Pruning）」である</h3>
+      <p data-i18n="s2_b1_p1">
+        記憶（Context）を足し続ければエージェントが賢くなるというデータ至上主義は誤りである。
+        学習の本質とは「何がノイズであるかを見抜き、正則化（Regularization）すること」だ。
+        本アーキテクチャは、タスク完了時に自己のログを監査し、「未来で不要になるルール」を自己評価して削ぎ落とすメタ学習機構（Librarian Node）を内包する。
+      </p>
+    </div>
 
-<div class="box">
-<h3>I. 淘汰による進化</h3>
-<p>進化は加算ではなく、不要なものの除去である。</p>
-</div>
+    <div class="box">
+      <h3 data-i18n="s2_b2_h3">II. エンジンと哲学の完全分離（LLM OSの具現化）</h3>
+      <p data-i18n="s2_b2_p1">
+        実行エンジン（ステートマシン）の内部にはプロンプトを一切記述しない。
+        LLMの「人格（Persona）」「目的（Purpose）」「ルール（Constraints）」はすべて外部のイミュータブルなファイル群として隔離される。
+        エンジンはグラフ遷移を司る純粋な「LLM OS」のカーネルとして振る舞い、特定のドメインに依存しない。
+      </p>
+    </div>
 
-<div class="box">
-<h3>II. エンジンと哲学の分離</h3>
-<p>LLMはカーネル、人格や制約は外部ファイルに分離。</p>
-</div>
+    <div class="box">
+      <h3 data-i18n="s2_b3_h3">III. 経験の構造化とバージョン管理</h3>
+      <p data-i18n="s2_b3_p1">
+        個性とは、検証された経験の沈殿物である。エージェント自身が抽出した教訓（L2 Memory）は、決して無制限に上書きされない。
+        厳格なJSONスキーマへの準拠と、Gitライクなバージョン管理を強制することで、人格のドリフトを防ぎ、いつでも過去の推論状態へロールバック可能にする。
+      </p>
+    </div>
+  </section>
 
-</section>
+  <section>
+    <h2 data-i18n="s3_h2">3. 実装アーキテクチャ（System Design）</h2>
+    <p data-i18n="s3_p1">
+      本計画の中核をなす自律パイプラインは、以下の堅牢な設計に基づく。
+    </p>
 
-<section>
-<h2 data-i18n="critique_title">議論と貢献</h2>
-<p data-i18n="critique_text">
-実装・設計・思想への批判や提案は、GitHub上で歓迎します。
-</p>
+    <h3 data-i18n="s3_h3_1">3.1. 有向非巡回グラフ（DAG）とステートマシン</h3>
+    <p data-i18n="s3_p2">
+      直線的なバケツリレーを廃止。システムは常に
+      <code>State = {Purpose, Experience, L1 Log, Artifact, External Factors}</code>
+      を保持し、各ノードのLLMが自律的に条件分岐（Conditional Edges）を決定する。
+      無限ループ（Deadlock）はハードコードされたステップ上限によって物理的に遮断される。
+    </p>
 
-<p>
-<a href="https://github.com/HisashiMiya/mech-wolf"
-   target="_blank" rel="noopener"
-   data-i18n="repo_link">▶ View Repository</a>
-&nbsp;|&nbsp;
-<a href="https://github.com/HisashiMiya/mech-wolf/issues/new/choose"
-   target="_blank" rel="noopener">
-   ▶ Open an Issue
-</a>
-</section>
+    <h3 data-i18n="s3_h3_2">3.2. 記憶整理官（The Librarian Node）</h3>
+    <p data-i18n="s3_p3">
+      エージェントが最終状態（END）に到達した直後、監査役としてLibrarianが起動する。
+      過去の短期ログ（L1）と既存の長期経験（L2）を比較し、
+      <strong>過学習（Overfitting）を引き起こす特定状況下のノイズをパージ</strong>し、普遍的教訓のみを新たなL2として抽出する。
+      これが「進化（淘汰）」の心臓部である。
+    </p>
 
-<footer>
-<p>&copy; 2026 Project Mech-Wolf</p>
-</footer>
+    <h3 data-i18n="s3_h3_3">3.3. 厳格なJSON Schemaと自己修復（Self-Healing Output）</h3>
+    <p data-i18n="s3_p4">
+      プロンプトインジェクションとパースエラーを根絶するため、出力はすべて検証可能なJSONに強制される。
+      構文エラー（JSONDecodeError）発生時は、エンジンが例外をキャッチし、LLMにエラーログをフィードバックして自律的に修正させるリトライ機構を備える。
+    </p>
+  </section>
 
+  <section>
+    <h2 data-i18n="s4_h2">4. 議論と批判の招待（Call for Critiques）</h2>
+    <p class="quote" data-i18n="s4_quote">
+      「人間が与えるのは『魂』ではない。汎用AIを、自分専用の鋭利な『刃物』に変えるための『研磨（制約）』である。」
+    </p>
+    <p data-i18n="s4_p1">
+      本アーキテクチャは完成ではない。これは「ノイズに塗れた世界から、いかにして真理を抽出するか」という情報工学と認知科学の境界における実験である。
+    </p>
+    <p data-i18n="s4_p2">
+      世界中の研究者・開発者からの<strong>アーキテクチャの脆弱性に対する指摘、既存論文との比較、および設計思想へのマサカリ（徹底的な批判）</strong>を歓迎する。
+      既存のパラダイムを破壊し、真の自律エージェントの基盤を錬成するための議論を共に深めたい。
+    </p>
+
+    <div class="box cta">
+      <h3 data-i18n="cta_h3">Contribute & Discuss</h3>
+      <p data-i18n="cta_p">
+        実装・設計・思想への批判や提案は、GitHub上で歓迎します（Issueテンプレートから選べます）。
+      </p>
+      <p>
+        <a href="https://github.com/HisashiMiya/mech-wolf" target="_blank" rel="noopener" data-i18n="cta_repo">▶ View Repository</a>
+        <a href="https://github.com/HisashiMiya/mech-wolf/issues" target="_blank" rel="noopener" data-i18n="cta_issues">▶ Issues</a>
+        <a href="https://github.com/HisashiMiya/mech-wolf/issues/new/choose" target="_blank" rel="noopener" data-i18n="cta_new_issue">▶ Open an Issue</a>
+      </p>
+    </div>
+  </section>
+
+  <footer>
+    <p data-i18n="footer_copy">&copy; 2026 Project Mech-Wolf. All rights reserved.</p>
+    <p data-i18n="footer_line">Built with extreme constraints and the elimination of romanticism.</p>
+  </footer>
 </article>
 
 <script>
 (function(){
-const KEY="sr_lang";
-const dict={
-en:{
-lang_hint:"Language",
-page_title:"Project Mech-Wolf | Strategy",
-nav_tag:"Cognitive Architecture",
-nav_home:"SamuraiRoad Home",
-nav_strategy:"Strategy",
-nav_extension:"Engine Extension",
-nav_notes:"Implementation Notes",
-nav_repo:"GitHub",
-nav_issues:"Issues",
-h1:"Mech-Wolf Strategy",
-subtitle:"Project Mech-Wolf : Cognitive Architecture for Agentic Workflow",
-critique_title:"Contribute & Discuss",
-critique_text:"We welcome critiques and architectural discussions on GitHub.",
-repo_link:"View Repository",
-issue_link:"Open an Issue"
-},
-ja:{
-lang_hint:"言語",
-page_title:"メカウルフ計画 (Project Mech-Wolf)",
-nav_tag:"Cognitive Architecture",
-nav_home:"SamuraiRoad Home",
-nav_strategy:"戦略（計画）",
-nav_extension:"拡張ノート",
-nav_notes:"実装ノート",
-nav_repo:"GitHub",
-nav_issues:"Issue",
-h1:"メカウルフ計画",
-subtitle:"Project Mech-Wolf : Cognitive Architecture for Agentic Workflow",
-critique_title:"議論と貢献",
-critique_text:"実装・設計・思想への批判や提案は、GitHub上で歓迎します。",
-repo_link:"リポジトリを見る",
-issue_link:"Issueを作成する"
-}
-};
+  const KEY = "sr_lang";
 
-function apply(lang){
-const t=dict[lang]||dict.ja;
-document.documentElement.lang=lang;
-document.querySelectorAll("[data-i18n]").forEach(el=>{
-const k=el.getAttribute("data-i18n");
-if(t[k]) el.innerHTML=t[k];
-});
-document.getElementById("mwLangLabel").textContent=(lang==="ja"?"日本語":"English");
-localStorage.setItem(KEY,lang);
-}
+  // helper to update meta safely
+  function setMeta(selector, content){
+    const el = document.querySelector(selector);
+    if (el) el.setAttribute('content', content);
+  }
 
-const initial=localStorage.getItem(KEY)||"ja";
-apply(initial);
+  const dict = {
+    en: {
+      // meta
+      page_title: "Project Mech-Wolf | Architecture for Agentic Workflow (Constitutional AI, Pruning, LLM OS)",
+      meta_desc: "A universal agent foundation that breaks the illusion of autonomy. Beyond LangChain-style prompt inflation: control probabilistic LLM drift through constraints and verified experience (pruning).",
+      og_title: "Project Mech-Wolf | Universal Agent Foundation",
+      og_desc: "Evolution by pruning, not accumulation. Control LLM drift via constraints and verified experience.",
 
-document.getElementById("mwLangBtn").addEventListener("click",()=>{
-const cur=localStorage.getItem(KEY)||"ja";
-apply(cur==="ja"?"en":"ja");
-});
+      // nav
+      nav_tag: "Cognitive Architecture",
+      nav_home: "SamuraiRoad Home",
+      nav_strategy: "Strategy",
+      nav_extension: "Engine Extension",
+      nav_notes: "Implementation Notes",
+      nav_repo: "GitHub",
+      nav_issues: "Issues",
+      nav_new_issue: "Open an Issue",
+      lang_hint: "Language",
+
+      // header
+      h1: "Project Mech-Wolf",
+      subtitle: "Cognitive Architecture for Agentic Workflow",
+
+      // section 1
+      s1_h2: "1. Introduction: An Antithesis to Existing Agent Frameworks",
+      s1_p1: "Modern AI development is trapped in a fatal illusion: if we provide ReAct loops and complex prompt chains, an LLM will solve tasks 'autonomously'—a convenient anthropomorphism.",
+      s1_p2: "We reject that romance. An LLM is a stateless probabilistic machine; left alone, it hallucinates and collapses context through self-narration. <span class='highlight'>LangChain/AutoGPT-style 'prompt bloat → loss of control'</span> is the evidence.",
+      s1_p3: "Project Mech-Wolf proposes a cognitive architecture that overcomes the fragility of current agentic workflows through <strong>extreme constraints (Constitutional AI)</strong> and <strong>self-organizing forgetting</strong>.",
+
+      // section 2
+      s2_h2: "2. Core Paradigm",
+      s2_b1_h3: "I. Evolution is Pruning, Not Addition",
+      s2_b1_p1: "The belief that more memory (context) automatically makes agents smarter is wrong. Learning is identifying noise and regularizing it. This architecture includes a meta-learning mechanism (the Librarian Node) that audits logs at the end of a task and prunes rules that will become unnecessary in the future.",
+      s2_b2_h3: "II. Full Separation of Engine and Philosophy (LLM OS)",
+      s2_b2_p1: "No prompts live inside the execution engine (state machine). Persona, purpose, and constraints are isolated as immutable external files. The engine behaves as a pure kernel—an 'LLM OS'—independent of any specific domain.",
+      s2_b3_h3: "III. Structured Experience & Version Control",
+      s2_b3_p1: "Personality is the sediment of validated experience. Extracted lessons (L2 memory) are never overwritten without limits. Strict JSON schemas and Git-like versioning prevent drift and allow rollback to prior reasoning states.",
+
+      // section 3
+      s3_h2: "3. Implementation Architecture (System Design)",
+      s3_p1: "The core autonomous pipeline is grounded in the following robust design.",
+      s3_h3_1: "3.1 DAG + State Machine",
+      s3_p2: "We abolish linear bucket brigades. The system always maintains <code>State = {Purpose, Experience, L1 Log, Artifact, External Factors}</code>, and each node chooses conditional edges. Infinite loops are physically blocked by a hard step limit.",
+      s3_h3_2: "3.2 The Librarian Node",
+      s3_p3: "Immediately after reaching END, the Librarian audits the agent. It compares short-term logs (L1) with long-term experience (L2), <strong>purges situation-specific noise that causes overfitting</strong>, and extracts only universal lessons as new L2. This is the heart of 'evolution by pruning'.",
+      s3_h3_3: "3.3 Strict JSON Schema + Self-Healing Output",
+      s3_p4: "To eradicate prompt injection and parse failures, outputs are forced into verifiable JSON. On errors (e.g., JSONDecodeError), the engine catches exceptions, feeds logs back to the LLM, and retries with autonomous correction.",
+
+      // section 4
+      s4_h2: "4. Call for Critiques",
+      s4_quote: "“Humans do not give a ‘soul’. They ‘sharpen’ a general AI into a personal blade through constraints.”",
+      s4_p1: "This is not a finished system. It is an experiment at the boundary of information engineering and cognitive science: how to extract truth from a world flooded with noise.",
+      s4_p2: "We welcome <strong>deep critiques of architectural vulnerabilities, comparisons to existing literature, and merciless attacks on design assumptions</strong>. Let’s break old paradigms and forge the foundation of true autonomous agents together.",
+
+      // CTA
+      cta_h3: "Contribute & Discuss",
+      cta_p: "We welcome critiques and proposals on GitHub (choose from issue templates).",
+      cta_repo: "▶ View Repository",
+      cta_issues: "▶ Issues",
+      cta_new_issue: "▶ New Issue",
+
+      // footer
+      footer_copy: "&copy; 2026 Project Mech-Wolf. All rights reserved.",
+      footer_line: "Built with extreme constraints and the elimination of romanticism."
+    },
+
+    ja: {
+      // meta
+      page_title: "メカウルフ計画 (Project Mech-Wolf) | Agentic WorkflowとConstitutional AIの実装アーキテクチャ",
+      meta_desc: "AIの自律性という幻想を破壊する普遍的自律エージェント基盤。LangChain等の既存フレームワークの限界を克服し、LLMの確率的揺らぎを制約と経験（淘汰）によって制御するコグニティブ・アーキテクチャの実装と哲学。",
+      og_title: "メカウルフ計画 | 普遍的自律エージェント基盤",
+      og_desc: "機能の加算ではなく「淘汰」による進化。LLMの確率的揺らぎを制約と経験（淘汰）によって制御する次世代AIパイプライン。",
+
+      // nav
+      nav_tag: "Cognitive Architecture",
+      nav_home: "SamuraiRoad Home",
+      nav_strategy: "戦略（計画）",
+      nav_extension: "拡張ノート",
+      nav_notes: "実装ノート",
+      nav_repo: "GitHub",
+      nav_issues: "Issue一覧",
+      nav_new_issue: "Issueを作成",
+      lang_hint: "言語",
+
+      // header
+      h1: "メカウルフ計画",
+      subtitle: "Project Mech-Wolf : Cognitive Architecture for Agentic Workflow",
+
+      // section 1
+      s1_h2: "1. 序文：既存のエージェントフレームワークへのアンチテーゼ",
+      s1_p1: "現在のAI開発は、致命的な幻想に囚われている。ReActループや複雑なプロンプトチェーンを与えれば、LLMが「自律的」に課題を解決してくれるという擬人化の罠だ。",
+      s1_p2: "我々はそのロマンを否定する。LLMはステートレスな確率的計算機であり、放っておけばハルシネーションを起こし、自己物語化によって文脈を崩壊させる。<span class='highlight'>LangChainやAutoGPTが陥った「プロンプトの肥大化による制御不能」</span>こそがその証明である。",
+      s1_p3: "メカウルフ計画（Project Mech-Wolf）は、現在の Agentic Workflow が抱える脆弱性を、<strong>「極限の制約（Constitutional AI）」と「自己組織化による忘却」</strong>によって克服するためのコグニティブ・アーキテクチャ（Cognitive Architecture）の提案である。",
+
+      // section 2
+      s2_h2: "2. コア・パラダイム（Core Paradigm）",
+      s2_b1_h3: "I. 進化とは加算ではなく「淘汰（Pruning）」である",
+      s2_b1_p1: "記憶（Context）を足し続ければエージェントが賢くなるというデータ至上主義は誤りである。学習の本質とは「何がノイズであるかを見抜き、正則化（Regularization）すること」だ。本アーキテクチャは、タスク完了時に自己のログを監査し、「未来で不要になるルール」を自己評価して削ぎ落とすメタ学習機構（Librarian Node）を内包する。",
+      s2_b2_h3: "II. エンジンと哲学の完全分離（LLM OSの具現化）",
+      s2_b2_p1: "実行エンジン（ステートマシン）の内部にはプロンプトを一切記述しない。LLMの「人格（Persona）」「目的（Purpose）」「ルール（Constraints）」はすべて外部のイミュータブルなファイル群として隔離される。エンジンはグラフ遷移を司る純粋な「LLM OS」のカーネルとして振る舞い、特定のドメインに依存しない。",
+      s2_b3_h3: "III. 経験の構造化とバージョン管理",
+      s2_b3_p1: "個性とは、検証された経験の沈殿物である。エージェント自身が抽出した教訓（L2 Memory）は、決して無制限に上書きされない。厳格なJSONスキーマへの準拠と、Gitライクなバージョン管理を強制することで、人格のドリフトを防ぎ、いつでも過去の推論状態へロールバック可能にする。",
+
+      // section 3
+      s3_h2: "3. 実装アーキテクチャ（System Design）",
+      s3_p1: "本計画の中核をなす自律パイプラインは、以下の堅牢な設計に基づく。",
+      s3_h3_1: "3.1. 有向非巡回グラフ（DAG）とステートマシン",
+      s3_p2: "直線的なバケツリレーを廃止。システムは常に <code>State = {Purpose, Experience, L1 Log, Artifact, External Factors}</code> を保持し、各ノードのLLMが自律的に条件分岐（Conditional Edges）を決定する。無限ループ（Deadlock）はハードコードされたステップ上限によって物理的に遮断される。",
+      s3_h3_2: "3.2. 記憶整理官（The Librarian Node）",
+      s3_p3: "エージェントが最終状態（END）に到達した直後、監査役としてLibrarianが起動する。過去の短期ログ（L1）と既存の長期経験（L2）を比較し、<strong>過学習（Overfitting）を引き起こす特定状況下のノイズをパージ</strong>し、普遍的教訓のみを新たなL2として抽出する。これが「進化（淘汰）」の心臓部である。",
+      s3_h3_3: "3.3. 厳格なJSON Schemaと自己修復（Self-Healing Output）",
+      s3_p4: "プロンプトインジェクションとパースエラーを根絶するため、出力はすべて検証可能なJSONに強制される。構文エラー（JSONDecodeError）発生時は、エンジンが例外をキャッチし、LLMにエラーログをフィードバックして自律的に修正させるリトライ機構を備える。",
+
+      // section 4
+      s4_h2: "4. 議論と批判の招待（Call for Critiques）",
+      s4_quote: "「人間が与えるのは『魂』ではない。汎用AIを、自分専用の鋭利な『刃物』に変えるための『研磨（制約）』である。」",
+      s4_p1: "本アーキテクチャは完成ではない。これは「ノイズに塗れた世界から、いかにして真理を抽出するか」という情報工学と認知科学の境界における実験である。",
+      s4_p2: "我々は、世界中の研究者・開発者からの<strong>アーキテクチャの脆弱性に対する指摘、既存論文との比較、および設計思想へのマサカリ（徹底的な批判）</strong>を歓迎する。既存のパラダイムを破壊し、真の自律エージェントの基盤を錬成するための議論を共に深めたい。",
+
+      // CTA
+      cta_h3: "議論と貢献",
+      cta_p: "実装・設計・思想への批判や提案は、GitHub上で歓迎します（Issueテンプレートから選べます）。",
+      cta_repo: "▶ リポジトリを見る",
+      cta_issues: "▶ Issue一覧",
+      cta_new_issue: "▶ Issueを作成する",
+
+      // footer
+      footer_copy: "&copy; 2026 Project Mech-Wolf. All rights reserved.",
+      footer_line: "Built with extreme constraints and the elimination of romanticism."
+    }
+  };
+
+  function apply(lang){
+    const t = dict[lang] || dict.ja;
+    document.documentElement.lang = lang;
+
+    // text nodes
+    document.querySelectorAll("[data-i18n]").forEach(el=>{
+      const k = el.getAttribute("data-i18n");
+      if (t[k] != null) el.innerHTML = t[k];
+    });
+
+    // label shows current language
+    const label = document.getElementById("mwLangLabel");
+    if (label) label.textContent = (lang === "ja" ? "日本語" : "English");
+
+    // meta / og
+    document.title = (t.page_title || document.title);
+    setMeta('meta[name="description"]', t.meta_desc || '');
+    setMeta('meta[property="og:title"]', t.og_title || '');
+    setMeta('meta[property="og:description"]', t.og_desc || '');
+
+    localStorage.setItem(KEY, lang);
+  }
+
+  const initial = localStorage.getItem(KEY) || "ja";
+  apply(initial);
+
+  const btn = document.getElementById("mwLangBtn");
+  if (btn){
+    btn.addEventListener("click", ()=>{
+      const cur = localStorage.getItem(KEY) || "ja";
+      apply(cur === "ja" ? "en" : "ja");
+    });
+  }
 })();
 </script>
 
