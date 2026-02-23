@@ -228,12 +228,19 @@ h2 { margin: 0 0 15px; font-size: 18px; border-bottom: 2px solid #eee; padding-b
   pointer-events: auto;
 }
 
-.modal-overlay.route-editor-open {
+/* ===== modal 表示制御（TraceGame が .modal なので必須） ===== */
+.modal { display:none; }
+.modal.open { display:flex; }
+
+/* ===== 重要：開始(描画)中だけ、overlay は地図へイベントを通す ===== */
+/* route_editor.js 側が route-editor-open を付ける想定に合わせる */
+.modal-overlay.route-editor-open,
+.modal.route-editor-open {
   pointer-events: none;
 }
-
-.modal-overlay.route-editor-open .modal-content {
-  pointer-events: auto;
+.modal-overlay.route-editor-open .modal-content,
+.modal.route-editor-open .modal-content {
+  pointer-events: auto; /* ダイアログ内のボタンは押せる */
 }
 
 
