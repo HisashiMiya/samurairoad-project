@@ -6,15 +6,6 @@ body { padding-bottom: 80px; box-sizing: border-box; }
 
 #map { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; }
 
-
-.modal-overlay.route-editor-open {
-  pointer-events: none;
-}
-
-.modal-overlay.route-editor-open .modal-content {
-  pointer-events: auto;
-}
-
 /* Top Bar */
 .top-bar {
   position: absolute; top: 10px; left: 68px; right: 10px; z-index: 1000;
@@ -203,6 +194,49 @@ h2 { margin: 0 0 15px; font-size: 18px; border-bottom: 2px solid #eee; padding-b
 
 /* --- Route Editor --- */
 .trace-toggle .input{min-width: 0;}
+
+/* =========================================================
+   FIX: TraceGame is <div class="modal"> (NOT modal-overlay)
+   - Hide .modal by default
+   - Show only with .open
+   - When RouteEdit/TraceGame open: overlay lets pointer through to map,f
+     but modal-content remains clickable
+   ========================================================= */
+
+/* A) .modal を .modal-overlay 相当にする（TraceGame対策） */
+.modal {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  display: none;                 /* ←これが無いと初期表示で要素が出る */
+  align-items: center;
+  justify-content: center;
+  background: rgba(0,0,0,0.4);
+  backdrop-filter: blur(2px);
+}
+.modal.open { display: flex; }
+
+/* B) Route Editor / Trace Game を開いてる間は「地図を触れる」ようにする */
+#modalRouteEdit.open,
+#modalTraceGame.open {
+  pointer-events: none;          /* オーバーレイは地図にイベントを通す */
+}
+
+/* ただしダイアログ本体だけ操作可能にする */
+#modalRouteEdit.open .modal-content,
+#modalTraceGame.open .modal-content {
+  pointer-events: auto;
+}
+
+.modal-overlay.route-editor-open {
+  pointer-events: none;
+}
+
+.modal-overlay.route-editor-open .modal-content {
+  pointer-events: auto;
+}
+
+
 
 
 /* --- Route Editor: vertex markers & simplify UI --- */
