@@ -411,24 +411,46 @@ Extra-length penalty: ${(extraRatio*100).toFixed(1)}%`;
     const hint = document.getElementById("chkTraceHint");
     const pan = document.getElementById("chkTracePanZoom");
 
-    if (s) s.onclick = () => start();
+    if (s) s.onclick = () => {
+    // Start = 描画モードへ遷移：モーダルは閉じて地図操作に渡す
+    try { window.closeModalsForce?.(); } catch(e) {}
+    start();
+   };
     if (r) r.onclick = () => { if (!ensureReference()) return; state.enabled = true; ensureHud(); lockMapInteractions(true); clearPlayer(); };
     if (sub) sub.onclick = () => score();
 
     if (hint) hint.onchange = () => setHintVisible(!!hint.checked);
     if (pan) pan.onchange = () => { state.allowPanZoom = !!pan.checked; lockMapInteractions(true); setHud(state.drawing ? "Drawing" : "Ready", state.allowPanZoom ? "地図操作ON（描画OFF）" : "描画ON"); };
 
-    // map pointer hooks (Leaflet)
+    
+// pointer hooks (robust): bind to map container (Pointer Events)
     const wm = requireWorldMap();
     const map = wm?.getMap?.();
-    if (map) {
-      map.on("mousedown", onPointerDown);
-      map.on("mousemove", onPointerMove);
-      map.on("mouseup", onPointerUp);
+    if (map && map.getContainer) {
+      const el = map.getContainer();
+      let isDown = false;
 
-      map.on("touchstart", onPointerDown);
-      map.on("touchmove", onPointerMove);
-      map.on("touchend", onPointerUp);
+      el.addEventListener("pointerdown", (ev) => {
+        if (ev.isPrimary === false) return;
+        isDown = true;
+        try { el.setPointerCapture(ev.pointerId); } catch {}
+        onPointerDown({ originalEvent: ev });
+      }, { passive: false });
+
+      el.addEventListener("pointermove", (ev) => {
+        if (!isDown) return;
+        onPointerMove({ originalEvent: ev });
+      }, { passive: false });
+
+      const end = (ev) => {
+        if (!isDown) return;
+        isDown = false;
+        try { el.releasePointerCapture(ev.pointerId); } catch {}
+        onPointerUp();
+      };
+      el.addEventListener("pointerup", end, { passive: true });
+      el.addEventListener("pointercancel", end, { passive: true });
+      el.addEventListener("pointerleave", (ev) => { if (isDown) end(ev); }, { passive: true });
     }
   }
 

@@ -489,7 +489,11 @@
   }
 
   function wireUI() {
-    ui.btnStart()?.addEventListener('click', start);
+    ui.btnStart()?.addEventListener('click', () => {
+      // Start = 描画モードへ遷移：モーダルは閉じて地図操作に渡す
+      try { window.closeModalsForce?.(); } catch(e) {}
+      start();
+    });
     ui.btnUndo()?.addEventListener('click', undo);
     ui.btnReset()?.addEventListener('click', reset);
     ui.btnFinish()?.addEventListener('click', finish);
