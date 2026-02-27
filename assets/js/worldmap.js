@@ -360,6 +360,45 @@
       }
   }
 
+
+// =========================================
+// Start押下時：モーダルを閉じて地図で描画できるようにする（RouteEdit / TraceGame）
+// =========================================
+(function hookStartToCloseModal() {
+  function hookOne(obj, name) {
+    if (!obj || obj.__srStartHooked) return false;
+    const orig = obj.start;
+    if (typeof orig !== "function") return false;
+
+    obj.start = function (...args) {
+      // Startした瞬間にUIを閉じる（最小化ではなく完全クローズ）
+      try { window.closeModalsForce?.(); } catch (e) {}
+      return orig.apply(this, args);
+    };
+
+    obj.__srStartHooked = true;
+    console.log(`[SR] start-hooked: ${name}`);
+    return true;
+  }
+
+  // プラグインのロード順に左右されるので、見つかるまで少しだけリトライ
+  let tries = 0;
+  const timer = setInterval(() => {
+    tries++;
+
+    const ok1 = hookOne(window.RouteEditor, "RouteEditor");
+    const ok2 = hookOne(window.TraceGame, "TraceGame");
+
+    if ((ok1 || window.RouteEditor?.__srStartHooked) &&
+        (ok2 || window.TraceGame?.__srStartHooked)) {
+      clearInterval(timer);
+    }
+
+    // 念のため上限（2.5秒程度）で止める
+    if (tries >= 25) clearInterval(timer);
+  }, 100);
+})();
+
   // =========================================
   // 4. 地図・ルート・AI処理
   // =========================================
