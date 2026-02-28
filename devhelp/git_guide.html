@@ -150,6 +150,22 @@
         }
 
         .lang-switch:hover { border-color: var(--accent-color); }
+        
+        .faq-title {
+            color: #fbbf24;
+            font-size: 1.1rem;
+            margin-bottom: 5px;
+            margin-top: 20px;
+        }
+        
+        .tip-box {
+            background: rgba(56, 189, 248, 0.1);
+            border-left: 4px solid var(--accent-color);
+            padding: 10px 15px;
+            margin-top: 15px;
+            border-radius: 0 6px 6px 0;
+            font-size: 0.9rem;
+        }
     </style>
 </head>
 <body>
@@ -164,7 +180,7 @@
         <p data-i18n="header_desc">SamuraiRoad Project のソースコードを管理・保存するための手順</p>
 
         <div class="nav-links">
-            <a href="index.html" class="nav-button"><span data-i18n="nav_back">🏠 ホームへ戻る</span></a>
+            <a href="../index.html" class="nav-button"><span data-i18n="nav_back">🏠 ホームへ戻る</span></a>
         </div>
     </header>
 
@@ -224,9 +240,45 @@
             git push
         </div>
     </div>
+
+    <div class="card">
+        <h2><span class="step-number">5</span> <span data-i18n="step5_title">状況や履歴を確認する</span></h2>
+        <p data-i18n="step5_p1">自分が今どのファイルを変更したか、過去にどんなセーブをしたかを確認したい時は、以下のコマンドを使います。</p>
+        <div class="code-block">
+            <span class="code-comment"># 今の状態（変更されたファイル）を確認する</span><br>
+            git status<br><br>
+            <span class="code-comment"># 過去のセーブ（コミット）履歴を確認する</span><br>
+            git log
+        </div>
+        <div class="tip-box">
+            <i class="fas fa-lightbulb"></i> <span data-i18n="step5_tip"><b>初心者へのヒント：</b> <code>git log</code> を実行して画面から抜け出せなくなった場合は、キーボードの <b>Qキー</b> を押すと元の画面に戻れます。</span>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2><span class="step-number">6</span> <span data-i18n="step6_title">最新の状態を取り込む (同期)</span></h2>
+        <p data-i18n="step6_p1">別のPCで作業した続きをするときや、他の人が更新したデータを自分のPCにダウンロードしたい（同期したい）時は、作業を始める前に以下のコマンドを実行します。</p>
+        <div class="code-block">
+            <span class="code-comment"># GitHubから最新のデータをダウンロードして同期する</span><br>
+            git pull
+        </div>
+        <div class="tip-box">
+            <i class="fas fa-exclamation-circle" style="color: var(--accent-color);"></i> <span data-i18n="step6_tip"><b>重要なルール：</b> <code>git pull</code> は、必ず<b>コードを書き始める前</b>に行う癖をつけましょう。古い状態のまま編集してプッシュしようとするとエラーになってしまいます。</span>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2><i class="fas fa-question-circle" style="color: var(--accent-color); margin-right: 10px;"></i> <span data-i18n="faq_title">よくあるエラー（トラブルシューティング）</span></h2>
+        
+        <h3 class="faq-title"><i class="fas fa-exclamation-triangle"></i> <span data-i18n="faq1_q">エラー: "Author identity unknown" と言われたら</span></h3>
+        <p data-i18n="faq1_a"><b>原因:</b> 誰が保存したのかをGitが認識できていません。<br><b>解決策:</b> 画面上部の「ステップ2：初期設定」に戻り、<code>git config</code> コマンドを使って名前とメールアドレスを登録してください。</p>
+
+        <h3 class="faq-title"><i class="fas fa-exclamation-triangle"></i> <span data-i18n="faq2_q">警告: "adding embedded git repository" と言われたら</span></h3>
+        <p data-i18n="faq2_a"><b>原因:</b> Gitで管理している大元のフォルダの中に、さらに別のGit管理フォルダが入ってしまっている（マトリョーシカ状態）という警告です。<br><b>解決策:</b> コマンドを打っている場所が間違っている可能性があります。正しいプロジェクトフォルダ（例：<code>samurairoad-project</code>）まで移動（<code>cd</code>コマンド等）してから実行し直してください。</p>
+    </div>
 </div>
 
-<script src="./assets/js/sr-common.js" defer></script>
+<script src="../assets/js/sr-common.js" defer></script>
 
 <script>
 /* --- i18n (EN/JA) --- */
@@ -253,7 +305,21 @@ const resources = {
     step3_pb: "対象のフォルダでGit Bashを開き、以下のコマンドを順に実行してGitHubと結びつけます。",
     
     step4_title: "普段の作業フロー (基本の3ステップ)",
-    step4_p1: "コードを修正した後は、常にこの3つのコマンドを使ってGitHubにデータをセーブ（アップロード）します。"
+    step4_p1: "コードを修正した後は、常にこの3つのコマンドを使ってGitHubにデータをセーブ（アップロード）します。",
+
+    step5_title: "状況や履歴を確認する",
+    step5_p1: "自分が今どのファイルを変更したか、過去にどんなセーブをしたかを確認したい時は、以下のコマンドを使います。",
+    step5_tip: "<b>初心者へのヒント：</b> <code>git log</code> を実行して画面から抜け出せなくなった場合は、キーボードの <b>Qキー</b> を押すと元の画面に戻れます。",
+
+    step6_title: "最新の状態を取り込む (同期)",
+    step6_p1: "別のPCで作業した続きをするときや、他の人が更新したデータを自分のPCにダウンロードしたい（同期したい）時は、作業を始める前に以下のコマンドを実行します。",
+    step6_tip: "<b>重要なルール：</b> <code>git pull</code> は、必ず<b>コードを書き始める前</b>に行う癖をつけましょう。古い状態のまま編集してプッシュしようとするとエラーになってしまいます。",
+
+    faq_title: "よくあるエラー（トラブルシューティング）",
+    faq1_q: "エラー: \"Author identity unknown\" と言われたら",
+    faq1_a: "<b>原因:</b> 誰が保存したのかをGitが認識できていません。<br><b>解決策:</b> 画面上部の「ステップ2：初期設定」に戻り、<code>git config</code> コマンドを使って名前とメールアドレスを登録してください。",
+    faq2_q: "警告: \"adding embedded git repository\" と言われたら",
+    faq2_a: "<b>原因:</b> Gitで管理している大元のフォルダの中に、さらに別のGit管理フォルダが入ってしまっている（マトリョーシカ状態）という警告です。<br><b>解決策:</b> コマンドを打っている場所が間違っている可能性があります。正しいプロジェクトフォルダ（例：<code>samurairoad-project</code>）まで移動（<code>cd</code>コマンド等）してから実行し直してください。"
   },
   en: {
     doc_title: "Git Setup & Usage Guide | SamuraiRoad Project",
@@ -277,7 +343,21 @@ const resources = {
     step3_pb: "Open Git Bash in an existing local folder and run the following commands sequentially to link it to GitHub.",
     
     step4_title: "Daily Workflow (The Basic 3 Steps)",
-    step4_p1: "After modifying your code, always use these 3 commands to save (upload) your data to GitHub."
+    step4_p1: "After modifying your code, always use these 3 commands to save (upload) your data to GitHub.",
+
+    step5_title: "Check Status & History",
+    step5_p1: "If you want to check which files you have modified or view your past commits, use these commands.",
+    step5_tip: "<b>Beginner's Tip:</b> If you get stuck in the <code>git log</code> screen and can't type anything, press the <b>Q key</b> on your keyboard to quit.",
+
+    step6_title: "Sync Latest Changes (Pull)",
+    step6_p1: "When continuing work from another PC, or downloading changes made by someone else, run this command before you start working.",
+    step6_tip: "<b>Important Rule:</b> Always make it a habit to <code>git pull</code> <b>before</b> you start writing code. If you edit files based on an outdated state and try to push, you will encounter errors.",
+
+    faq_title: "Troubleshooting & Common Errors",
+    faq1_q: "Error: \"Author identity unknown\"",
+    faq1_a: "<b>Cause:</b> Git doesn't know who is making the commit.<br><b>Solution:</b> Go back to 'Step 2: Initial Setup' and run the <code>git config</code> commands to register your name and email.",
+    faq2_q: "Warning: \"adding embedded git repository\"",
+    faq2_a: "<b>Cause:</b> You have a Git repository inside another Git repository (like Russian nesting dolls).<br><b>Solution:</b> You might be running commands in the wrong directory. Make sure to navigate (<code>cd</code>) directly into your project folder (e.g., <code>samurairoad-project</code>) before running commands."
   }
 };
 
