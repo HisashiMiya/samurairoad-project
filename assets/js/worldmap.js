@@ -27,6 +27,7 @@
       btn_speech_start: "読み上げ", btn_speech_stop: "停止",
       lbl_search_cond: "検索時の詳細条件",
       spot_thinking: "おすすめスポットを探しています...",
+      sub_coment: "通常は数秒で完了しますが、混雑時には約45秒ほどかかる場合があります。",
     },
     en: {
       menu_routes: "Routes", menu_record: "Record", menu_report: "Report", menu_settings: "Config",
@@ -52,6 +53,7 @@
       btn_speech_start: "Read Aloud", btn_speech_stop: "Stop",
       lbl_search_cond: "Search Conditions",
       spot_thinking: "Searching for spots...",
+      sub_comment: "Normally this completes within a few seconds, but during peak times it may take up to about 45 seconds.",
     }
   };
 
@@ -271,10 +273,21 @@
   }
 
   // ■■■ ローディング画面の制御 ■■■
-  function showLoading(customTextKey = null) {
+  function showLoading(customTextKey = null, subTextKey = null) {
     const modal = document.getElementById('loadingModal');
     const text = document.getElementById('loadingText');
-    text.textContent = customTextKey ? t(customTextKey) : t('samurai_thinking');
+
+    // メインテキスト
+    const mainText = customTextKey ? t(customTextKey) : t('samurai_thinking');
+
+    // サブテキスト（存在する場合のみ改行して追加）
+    if (subTextKey) {
+      const subText = t(subTextKey);
+      text.textContent = mainText + '\n' + subText;
+    } else {
+      text.textContent = mainText;
+    }
+
     modal.style.display = "flex";
   }
 
@@ -554,7 +567,7 @@ Please answer in English.
   window.askOnsen = async function(lat, lng) {
       if (!lat || !lng) return;
       map.closePopup();
-      showLoading('onsen_thinking');
+      showLoading('onsen_thinking',  'sub_coment');
 
       // 設定画面で入力された詳細条件を取得
       const condText = AppState.searchCondition ? AppState.searchCondition.trim() : "";
@@ -607,7 +620,7 @@ For each spot, provide:
   window.askLocalFood = async function(lat, lng) {
       if (!lat || !lng) return;
       map.closePopup();
-      showLoading('food_thinking');
+      showLoading('food_thinking', 'sub_coment');
 
       // 設定画面で入力された詳細条件を取得
       const condText = AppState.searchCondition ? AppState.searchCondition.trim() : "";
@@ -703,7 +716,7 @@ Focus on the Edo period or old roads if applicable.
   window.askSpotSearch = async function(lat, lng) {
       if (!lat || !lng) return;
       map.closePopup();
-      showLoading('spot_thinking');
+      showLoading('spot_thinking', 'sub_coment');
 
       // 設定画面で入力された詳細条件を取得
       const condText = AppState.searchCondition ? AppState.searchCondition.trim() : "";
@@ -1170,7 +1183,6 @@ if (btnTraceGameExit) btnTraceGameExit.onclick = () => {
   // ★ 歴史ガイド (GPS) イベント ★
   document.getElementById('btnHistory').onclick = () => {
       if(!navigator.geolocation) return;
-      // showLoading(); // askHistoryByGPS内で行うのでここでは不要
       navigator.geolocation.getCurrentPosition(pos => {
           askHistoryByGPS(pos.coords.latitude, pos.coords.longitude);
       }, err => alert("GPS Error: " + err.message));
