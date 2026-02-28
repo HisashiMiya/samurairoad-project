@@ -913,22 +913,23 @@ window.closeModals = function(opts = {}) {
   const re = document.getElementById('modalRouteEdit');
   const tg = document.getElementById('modalTraceGame');
 
-  // ルート編集：開いていて、RouteEditorがいるなら最小化（= UIだけ閉じる）
-  if (!force && re && re.classList.contains('open') && window.RouteEditor) {
+  const reActive = !!window.RouteEditor?.isActive?.();
+  const tgActive = !!window.TraceGame?.isActive?.();
+
+  // 稼働中は“最小化”はするが、処理は止めない（returnしない）
+  if (!force && re && re.classList.contains('open') && reActive) {
     re.classList.add('minimized');
-    return;
   }
-
-  // なぞり：開いていて、TraceGameがいるなら最小化（= UIだけ閉じる）
-  if (!force && tg && tg.classList.contains('open') && window.TraceGame) {
+  if (!force && tg && tg.classList.contains('open') && tgActive) {
     tg.classList.add('minimized');
-    return;
   }
 
-  // force=true も含め、ここまで来たら「全部」閉じる（UIのみ）
-  document.querySelectorAll('.modal-overlay, .modal').forEach(e => {
-    e.classList.remove('open');
-    e.classList.remove('minimized');
+  // それ以外は閉じる。ただし、稼働中の2つは閉じない
+  document.querySelectorAll('.modal-overlay, .modal').forEach(el => {
+    if (el === re && reActive && !force) return;
+    if (el === tg && tgActive && !force) return;
+    el.classList.remove('open');
+    el.classList.remove('minimized');
   });
 };
 
