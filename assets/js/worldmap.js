@@ -274,8 +274,6 @@
 
   // ■■■ ローディング画面の制御 ■■■
   function showLoading(customTextKey = null, subTextKey = null) {
-    window.showLoading = showLoading;// TODO 
-      console.log('[showLoading] called', { customTextKey, subTextKey }); // ★証拠
     const modal = document.getElementById('loadingModal');
     const text = document.getElementById('loadingText');
 
@@ -567,9 +565,7 @@ Please answer in English.
   }
 // --- 新機能: 温泉検索（詳細条件＋両対応の最適化版） ---
   window.askOnsen = async function(lat, lng) {
-          console.log('test2'); // ★証拠
       if (!lat || !lng) return;
-                console.log('test3'); // ★証拠
       map.closePopup();
       showLoading('onsen_thinking',  'sub_coment');
 
@@ -673,9 +669,8 @@ For each spot, provide:
   };
 
 // ■■■ 指定地点の侍解説を実行する関数（修正済） ■■■
-//  地図長押しから侍解説 + おすすめスポット
+// ★ 機能2: 地図長押しから侍解説 + おすすめスポット
   window.askSamuraiSpot = async function(lat, lng) {
-        console.log('test1'); // ★証拠
       map.closePopup(); // ポップアップを閉じる
       showLoading();    // ローディング開始
 
