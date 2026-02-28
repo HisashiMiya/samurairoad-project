@@ -274,6 +274,8 @@
 
   // ■■■ ローディング画面の制御 ■■■
   function showLoading(customTextKey = null, subTextKey = null) {
+    window.showLoading = showLoading;// TODO 
+      console.log('[showLoading] called', { customTextKey, subTextKey }); // ★証拠
     const modal = document.getElementById('loadingModal');
     const text = document.getElementById('loadingText');
 
