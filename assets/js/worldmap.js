@@ -184,6 +184,12 @@
   // NOTE: Bind ONCE. Do not bind inside updateLanguage() to avoid duplicate handlers.
   // -----------------------------------------
   let _srContextMenuBound = false;
+  // -------------------------------------------------
+  // DEBUG: Right-click (contextmenu) verification switch
+  // - Set window.SR_DEBUG_CONTEXT = false; to silence logs
+  // -------------------------------------------------
+  window.SR_DEBUG_CONTEXT = (window.SR_DEBUG_CONTEXT !== undefined) ? window.SR_DEBUG_CONTEXT : true;
+
   function bindContextMenuOnce() {
     if (_srContextMenuBound) return;
     _srContextMenuBound = true;
@@ -202,27 +208,115 @@ console.log("ここに来た");
         <div style="text-align:center; font-family: sans-serif;">
             <div style="font-weight:bold; margin-bottom:8px; color:#333;">${title}</div>
             <div style="display:flex; gap:8px; justify-content:center; flex-wrap:wrap;">
-              <button onclick="window.askSamuraiSpot(${lat}, ${lng})" 
+              <button data-action="samurai"
                 style="background:#0066cc;color:white;border:none;padding:8px 12px;border-radius:20px;font-weight:bold;cursor:pointer;box-shadow:0 2px 5px rgba(0,0,0,0.2);">
                 🏯 ${lblSamurai}
               </button>
-              <button onclick="window.askOnsen(${lat}, ${lng})" 
+
+              <button data-action="onsen"
                 style="background:#ff99cc;color:#cc0066;border:none;padding:8px 12px;border-radius:20px;font-weight:bold;cursor:pointer;box-shadow:0 2px 5px rgba(0,0,0,0.2);">
                 ♨️ ${lblOnsen}
               </button>
-              <button onclick="window.askLocalFood(${lat}, ${lng})" 
+
+              <button data-action="food"
                 style="background:#ffcc99;color:#cc6600;border:none;padding:8px 12px;border-radius:20px;font-weight:bold;cursor:pointer;box-shadow:0 2px 5px rgba(0,0,0,0.2);">
                 🍴 ${lblFood}
               </button>
             </div>
-            <button onclick="window.askSpotSearch(${lat}, ${lng})" 
+
+            <button data-action="spots"
               style="background:#33cc33;color:white;border:none;padding:8px 12px;border-radius:20px;font-weight:bold;cursor:pointer;box-shadow:0 2px 5px rgba(0,0,0,0.2);margin-top:8px;">
               🔍 ${lblSpot}
             </button>
         </div>
       `;
 
-      L.popup().setLatLng(e.latlng).setContent(popupContent).openOn(map);
+      const pop = L.popup().setLatLng(e.latlng).setContent(popupContent).openOn(map);
+
+// -------------------------------------------------
+// 裏どり: popup DOM / button existence / click reachability / handler attachment
+// NOTE:
+//  - popupopen は openOn(map) と同一tickで発火し得るため取り逃がすことがある。
+//  - ここでは setTimeout(0) で DOM 生成後に確実にバインドする。
+// -------------------------------------------------
+setTimeout(() => {
+  const DBG = !!window.SR_DEBUG_CONTEXT;
+
+  const root = pop.getElement(); // .leaflet-popup
+  if (!root) {
+    if (DBG) console.warn('[SR ctx] pop.getElement() is null (DOM not ready / popup replaced)');
+    return;
+  }
+
+  const contentEl = root.querySelector('.leaflet-popup-content');
+  if (DBG) {
+    console.log('[SR ctx] popup DOM ready', {
+      lat, lng,
+      hasContent: !!contentEl,
+      popupHTML: contentEl ? contentEl.innerHTML : null
+    });
+  }
+
+  const buttons = root.querySelectorAll('button[data-action]');
+  if (DBG) {
+    console.log('[SR ctx] buttons found', buttons.length,
+      Array.from(buttons).map(b => ({ action: b.dataset.action, text: (b.textContent || '').trim() }))
+    );
+  }
+
+  // Capture: popup内のクリックがDOMに届いているか（overlay吸収の検知）
+  if (contentEl) {
+    if (!contentEl.dataset.srClickProbe) {
+      contentEl.dataset.srClickProbe = '1';
+      contentEl.addEventListener('click', (ev) => {
+        if (DBG) console.log('[SR ctx] DOM click reached', ev.target);
+      }, true);
+    }
+  }
+
+  // pocket overlay の状態もログ（吸収疑いの裏どり）
+  if (DBG) {
+    const ov = document.getElementById('pocketModeOverlay');
+    if (ov) console.log('[SR ctx] pocketModeOverlay display', getComputedStyle(ov).display);
+  }
+
+  buttons.forEach(btn => {
+    // バインドした証跡をDOMに刻む（後で消せる）
+    btn.dataset.srBound = '1';
+    btn.style.outline = '2px solid rgba(255,0,0,0.7)';
+
+    // クリックが map に吸われないよう念のため止める
+    btn.addEventListener('pointerdown', (ev) => ev.stopPropagation(), { passive: true });
+
+    btn.addEventListener('click', () => {
+      const action = btn.dataset.action;
+
+      if (DBG) {
+        console.log('[SR ctx] handler fired', action, { lat, lng });
+        console.log('[SR ctx] window funcs', {
+          askSamuraiSpot: typeof window.askSamuraiSpot,
+          askOnsen: typeof window.askOnsen,
+          askLocalFood: typeof window.askLocalFood,
+          askSpotSearch: typeof window.askSpotSearch,
+        });
+      }
+
+      if (action === 'samurai') window.askSamuraiSpot?.(lat, lng);
+      if (action === 'onsen')  window.askOnsen?.(lat, lng);
+      if (action === 'food')   window.askLocalFood?.(lat, lng);
+      if (action === 'spots')  window.askSpotSearch?.(lat, lng);
+    }, { once: true });
+  });
+
+  if (DBG) console.log('[SR ctx] bind complete', { bound: Array.from(buttons).map(b => b.dataset.action) });
+}, 0);
+if (action === 'samurai') window.askSamuraiSpot?.(lat, lng);
+            if (action === 'onsen')  window.askOnsen?.(lat, lng);
+            if (action === 'food')   window.askLocalFood?.(lat, lng);
+            if (action === 'spots')  window.askSpotSearch?.(lat, lng);
+          }, { once: true });
+        });
+      });
     });
   }
 
