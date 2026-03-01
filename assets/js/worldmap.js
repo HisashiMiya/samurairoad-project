@@ -393,6 +393,7 @@ setTimeout(() => {
       text.textContent = mainText;
     }
 
+    window.__srLoadingShownAt = performance.now();
     modal.style.display = "flex";
 
     // 裏どり：本当に表示命令が走ったか（必要なら後で消す）
@@ -409,8 +410,30 @@ setTimeout(() => {
   }
 
   function hideLoading() {
-    document.getElementById('loadingModal').style.display = "none";
+  const modal = document.getElementById('loadingModal');
+  if (!modal) {
+    console.warn('[hideLoading] missing loadingModal');
+    return;
   }
+
+  const DBG = !!window.SR_DEBUG_CONTEXT;
+  const shownAt = window.__srLoadingShownAt || 0;
+  const elapsed = (shownAt && performance.now) ? (performance.now() - shownAt) : null;
+
+  const doHide = () => {
+    modal.style.display = "none";
+    if (DBG) console.log('[hideLoading] display=none');
+  };
+
+  // ちらつき防止：最低 350ms は表示してから消す
+  if (elapsed !== null && elapsed < 550) {
+    if (DBG) console.log('[hideLoading] delaying hide', { elapsed, minMs: 550 });
+    setTimeout(doHide, 550 - elapsed);
+  } else {
+    doHide();
+  }
+}
+
 
   // ■■■ AI結果表示用の自作ウィンドウ ■■■
   function showAIResult(text) {
