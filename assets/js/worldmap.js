@@ -445,23 +445,7 @@ window.showLoading = showLoading;
 window.hideLoading = hideLoading;
 
 
-  const DBG = !!window.SR_DEBUG_CONTEXT;
-  const shownAt = window.__srLoadingShownAt || 0;
-  const elapsed = (shownAt && performance.now) ? (performance.now() - shownAt) : null;
 
-  const doHide = () => {
-    modal.style.display = "none";
-    if (DBG) console.log('[hideLoading] display=none');
-  };
-
-  // ちらつき防止：最低 350ms は表示してから消す
-  if (elapsed !== null && elapsed < 350) {
-    if (DBG) console.log('[hideLoading] delaying hide', { elapsed, minMs: 350 });
-    setTimeout(doHide, 350 - elapsed);
-  } else {
-    doHide();
-  }
-}
 
 
   // ■■■ AI結果表示用の自作ウィンドウ ■■■
