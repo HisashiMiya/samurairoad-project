@@ -27,6 +27,7 @@
       btn_speech_start: "読み上げ", btn_speech_stop: "停止",
       lbl_search_cond: "検索時の詳細条件",
       spot_thinking: "おすすめスポットを探しています...",
+      sub_coment: "通常は数秒で完了しますが、混雑時には約45秒ほどかかる場合があります。",
     },
     en: {
       menu_routes: "Routes", menu_record: "Record", menu_report: "Report", menu_settings: "Config",
@@ -52,6 +53,7 @@
       btn_speech_start: "Read Aloud", btn_speech_stop: "Stop",
       lbl_search_cond: "Search Conditions",
       spot_thinking: "Searching for spots...",
+      sub_comment: "Normally this completes within a few seconds, but during peak times it may take up to about 45 seconds.",
     }
   };
 
@@ -318,10 +320,21 @@ console.log("ここに来た");
   }
 
   // ■■■ ローディング画面の制御 ■■■
-  function showLoading(customTextKey = null) {
+  function showLoading(customTextKey = null, subTextKey = null) {
     const modal = document.getElementById('loadingModal');
     const text = document.getElementById('loadingText');
-    text.textContent = customTextKey ? t(customTextKey) : t('samurai_thinking');
+
+    // メインテキスト
+    const mainText = customTextKey ? t(customTextKey) : t('samurai_thinking');
+
+    // サブテキスト（存在する場合のみ改行して追加）
+    if (subTextKey) {
+      const subText = t(subTextKey);
+      text.textContent = mainText + '\n' + subText;
+    } else {
+      text.textContent = mainText;
+    }
+
     modal.style.display = "flex";
   }
 
@@ -337,7 +350,7 @@ console.log("ここに来た");
      modal.style.display = "flex"; 
      
      // 読み上げ状態をリセット
-     stopSpeech();
+     window.stopSpeech();
      updateSpeechButton();
 
      // ★追加: 自動読み上げがONなら即座に読み上げる
@@ -355,7 +368,7 @@ console.log("ここに来た");
   
   window.toggleSpeech = function() {
     if (isSpeaking) {
-        stopSpeech();
+        window.stopSpeech();
     } else {
         const text = document.getElementById('aiContent').innerText;
         speakText(text);
@@ -601,7 +614,7 @@ Please answer in English.
   window.askOnsen = async function(lat, lng) {
       if (!lat || !lng) return;
       map.closePopup();
-      showLoading('onsen_thinking');
+      showLoading('onsen_thinking',  'sub_coment');
 
       // 設定画面で入力された詳細条件を取得
       const condText = AppState.searchCondition ? AppState.searchCondition.trim() : "";
@@ -654,7 +667,7 @@ For each spot, provide:
   window.askLocalFood = async function(lat, lng) {
       if (!lat || !lng) return;
       map.closePopup();
-      showLoading('food_thinking');
+      showLoading('food_thinking', 'sub_coment');
 
       // 設定画面で入力された詳細条件を取得
       const condText = AppState.searchCondition ? AppState.searchCondition.trim() : "";
@@ -705,9 +718,10 @@ For each spot, provide:
 // ■■■ 指定地点の侍解説を実行する関数（修正済） ■■■
 // ★ 機能2: 地図長押しから侍解説 + おすすめスポット
   window.askSamuraiSpot = async function(lat, lng) {
+  console.log("ここに来た2");
       map.closePopup(); // ポップアップを閉じる
       showLoading();    // ローディング開始
-
+console.log("ここに来た3");
       try {
           let prompt = "";
           const latitudeVal = lat;
@@ -750,7 +764,7 @@ Focus on the Edo period or old roads if applicable.
   window.askSpotSearch = async function(lat, lng) {
       if (!lat || !lng) return;
       map.closePopup();
-      showLoading('spot_thinking');
+      showLoading('spot_thinking', 'sub_coment');
 
       // 設定画面で入力された詳細条件を取得
       const condText = AppState.searchCondition ? AppState.searchCondition.trim() : "";
@@ -950,22 +964,20 @@ window.closeModals = function(opts = {}) {
   const reActive = !!window.RouteEditor?.isActive?.();
   const tgActive = !!window.TraceGame?.isActive?.();
 
-  // ルート編集：稼働中のみ最小化
+  // 稼働中は“最小化”はするが、処理は止めない（returnしない）
   if (!force && re && re.classList.contains('open') && reActive) {
     re.classList.add('minimized');
-    return;
   }
-
-  // なぞり：稼働中のみ最小化
   if (!force && tg && tg.classList.contains('open') && tgActive) {
     tg.classList.add('minimized');
-    return;
   }
 
-  // ここまで来たら「全部」閉じる（UIのみ）
-  document.querySelectorAll('.modal-overlay, .modal').forEach(e => {
-    e.classList.remove('open');
-    e.classList.remove('minimized');
+  // それ以外は閉じる。ただし、稼働中の2つは閉じない
+  document.querySelectorAll('.modal-overlay, .modal').forEach(el => {
+    if (el === re && reActive && !force) return;
+    if (el === tg && tgActive && !force) return;
+    el.classList.remove('open');
+    el.classList.remove('minimized');
   });
 };
 
@@ -1112,7 +1124,22 @@ if (btnTraceGameExit) btnTraceGameExit.onclick = () => {
     }
 
     // Pointer Eventsによる堅牢なロック解除（水滴等によるtouchcancel対策）
-    pocketOverlay.addEventListener('pointerdown', startUnlock);
+    function onPocketPointerDown(e) {
+      // Hold-to-unlock progress
+      startUnlock(e);
+
+      // 5-tap quick unlock (works together with hold)
+      tapCount++;
+      clearTimeout(tapTimer);
+      if (tapCount >= 5) {
+        forceUnlock();
+        showToast("強制解除 (5回タップ)");
+      } else {
+        tapTimer = setTimeout(() => { tapCount = 0; }, 500);
+      }
+    }
+
+    pocketOverlay.addEventListener('pointerdown', onPocketPointerDown);
     pocketOverlay.addEventListener('pointerup', cancelUnlock);
     pocketOverlay.addEventListener('pointercancel', cancelUnlock);
     pocketOverlay.addEventListener('pointerleave', cancelUnlock);
@@ -1126,17 +1153,6 @@ if (btnTraceGameExit) btnTraceGameExit.onclick = () => {
       }
     });
 
-    // フェイルセーフ2: パニック5連打
-    pocketOverlay.addEventListener('pointerdown', () => {
-      tapCount++;
-      clearTimeout(tapTimer);
-      if (tapCount >= 5) {
-        forceUnlock();
-        showToast("緊急解除 (5連打)");
-      } else {
-        tapTimer = setTimeout(() => { tapCount = 0; }, 500);
-      }
-    });
   }
   
   function renderRouteMenu() {
@@ -1220,7 +1236,6 @@ if (btnTraceGameExit) btnTraceGameExit.onclick = () => {
   // ★ 歴史ガイド (GPS) イベント ★
   document.getElementById('btnHistory').onclick = () => {
       if(!navigator.geolocation) return;
-      // showLoading(); // askHistoryByGPS内で行うのでここでは不要
       navigator.geolocation.getCurrentPosition(pos => {
           askHistoryByGPS(pos.coords.latitude, pos.coords.longitude);
       }, err => alert("GPS Error: " + err.message));
