@@ -377,18 +377,36 @@ setTimeout(() => {
     const modal = document.getElementById('loadingModal');
     const text = document.getElementById('loadingText');
 
+    if (!modal || !text) {
+      console.warn('[showLoading] missing DOM', { hasModal: !!modal, hasText: !!text });
+      return;
+    }
+
     // メインテキスト
     const mainText = customTextKey ? t(customTextKey) : t('samurai_thinking');
 
     // サブテキスト（存在する場合のみ改行して追加）
     if (subTextKey) {
       const subText = t(subTextKey);
-      text.textContent = mainText + '\n' + subText;
+      text.textContent = mainText + '
+' + subText;
     } else {
       text.textContent = mainText;
     }
 
     modal.style.display = "flex";
+
+    // 裏どり：本当に表示命令が走ったか（必要なら後で消す）
+    if (window.SR_DEBUG_CONTEXT) {
+      console.log('[showLoading] display=flex', { mainTextKey: customTextKey, subTextKey });
+      requestAnimationFrame(() => {
+        console.log('[showLoading] after RAF', {
+          display: getComputedStyle(modal).display,
+          opacity: getComputedStyle(modal).opacity,
+          zIndex: getComputedStyle(modal).zIndex
+        });
+      });
+    }
   }
 
   function hideLoading() {
@@ -774,6 +792,8 @@ For each spot, provide:
   console.log("ここに来た2");
       map.closePopup(); // ポップアップを閉じる
       showLoading();    // ローディング開始
+      // 裏どり：ローディングを描画するために1tick譲る（同期処理で描画が詰まるのを防ぐ）
+      await new Promise(r => setTimeout(r, 0));
 console.log("ここに来た3");
       try {
           let prompt = "";
