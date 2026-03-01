@@ -179,6 +179,53 @@
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     maxZoom: 19, attribution: '&copy; OpenStreetMap'
   }).addTo(map);
+  // -----------------------------------------
+  // Context menu (right-click / long-press)
+  // NOTE: Bind ONCE. Do not bind inside updateLanguage() to avoid duplicate handlers.
+  // -----------------------------------------
+  let _srContextMenuBound = false;
+  function bindContextMenuOnce() {
+    if (_srContextMenuBound) return;
+    _srContextMenuBound = true;
+
+    map.on('contextmenu', function(e) {
+      const lat = e.latlng.lat;
+      const lng = e.latlng.lng;
+
+      const title = (AppState.lang === 'ja') ? 'この場所について調べる' : 'Explore this place';
+      const lblSamurai = (AppState.lang === 'ja') ? '侍' : 'Samurai';
+      const lblOnsen  = (AppState.lang === 'ja') ? '温泉' : 'Onsen';
+      const lblFood   = (AppState.lang === 'ja') ? '食事' : 'Food';
+      const lblSpot   = (AppState.lang === 'ja') ? 'スポット' : 'Spots';
+console.log("ここに来た");
+      const popupContent = `
+        <div style="text-align:center; font-family: sans-serif;">
+            <div style="font-weight:bold; margin-bottom:8px; color:#333;">${title}</div>
+            <div style="display:flex; gap:8px; justify-content:center; flex-wrap:wrap;">
+              <button onclick="window.askSamuraiSpot(${lat}, ${lng})" 
+                style="background:#0066cc;color:white;border:none;padding:8px 12px;border-radius:20px;font-weight:bold;cursor:pointer;box-shadow:0 2px 5px rgba(0,0,0,0.2);">
+                🏯 ${lblSamurai}
+              </button>
+              <button onclick="window.askOnsen(${lat}, ${lng})" 
+                style="background:#ff99cc;color:#cc0066;border:none;padding:8px 12px;border-radius:20px;font-weight:bold;cursor:pointer;box-shadow:0 2px 5px rgba(0,0,0,0.2);">
+                ♨️ ${lblOnsen}
+              </button>
+              <button onclick="window.askLocalFood(${lat}, ${lng})" 
+                style="background:#ffcc99;color:#cc6600;border:none;padding:8px 12px;border-radius:20px;font-weight:bold;cursor:pointer;box-shadow:0 2px 5px rgba(0,0,0,0.2);">
+                🍴 ${lblFood}
+              </button>
+            </div>
+            <button onclick="window.askSpotSearch(${lat}, ${lng})" 
+              style="background:#33cc33;color:white;border:none;padding:8px 12px;border-radius:20px;font-weight:bold;cursor:pointer;box-shadow:0 2px 5px rgba(0,0,0,0.2);margin-top:8px;">
+              🔍 ${lblSpot}
+            </button>
+        </div>
+      `;
+
+      L.popup().setLatLng(e.latlng).setContent(popupContent).openOn(map);
+    });
+  }
+
 
   map.on("moveend", () => {
     if (!AppState.isLoadingRoute) {
@@ -210,41 +257,6 @@
       el.textContent = t(el.dataset.lang);
     });
     renderRouteMenu();
-    // ■■■ 新機能: 地図長押しで侍を呼ぶ ■■■
-  map.on('contextmenu', function(e) {
-      const lat = e.latlng.lat;
-      const lng = e.latlng.lng;
-
-      // ポップアップの内容（スタイルはアプリに合わせる）
-      const popupContent = `
-        <div style="text-align:center; font-family: sans-serif;">
-            <div style="font-weight:bold; margin-bottom:8px; color:#333;">この場所について調べる</div>
-            <div style="display:flex; gap:8px; justify-content:center;">
-              <button onclick="window.askSamuraiSpot(${lat}, ${lng})" 
-                style="background: #0066cc; color: white; border: none; padding: 8px 12px; border-radius: 20px; font-weight: bold; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
-                🏯 侍
-              </button>
-              <button onclick="window.askOnsen(${lat}, ${lng})" 
-                style="background: #ff99cc; color: #cc0066; border: none; padding: 8px 12px; border-radius: 20px; font-weight: bold; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
-                ♨️ 温泉
-              </button>
-              <button onclick="window.askLocalFood(${lat}, ${lng})" 
-                style="background: #ffcc99; color: #cc6600; border: none; padding: 8px 12px; border-radius: 20px; font-weight: bold; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
-                🍴 食事
-              </button>
-            </div>
-            <button onclick="window.askSpotSearch(${lat}, ${lng})" 
-              style="background: #33cc33; color: white; border: none; padding: 8px 12px; border-radius: 20px; font-weight: bold; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
-              🔍 スポット
-            </button>
-        </div>
-      `;
-
-      L.popup()
-        .setLatLng(e.latlng)
-        .setContent(popupContent)
-        .openOn(map);
-  });
     updateRecordStats();
     renderRecordButtonState();
     updateTopBarText();
@@ -303,7 +315,7 @@
      modal.style.display = "flex"; 
      
      // 読み上げ状態をリセット
-     stopSpeech();
+     window.stopSpeech();
      updateSpeechButton();
 
      // ★追加: 自動読み上げがONなら即座に読み上げる
@@ -321,7 +333,7 @@
   
   window.toggleSpeech = function() {
     if (isSpeaking) {
-        stopSpeech();
+        window.stopSpeech();
     } else {
         const text = document.getElementById('aiContent').innerText;
         speakText(text);
@@ -671,9 +683,10 @@ For each spot, provide:
 // ■■■ 指定地点の侍解説を実行する関数（修正済） ■■■
 // ★ 機能2: 地図長押しから侍解説 + おすすめスポット
   window.askSamuraiSpot = async function(lat, lng) {
+  console.log("ここに来た2");
       map.closePopup(); // ポップアップを閉じる
       showLoading();    // ローディング開始
-
+console.log("ここに来た3");
       try {
           let prompt = "";
           const latitudeVal = lat;
@@ -1076,7 +1089,22 @@ if (btnTraceGameExit) btnTraceGameExit.onclick = () => {
     }
 
     // Pointer Eventsによる堅牢なロック解除（水滴等によるtouchcancel対策）
-    pocketOverlay.addEventListener('pointerdown', startUnlock);
+    function onPocketPointerDown(e) {
+      // Hold-to-unlock progress
+      startUnlock(e);
+
+      // 5-tap quick unlock (works together with hold)
+      tapCount++;
+      clearTimeout(tapTimer);
+      if (tapCount >= 5) {
+        forceUnlock();
+        showToast("強制解除 (5回タップ)");
+      } else {
+        tapTimer = setTimeout(() => { tapCount = 0; }, 500);
+      }
+    }
+
+    pocketOverlay.addEventListener('pointerdown', onPocketPointerDown);
     pocketOverlay.addEventListener('pointerup', cancelUnlock);
     pocketOverlay.addEventListener('pointercancel', cancelUnlock);
     pocketOverlay.addEventListener('pointerleave', cancelUnlock);
@@ -1090,17 +1118,6 @@ if (btnTraceGameExit) btnTraceGameExit.onclick = () => {
       }
     });
 
-    // フェイルセーフ2: パニック5連打
-    pocketOverlay.addEventListener('pointerdown', () => {
-      tapCount++;
-      clearTimeout(tapTimer);
-      if (tapCount >= 5) {
-        forceUnlock();
-        showToast("緊急解除 (5連打)");
-      } else {
-        tapTimer = setTimeout(() => { tapCount = 0; }, 500);
-      }
-    });
   }
   
   function renderRouteMenu() {
@@ -1206,6 +1223,35 @@ if (btnTraceGameExit) btnTraceGameExit.onclick = () => {
 // =========================================
   // 99. 公開API（プラグイン用）
   // =========================================
+  // =========================================
+  // ★追加：ネイティブGPS連携ヘルパー
+  // =========================================
+  function getCurrentLocationNative(callback) {
+      if (window.AndroidLocation) {
+          // アプリ版：Android側でGPSを取得
+          const funcName = "onSingleLocation_" + Date.now();
+          window[funcName] = function(lat, lng) {
+              callback({coords: {latitude: lat, longitude: lng}});
+              delete window[funcName]; // メモリ解放
+          };
+          window.AndroidLocation.requestSingleLocation(funcName);
+      } else if (navigator.geolocation) {
+          // ブラウザ版（フォールバック）
+          navigator.geolocation.getCurrentPosition(callback, err => alert("GPS Error: " + err.message));
+      } else {
+          alert("GPS Not Supported");
+      }
+  }
+
+  // アプリ版でのトラッキングデータ受信口
+  window.onAndroidLocationUpdated = function(lat, lng) {
+      const p = { lat: lat, lng: lng, t: Date.now() };
+      AppState.trackPoints.push(p);
+      localStorage.setItem('kaido_track_points', JSON.stringify(AppState.trackPoints));
+      updateRecordStats();
+      drawTrack();
+  };
+  
   window.SRWorldMap = {
     getMap: () => map,
     getLang: () => AppState.lang,
