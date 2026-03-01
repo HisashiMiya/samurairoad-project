@@ -408,6 +408,7 @@ function showLoading(customTextKey = null, subTextKey = null) {
 }
 
 function hideLoading() {
+console.log("ここに来た4hideLoading");
   const modal = document.getElementById('loadingModal');
   if (!modal) {
     console.warn('[hideLoading] missing loadingModal');
@@ -860,7 +861,9 @@ Focus on the Edo period or old roads if applicable.
 console.log("ここに来た4");
           // API呼び出し
           const answer = await callGemini(prompt);
+          console.log("ここに来た4-1");
           hideLoading();
+          console.log("ここに来た4-2");
           showAIResult(answer);
 console.log("ここに来た5");
       } catch (e) {
