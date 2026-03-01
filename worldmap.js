@@ -372,28 +372,81 @@ setTimeout(() => {
     document.getElementById('lblCurrentRoute').textContent = name;
   }
 
-  // ■■■ ローディング画面の制御 ■■■
-  function showLoading(customTextKey = null, subTextKey = null) {
-    const modal = document.getElementById('loadingModal');
-    const text = document.getElementById('loadingText');
+  
+// ■■■ ローディング画面の制御 ■■■
+function showLoading(customTextKey = null, subTextKey = null) {
+  const modal = document.getElementById('loadingModal');
+  const text  = document.getElementById('loadingText');
 
-    // メインテキスト
-    const mainText = customTextKey ? t(customTextKey) : t('samurai_thinking');
-
-    // サブテキスト（存在する場合のみ改行して追加）
-    if (subTextKey) {
-      const subText = t(subTextKey);
-      text.textContent = mainText + '\n' + subText;
-    } else {
-      text.textContent = mainText;
-    }
-
-    modal.style.display = "flex";
+  if (!modal || !text) {
+    console.warn('[showLoading] missing DOM', { hasModal: !!modal, hasText: !!text });
+    return;
   }
 
-  function hideLoading() {
-    document.getElementById('loadingModal').style.display = "none";
+  const mainText = customTextKey ? t(customTextKey) : t('samurai_thinking');
+
+  if (subTextKey) {
+    const subText = t(subTextKey);
+    text.textContent = mainText + "\n" + subText;
+  } else {
+    text.textContent = mainText;
   }
+
+  window.__srLoadingShownAt = performance.now();
+  modal.style.display = "flex";
+
+  if (window.SR_DEBUG_CONTEXT) {
+    console.log('[showLoading] display=flex', { mainTextKey: customTextKey, subTextKey });
+    requestAnimationFrame(() => {
+      console.log('[showLoading] after RAF', {
+        display: getComputedStyle(modal).display,
+        opacity: getComputedStyle(modal).opacity,
+        zIndex: getComputedStyle(modal).zIndex
+      });
+    });
+  }
+}
+
+function hideLoading() {
+  const modal = document.getElementById('loadingModal');
+  if (!modal) {
+    console.warn('[hideLoading] missing loadingModal');
+    return;
+  }
+
+  const DBG = !!window.SR_DEBUG_CONTEXT;
+
+  // 呼び出し元を確定（裏どり）
+  if (DBG) {
+    console.warn('[hideLoading] called -> trace');
+    console.trace();
+  }
+
+  const shownAt = window.__srLoadingShownAt || 0;
+  const elapsed = (shownAt && performance.now) ? (performance.now() - shownAt) : null;
+
+  const doHide = () => {
+    modal.style.display = "none";
+    if (DBG) console.log('[hideLoading] display=none');
+  };
+
+  // ちらつき防止：最低350msは表示してから消す
+  const MIN_MS = 350;
+  if (elapsed !== null && elapsed < MIN_MS) {
+    if (DBG) console.log('[hideLoading] delaying hide', { elapsed, minMs: MIN_MS });
+    setTimeout(doHide, MIN_MS - elapsed);
+  } else {
+    doHide();
+  }
+}
+
+// Console から呼べるように露出（後で消してOK）
+window.showLoading = showLoading;
+window.hideLoading = hideLoading;
+
+
+
+
 
   // ■■■ AI結果表示用の自作ウィンドウ ■■■
   function showAIResult(text) {
@@ -774,6 +827,8 @@ For each spot, provide:
   console.log("ここに来た2");
       map.closePopup(); // ポップアップを閉じる
       showLoading();    // ローディング開始
+      // 裏どり：ローディングを描画するために1tick譲る（同期処理で描画が詰まるのを防ぐ）
+      await new Promise(r => setTimeout(r, 0));
 console.log("ここに来た3");
       try {
           let prompt = "";
