@@ -372,44 +372,42 @@ setTimeout(() => {
     document.getElementById('lblCurrentRoute').textContent = name;
   }
 
-  // ■■■ ローディング画面の制御 ■■■
-  function showLoading(customTextKey = null, subTextKey = null) {
-    const modal = document.getElementById('loadingModal');
-    const text = document.getElementById('loadingText');
+  
+// ■■■ ローディング画面の制御 ■■■
+function showLoading(customTextKey = null, subTextKey = null) {
+  const modal = document.getElementById('loadingModal');
+  const text  = document.getElementById('loadingText');
 
-    if (!modal || !text) {
-      console.warn('[showLoading] missing DOM', { hasModal: !!modal, hasText: !!text });
-      return;
-    }
-
-    // メインテキスト
-    const mainText = customTextKey ? t(customTextKey) : t('samurai_thinking');
-
-    // サブテキスト（存在する場合のみ改行して追加）
-    if (subTextKey) {
-      const subText = t(subTextKey);
-      text.textContent = mainText + "\n" + subText;
-    } else {
-      text.textContent = mainText;
-    }
-
-    window.__srLoadingShownAt = performance.now();
-    modal.style.display = "flex";
-
-    // 裏どり：本当に表示命令が走ったか（必要なら後で消す）
-    if (window.SR_DEBUG_CONTEXT) {
-      console.log('[showLoading] display=flex', { mainTextKey: customTextKey, subTextKey });
-      requestAnimationFrame(() => {
-        console.log('[showLoading] after RAF', {
-          display: getComputedStyle(modal).display,
-          opacity: getComputedStyle(modal).opacity,
-          zIndex: getComputedStyle(modal).zIndex
-        });
-      });
-    }
+  if (!modal || !text) {
+    console.warn('[showLoading] missing DOM', { hasModal: !!modal, hasText: !!text });
+    return;
   }
 
-  function hideLoading() {
+  const mainText = customTextKey ? t(customTextKey) : t('samurai_thinking');
+
+  if (subTextKey) {
+    const subText = t(subTextKey);
+    text.textContent = mainText + "\n" + subText;
+  } else {
+    text.textContent = mainText;
+  }
+
+  window.__srLoadingShownAt = performance.now();
+  modal.style.display = "flex";
+
+  if (window.SR_DEBUG_CONTEXT) {
+    console.log('[showLoading] display=flex', { mainTextKey: customTextKey, subTextKey });
+    requestAnimationFrame(() => {
+      console.log('[showLoading] after RAF', {
+        display: getComputedStyle(modal).display,
+        opacity: getComputedStyle(modal).opacity,
+        zIndex: getComputedStyle(modal).zIndex
+      });
+    });
+  }
+}
+
+function hideLoading() {
   const modal = document.getElementById('loadingModal');
   if (!modal) {
     console.warn('[hideLoading] missing loadingModal');
@@ -443,6 +441,7 @@ setTimeout(() => {
 }
 
 // Console から呼べるように露出（後で消してOK）
+window.showLoading = showLoading;
 window.hideLoading = hideLoading;
 
 
