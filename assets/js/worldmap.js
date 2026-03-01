@@ -184,12 +184,6 @@
   // NOTE: Bind ONCE. Do not bind inside updateLanguage() to avoid duplicate handlers.
   // -----------------------------------------
   let _srContextMenuBound = false;
-  // -------------------------------------------------
-  // DEBUG: Right-click (contextmenu) verification switch
-  // - Set window.SR_DEBUG_CONTEXT = false; to silence logs
-  // -------------------------------------------------
-  window.SR_DEBUG_CONTEXT = (window.SR_DEBUG_CONTEXT !== undefined) ? window.SR_DEBUG_CONTEXT : true;
-
   function bindContextMenuOnce() {
     if (_srContextMenuBound) return;
     _srContextMenuBound = true;
@@ -233,85 +227,32 @@ console.log("ここに来た");
 
       const pop = L.popup().setLatLng(e.latlng).setContent(popupContent).openOn(map);
 
-// -------------------------------------------------
-// 裏どり: popup DOM / button existence / click reachability / handler attachment
-// NOTE:
-//  - popupopen は openOn(map) と同一tickで発火し得るため取り逃がすことがある。
-//  - ここでは setTimeout(0) で DOM 生成後に確実にバインドする。
-// -------------------------------------------------
-setTimeout(() => {
-  const DBG = !!window.SR_DEBUG_CONTEXT;
+      // popup DOMが生成されたタイミングで、ボタンにイベントを貼る（inline onclick排除）
+      map.once('popupopen', (ev) => {
+        if (ev.popup !== pop) return;
 
-  const root = pop.getElement(); // .leaflet-popup
-  if (!root) {
-    if (DBG) console.warn('[SR ctx] pop.getElement() is null (DOM not ready / popup replaced)');
-    return;
-  }
+        const root = ev.popup.getElement();
+        if (!root) return;
 
-  const contentEl = root.querySelector('.leaflet-popup-content');
-  if (DBG) {
-    console.log('[SR ctx] popup DOM ready', {
-      lat, lng,
-      hasContent: !!contentEl,
-      popupHTML: contentEl ? contentEl.innerHTML : null
-    });
-  }
+        root.querySelectorAll('button[data-action]').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const action = btn.dataset.action;
 
-  const buttons = root.querySelectorAll('button[data-action]');
-  if (DBG) {
-    console.log('[SR ctx] buttons found', buttons.length,
-      Array.from(buttons).map(b => ({ action: b.dataset.action, text: (b.textContent || '').trim() }))
-    );
-  }
+            console.log('[popup button]', action, lat, lng, {
+              askSamuraiSpot: typeof window.askSamuraiSpot,
+              askOnsen: typeof window.askOnsen,
+              askLocalFood: typeof window.askLocalFood,
+              askSpotSearch: typeof window.askSpotSearch,
+            });
 
-  // Capture: popup内のクリックがDOMに届いているか（overlay吸収の検知）
-  if (contentEl) {
-    if (!contentEl.dataset.srClickProbe) {
-      contentEl.dataset.srClickProbe = '1';
-      contentEl.addEventListener('click', (ev) => {
-        if (DBG) console.log('[SR ctx] DOM click reached', ev.target);
-      }, true);
-    }
-  }
-
-  // pocket overlay の状態もログ（吸収疑いの裏どり）
-  if (DBG) {
-    const ov = document.getElementById('pocketModeOverlay');
-    if (ov) console.log('[SR ctx] pocketModeOverlay display', getComputedStyle(ov).display);
-  }
-
-  buttons.forEach(btn => {
-    // バインドした証跡をDOMに刻む（後で消せる）
-    btn.dataset.srBound = '1';
-    btn.style.outline = '2px solid rgba(255,0,0,0.7)';
-
-    // クリックが map に吸われないよう念のため止める
-    btn.addEventListener('pointerdown', (ev) => ev.stopPropagation(), { passive: true });
-
-    btn.addEventListener('click', () => {
-      const action = btn.dataset.action;
-
-      if (DBG) {
-        console.log('[SR ctx] handler fired', action, { lat, lng });
-        console.log('[SR ctx] window funcs', {
-          askSamuraiSpot: typeof window.askSamuraiSpot,
-          askOnsen: typeof window.askOnsen,
-          askLocalFood: typeof window.askLocalFood,
-          askSpotSearch: typeof window.askSpotSearch,
+            if (action === 'samurai') window.askSamuraiSpot?.(lat, lng);
+            if (action === 'onsen')  window.askOnsen?.(lat, lng);
+            if (action === 'food')   window.askLocalFood?.(lat, lng);
+            if (action === 'spots')  window.askSpotSearch?.(lat, lng);
+          }, { once: true });
         });
-      }
-
-      if (action === 'samurai') window.askSamuraiSpot?.(lat, lng);
-      if (action === 'onsen')  window.askOnsen?.(lat, lng);
-      if (action === 'food')   window.askLocalFood?.(lat, lng);
-      if (action === 'spots')  window.askSpotSearch?.(lat, lng);
-    }, { once: true });
-  });
-
-  if (DBG) console.log('[SR ctx] bind complete', { bound: Array.from(buttons).map(b => b.dataset.action) });
-}, 0);
-
       });
+    });
   }
 
 
@@ -372,86 +313,31 @@ setTimeout(() => {
     document.getElementById('lblCurrentRoute').textContent = name;
   }
 
-  
-// ■■■ ローディング画面の制御 ■■■
-function showLoading(customTextKey = null, subTextKey = null) {
-  const modal = document.getElementById('loadingModal');
-  const text  = document.getElementById('loadingText');
+  // ■■■ ローディング画面の制御 ■■■
+  function showLoading(customTextKey = null, subTextKey = null) {
+    const modal = document.getElementById('loadingModal');
+    const text = document.getElementById('loadingText');
 
-  if (!modal || !text) {
-    console.warn('[showLoading] missing DOM', { hasModal: !!modal, hasText: !!text });
-    return;
+    // メインテキスト
+    const mainText = customTextKey ? t(customTextKey) : t('samurai_thinking');
+
+    // サブテキスト（存在する場合のみ改行して追加）
+    if (subTextKey) {
+      const subText = t(subTextKey);
+      text.textContent = mainText + '\n' + subText;
+    } else {
+      text.textContent = mainText;
+    }
+
+    modal.style.display = "flex";
   }
 
-  const mainText = customTextKey ? t(customTextKey) : t('samurai_thinking');
-
-  if (subTextKey) {
-    const subText = t(subTextKey);
-    text.textContent = mainText + "\n" + subText;
-  } else {
-    text.textContent = mainText;
+  function hideLoading() {
+    document.getElementById('loadingModal').style.display = "none";
   }
-
-  window.__srLoadingShownAt = performance.now();
-  modal.style.display = "flex";
-
-  if (window.SR_DEBUG_CONTEXT) {
-    console.log('[showLoading] display=flex', { mainTextKey: customTextKey, subTextKey });
-    requestAnimationFrame(() => {
-      console.log('[showLoading] after RAF', {
-        display: getComputedStyle(modal).display,
-        opacity: getComputedStyle(modal).opacity,
-        zIndex: getComputedStyle(modal).zIndex
-      });
-    });
-  }
-}
-
-function hideLoading() {
-console.log("ここに来た4hideLoading");
-  const modal = document.getElementById('loadingModal');
-  if (!modal) {
-    console.warn('[hideLoading] missing loadingModal');
-    return;
-  }
-
-  const DBG = !!window.SR_DEBUG_CONTEXT;
-
-  // 呼び出し元を確定（裏どり）
-  if (DBG) {
-    console.warn('[hideLoading] called -> trace');
-    console.trace();
-  }
-
-  const shownAt = window.__srLoadingShownAt || 0;
-  const elapsed = (shownAt && performance.now) ? (performance.now() - shownAt) : null;
-
-  const doHide = () => {
-    modal.style.display = "none";
-    if (DBG) console.log('[hideLoading] display=none');
-  };
-
-  // ちらつき防止：最低350msは表示してから消す
-  const MIN_MS = 350;
-  if (elapsed !== null && elapsed < MIN_MS) {
-    if (DBG) console.log('[hideLoading] delaying hide', { elapsed, minMs: MIN_MS });
-    setTimeout(doHide, MIN_MS - elapsed);
-  } else {
-    doHide();
-  }
-}
-
-// Console から呼べるように露出（後で消してOK）
-window.showLoading = showLoading;
-window.hideLoading = hideLoading;
-
-
-
-
 
   // ■■■ AI結果表示用の自作ウィンドウ ■■■
   function showAIResult(text) {
-            console.log("ここに来た10");
      const modal = document.getElementById('aiModal');
      const content = document.getElementById('aiContent');
      content.innerHTML = text.replace(/\n/g, "<br>"); // 改行反映 (innerHTMLに変更)
@@ -469,7 +355,6 @@ window.hideLoading = hideLoading;
             speakText(cleanText);
          }, 500);
      }
-               console.log("ここに来た11");
   }
 
   // --- 音声読み上げ機能 (Web Speech API) ---
@@ -830,8 +715,6 @@ For each spot, provide:
   console.log("ここに来た2");
       map.closePopup(); // ポップアップを閉じる
       showLoading();    // ローディング開始
-      // 裏どり：ローディングを描画するために1tick譲る（同期処理で描画が詰まるのを防ぐ）
-      await new Promise(r => setTimeout(r, 0));
 console.log("ここに来た3");
       try {
           let prompt = "";
@@ -858,14 +741,12 @@ Focus on the Edo period or old roads if applicable.
 ・解説の最後に、「【周辺のおすすめ立ち寄りスポット5選】」という見出しをつけて、
 　この地点周辺の史跡・寺社・老舗・景勝地などを5つ、箇条書きで紹介してください。`;
           }
-console.log("ここに来た4");
+
           // API呼び出し
           const answer = await callGemini(prompt);
-          console.log("ここに来た4-1");
           hideLoading();
-          console.log("ここに来た4-2");
           showAIResult(answer);
-console.log("ここに来た5");
+
       } catch (e) {
           hideLoading();
           console.error(e);
@@ -911,14 +792,12 @@ For each spot, provide:
 
       try {
           const answer = await callGemini(prompt);
-          console.log("ここに来た6");
           hideLoading();
-          console.log("ここに来た7");
+          
           // GoogleマップURLを確実にリンクタグに変換する
           const linkedAnswer = answer.replace(/(https:\/\/www\.google\.com\/maps\/search\/\?api=1&query=[^\s<)\n]+)/g, '<a href="$1" target="_blank" style="color:#0066cc;text-decoration:underline;">Google Mapで見る</a>');
-          console.log("ここに来た8");
+          
           showAIResult(linkedAnswer);
-                    console.log("ここに来た9");
       } catch (e) {
           hideLoading();
           console.error(e);
