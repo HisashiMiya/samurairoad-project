@@ -855,12 +855,12 @@ Focus on the Edo period or old roads if applicable.
 ・解説の最後に、「【周辺のおすすめ立ち寄りスポット5選】」という見出しをつけて、
 　この地点周辺の史跡・寺社・老舗・景勝地などを5つ、箇条書きで紹介してください。`;
           }
-
+console.log("ここに来た4");
           // API呼び出し
           const answer = await callGemini(prompt);
           hideLoading();
           showAIResult(answer);
-
+console.log("ここに来た5");
       } catch (e) {
           hideLoading();
           console.error(e);
@@ -906,8 +906,9 @@ For each spot, provide:
 
       try {
           const answer = await callGemini(prompt);
+          console.log("ここに来た6");
           hideLoading();
-          
+          console.log("ここに来た7");
           // GoogleマップURLを確実にリンクタグに変換する
           const linkedAnswer = answer.replace(/(https:\/\/www\.google\.com\/maps\/search\/\?api=1&query=[^\s<)\n]+)/g, '<a href="$1" target="_blank" style="color:#0066cc;text-decoration:underline;">Google Mapで見る</a>');
           
