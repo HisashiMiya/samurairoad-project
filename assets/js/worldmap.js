@@ -257,41 +257,6 @@ console.log("ここに来た");
       el.textContent = t(el.dataset.lang);
     });
     renderRouteMenu();
-    // ■■■ 新機能: 地図長押しで侍を呼ぶ ■■■
-  map.on('contextmenu', function(e) {
-      const lat = e.latlng.lat;
-      const lng = e.latlng.lng;
-
-      // ポップアップの内容（スタイルはアプリに合わせる）
-      const popupContent = `
-        <div style="text-align:center; font-family: sans-serif;">
-            <div style="font-weight:bold; margin-bottom:8px; color:#333;">この場所について調べる</div>
-            <div style="display:flex; gap:8px; justify-content:center;">
-              <button onclick="window.askSamuraiSpot(${lat}, ${lng})" 
-                style="background: #0066cc; color: white; border: none; padding: 8px 12px; border-radius: 20px; font-weight: bold; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
-                🏯 侍
-              </button>
-              <button onclick="window.askOnsen(${lat}, ${lng})" 
-                style="background: #ff99cc; color: #cc0066; border: none; padding: 8px 12px; border-radius: 20px; font-weight: bold; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
-                ♨️ 温泉
-              </button>
-              <button onclick="window.askLocalFood(${lat}, ${lng})" 
-                style="background: #ffcc99; color: #cc6600; border: none; padding: 8px 12px; border-radius: 20px; font-weight: bold; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
-                🍴 食事
-              </button>
-            </div>
-            <button onclick="window.askSpotSearch(${lat}, ${lng})" 
-              style="background: #33cc33; color: white; border: none; padding: 8px 12px; border-radius: 20px; font-weight: bold; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
-              🔍 スポット
-            </button>
-        </div>
-      `;
-
-      L.popup()
-        .setLatLng(e.latlng)
-        .setContent(popupContent)
-        .openOn(map);
-  });
     updateRecordStats();
     renderRecordButtonState();
     updateTopBarText();
