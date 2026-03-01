@@ -1263,6 +1263,7 @@ if (btnTraceGameExit) btnTraceGameExit.onclick = () => {
 
   // 初期化実行
   restoreMapPosition();
+  bindContextMenuOnce();
   updateLanguage();
   if (AppState.currentRouteId) loadActiveRoute();
   drawTrack();
