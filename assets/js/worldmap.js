@@ -450,6 +450,7 @@ window.hideLoading = hideLoading;
 
   // ■■■ AI結果表示用の自作ウィンドウ ■■■
   function showAIResult(text) {
+            console.log("ここに来た10");
      const modal = document.getElementById('aiModal');
      const content = document.getElementById('aiContent');
      content.innerHTML = text.replace(/\n/g, "<br>"); // 改行反映 (innerHTMLに変更)
@@ -467,6 +468,7 @@ window.hideLoading = hideLoading;
             speakText(cleanText);
          }, 500);
      }
+               console.log("ここに来た11");
   }
 
   // --- 音声読み上げ機能 (Web Speech API) ---
@@ -911,8 +913,9 @@ For each spot, provide:
           console.log("ここに来た7");
           // GoogleマップURLを確実にリンクタグに変換する
           const linkedAnswer = answer.replace(/(https:\/\/www\.google\.com\/maps\/search\/\?api=1&query=[^\s<)\n]+)/g, '<a href="$1" target="_blank" style="color:#0066cc;text-decoration:underline;">Google Mapで見る</a>');
-          
+          console.log("ここに来た8");
           showAIResult(linkedAnswer);
+                    console.log("ここに来た9");
       } catch (e) {
           hideLoading();
           console.error(e);
