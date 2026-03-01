@@ -417,6 +417,36 @@ setTimeout(() => {
   }
 
   const DBG = !!window.SR_DEBUG_CONTEXT;
+
+  // 呼び出し元を確定（裏どり）
+  if (DBG) {
+    console.warn('[hideLoading] called -> trace');
+    console.trace();
+  }
+
+  const shownAt = window.__srLoadingShownAt || 0;
+  const elapsed = (shownAt && performance.now) ? (performance.now() - shownAt) : null;
+
+  const doHide = () => {
+    modal.style.display = "none";
+    if (DBG) console.log('[hideLoading] display=none');
+  };
+
+  // ちらつき防止：最低350msは表示してから消す
+  const MIN_MS = 350;
+  if (elapsed !== null && elapsed < MIN_MS) {
+    if (DBG) console.log('[hideLoading] delaying hide', { elapsed, minMs: MIN_MS });
+    setTimeout(doHide, MIN_MS - elapsed);
+  } else {
+    doHide();
+  }
+}
+
+// Console から呼べるように露出（後で消してOK）
+window.hideLoading = hideLoading;
+
+
+  const DBG = !!window.SR_DEBUG_CONTEXT;
   const shownAt = window.__srLoadingShownAt || 0;
   const elapsed = (shownAt && performance.now) ? (performance.now() - shownAt) : null;
 
@@ -426,9 +456,9 @@ setTimeout(() => {
   };
 
   // ちらつき防止：最低 350ms は表示してから消す
-  if (elapsed !== null && elapsed < 550) {
-    if (DBG) console.log('[hideLoading] delaying hide', { elapsed, minMs: 550 });
-    setTimeout(doHide, 550 - elapsed);
+  if (elapsed !== null && elapsed < 350) {
+    if (DBG) console.log('[hideLoading] delaying hide', { elapsed, minMs: 350 });
+    setTimeout(doHide, 350 - elapsed);
   } else {
     doHide();
   }
