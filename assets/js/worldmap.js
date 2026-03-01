@@ -388,8 +388,7 @@ setTimeout(() => {
     // サブテキスト（存在する場合のみ改行して追加）
     if (subTextKey) {
       const subText = t(subTextKey);
-      text.textContent = mainText + '
-' + subText;
+      text.textContent = mainText + "\n" + subText;
     } else {
       text.textContent = mainText;
     }
