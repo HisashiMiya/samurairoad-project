@@ -27,7 +27,6 @@
       btn_speech_start: "読み上げ", btn_speech_stop: "停止",
       lbl_search_cond: "検索時の詳細条件",
       spot_thinking: "おすすめスポットを探しています...",
-      sub_coment: "通常は数秒で完了しますが、混雑時には約45秒ほどかかる場合があります。",
     },
     en: {
       menu_routes: "Routes", menu_record: "Record", menu_report: "Report", menu_settings: "Config",
@@ -53,7 +52,6 @@
       btn_speech_start: "Read Aloud", btn_speech_stop: "Stop",
       lbl_search_cond: "Search Conditions",
       spot_thinking: "Searching for spots...",
-      sub_comment: "Normally this completes within a few seconds, but during peak times it may take up to about 45 seconds.",
     }
   };
 
@@ -257,6 +255,41 @@ console.log("ここに来た");
       el.textContent = t(el.dataset.lang);
     });
     renderRouteMenu();
+    // ■■■ 新機能: 地図長押しで侍を呼ぶ ■■■
+  map.on('contextmenu', function(e) {
+      const lat = e.latlng.lat;
+      const lng = e.latlng.lng;
+
+      // ポップアップの内容（スタイルはアプリに合わせる）
+      const popupContent = `
+        <div style="text-align:center; font-family: sans-serif;">
+            <div style="font-weight:bold; margin-bottom:8px; color:#333;">この場所について調べる</div>
+            <div style="display:flex; gap:8px; justify-content:center;">
+              <button onclick="window.askSamuraiSpot(${lat}, ${lng})" 
+                style="background: #0066cc; color: white; border: none; padding: 8px 12px; border-radius: 20px; font-weight: bold; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
+                🏯 侍
+              </button>
+              <button onclick="window.askOnsen(${lat}, ${lng})" 
+                style="background: #ff99cc; color: #cc0066; border: none; padding: 8px 12px; border-radius: 20px; font-weight: bold; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
+                ♨️ 温泉
+              </button>
+              <button onclick="window.askLocalFood(${lat}, ${lng})" 
+                style="background: #ffcc99; color: #cc6600; border: none; padding: 8px 12px; border-radius: 20px; font-weight: bold; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
+                🍴 食事
+              </button>
+            </div>
+            <button onclick="window.askSpotSearch(${lat}, ${lng})" 
+              style="background: #33cc33; color: white; border: none; padding: 8px 12px; border-radius: 20px; font-weight: bold; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
+              🔍 スポット
+            </button>
+        </div>
+      `;
+
+      L.popup()
+        .setLatLng(e.latlng)
+        .setContent(popupContent)
+        .openOn(map);
+  });
     updateRecordStats();
     renderRecordButtonState();
     updateTopBarText();
@@ -285,21 +318,10 @@ console.log("ここに来た");
   }
 
   // ■■■ ローディング画面の制御 ■■■
-  function showLoading(customTextKey = null, subTextKey = null) {
+  function showLoading(customTextKey = null) {
     const modal = document.getElementById('loadingModal');
     const text = document.getElementById('loadingText');
-
-    // メインテキスト
-    const mainText = customTextKey ? t(customTextKey) : t('samurai_thinking');
-
-    // サブテキスト（存在する場合のみ改行して追加）
-    if (subTextKey) {
-      const subText = t(subTextKey);
-      text.textContent = mainText + '\n' + subText;
-    } else {
-      text.textContent = mainText;
-    }
-
+    text.textContent = customTextKey ? t(customTextKey) : t('samurai_thinking');
     modal.style.display = "flex";
   }
 
@@ -315,7 +337,7 @@ console.log("ここに来た");
      modal.style.display = "flex"; 
      
      // 読み上げ状態をリセット
-     window.stopSpeech();
+     stopSpeech();
      updateSpeechButton();
 
      // ★追加: 自動読み上げがONなら即座に読み上げる
@@ -333,7 +355,7 @@ console.log("ここに来た");
   
   window.toggleSpeech = function() {
     if (isSpeaking) {
-        window.stopSpeech();
+        stopSpeech();
     } else {
         const text = document.getElementById('aiContent').innerText;
         speakText(text);
@@ -579,7 +601,7 @@ Please answer in English.
   window.askOnsen = async function(lat, lng) {
       if (!lat || !lng) return;
       map.closePopup();
-      showLoading('onsen_thinking',  'sub_coment');
+      showLoading('onsen_thinking');
 
       // 設定画面で入力された詳細条件を取得
       const condText = AppState.searchCondition ? AppState.searchCondition.trim() : "";
@@ -632,7 +654,7 @@ For each spot, provide:
   window.askLocalFood = async function(lat, lng) {
       if (!lat || !lng) return;
       map.closePopup();
-      showLoading('food_thinking', 'sub_coment');
+      showLoading('food_thinking');
 
       // 設定画面で入力された詳細条件を取得
       const condText = AppState.searchCondition ? AppState.searchCondition.trim() : "";
@@ -683,10 +705,9 @@ For each spot, provide:
 // ■■■ 指定地点の侍解説を実行する関数（修正済） ■■■
 // ★ 機能2: 地図長押しから侍解説 + おすすめスポット
   window.askSamuraiSpot = async function(lat, lng) {
-  console.log("ここに来た2");
       map.closePopup(); // ポップアップを閉じる
       showLoading();    // ローディング開始
-console.log("ここに来た3");
+
       try {
           let prompt = "";
           const latitudeVal = lat;
@@ -729,7 +750,7 @@ Focus on the Edo period or old roads if applicable.
   window.askSpotSearch = async function(lat, lng) {
       if (!lat || !lng) return;
       map.closePopup();
-      showLoading('spot_thinking', 'sub_coment');
+      showLoading('spot_thinking');
 
       // 設定画面で入力された詳細条件を取得
       const condText = AppState.searchCondition ? AppState.searchCondition.trim() : "";
@@ -929,20 +950,22 @@ window.closeModals = function(opts = {}) {
   const reActive = !!window.RouteEditor?.isActive?.();
   const tgActive = !!window.TraceGame?.isActive?.();
 
-  // 稼働中は“最小化”はするが、処理は止めない（returnしない）
+  // ルート編集：稼働中のみ最小化
   if (!force && re && re.classList.contains('open') && reActive) {
     re.classList.add('minimized');
-  }
-  if (!force && tg && tg.classList.contains('open') && tgActive) {
-    tg.classList.add('minimized');
+    return;
   }
 
-  // それ以外は閉じる。ただし、稼働中の2つは閉じない
-  document.querySelectorAll('.modal-overlay, .modal').forEach(el => {
-    if (el === re && reActive && !force) return;
-    if (el === tg && tgActive && !force) return;
-    el.classList.remove('open');
-    el.classList.remove('minimized');
+  // なぞり：稼働中のみ最小化
+  if (!force && tg && tg.classList.contains('open') && tgActive) {
+    tg.classList.add('minimized');
+    return;
+  }
+
+  // ここまで来たら「全部」閉じる（UIのみ）
+  document.querySelectorAll('.modal-overlay, .modal').forEach(e => {
+    e.classList.remove('open');
+    e.classList.remove('minimized');
   });
 };
 
@@ -1089,22 +1112,7 @@ if (btnTraceGameExit) btnTraceGameExit.onclick = () => {
     }
 
     // Pointer Eventsによる堅牢なロック解除（水滴等によるtouchcancel対策）
-    function onPocketPointerDown(e) {
-      // Hold-to-unlock progress
-      startUnlock(e);
-
-      // 5-tap quick unlock (works together with hold)
-      tapCount++;
-      clearTimeout(tapTimer);
-      if (tapCount >= 5) {
-        forceUnlock();
-        showToast("強制解除 (5回タップ)");
-      } else {
-        tapTimer = setTimeout(() => { tapCount = 0; }, 500);
-      }
-    }
-
-    pocketOverlay.addEventListener('pointerdown', onPocketPointerDown);
+    pocketOverlay.addEventListener('pointerdown', startUnlock);
     pocketOverlay.addEventListener('pointerup', cancelUnlock);
     pocketOverlay.addEventListener('pointercancel', cancelUnlock);
     pocketOverlay.addEventListener('pointerleave', cancelUnlock);
@@ -1118,6 +1126,17 @@ if (btnTraceGameExit) btnTraceGameExit.onclick = () => {
       }
     });
 
+    // フェイルセーフ2: パニック5連打
+    pocketOverlay.addEventListener('pointerdown', () => {
+      tapCount++;
+      clearTimeout(tapTimer);
+      if (tapCount >= 5) {
+        forceUnlock();
+        showToast("緊急解除 (5連打)");
+      } else {
+        tapTimer = setTimeout(() => { tapCount = 0; }, 500);
+      }
+    });
   }
   
   function renderRouteMenu() {
@@ -1201,6 +1220,7 @@ if (btnTraceGameExit) btnTraceGameExit.onclick = () => {
   // ★ 歴史ガイド (GPS) イベント ★
   document.getElementById('btnHistory').onclick = () => {
       if(!navigator.geolocation) return;
+      // showLoading(); // askHistoryByGPS内で行うのでここでは不要
       navigator.geolocation.getCurrentPosition(pos => {
           askHistoryByGPS(pos.coords.latitude, pos.coords.longitude);
       }, err => alert("GPS Error: " + err.message));
