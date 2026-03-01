@@ -184,11 +184,12 @@
   // NOTE: Bind ONCE. Do not bind inside updateLanguage() to avoid duplicate handlers.
   // -----------------------------------------
   let _srContextMenuBound = false;
+
   function bindContextMenuOnce() {
     if (_srContextMenuBound) return;
     _srContextMenuBound = true;
 
-    map.on('contextmenu', function(e) {
+    map.on('contextmenu', function (e) {
       const lat = e.latlng.lat;
       const lng = e.latlng.lng;
 
@@ -197,7 +198,7 @@
       const lblOnsen  = (AppState.lang === 'ja') ? '温泉' : 'Onsen';
       const lblFood   = (AppState.lang === 'ja') ? '食事' : 'Food';
       const lblSpot   = (AppState.lang === 'ja') ? 'スポット' : 'Spots';
-console.log("ここに来た");
+
       const popupContent = `
         <div style="text-align:center; font-family: sans-serif;">
             <div style="font-weight:bold; margin-bottom:8px; color:#333;">${title}</div>
@@ -227,23 +228,17 @@ console.log("ここに来た");
 
       const pop = L.popup().setLatLng(e.latlng).setContent(popupContent).openOn(map);
 
-      // popup DOMが生成されたタイミングで、ボタンにイベントを貼る（inline onclick排除）
-      map.once('popupopen', (ev) => {
-        if (ev.popup !== pop) return;
-
-        const root = ev.popup.getElement();
+      // popup DOM は同期で取れないことがあるため、次tickでバインド
+      setTimeout(() => {
+        const root = pop.getElement();
         if (!root) return;
 
-        root.querySelectorAll('button[data-action]').forEach(btn => {
+        const buttons = root.querySelectorAll('button[data-action]');
+        buttons.forEach(btn => {
+          btn.addEventListener('pointerdown', (ev) => ev.stopPropagation(), { passive: true });
+
           btn.addEventListener('click', () => {
             const action = btn.dataset.action;
-
-            console.log('[popup button]', action, lat, lng, {
-              askSamuraiSpot: typeof window.askSamuraiSpot,
-              askOnsen: typeof window.askOnsen,
-              askLocalFood: typeof window.askLocalFood,
-              askSpotSearch: typeof window.askSpotSearch,
-            });
 
             if (action === 'samurai') window.askSamuraiSpot?.(lat, lng);
             if (action === 'onsen')  window.askOnsen?.(lat, lng);
@@ -251,9 +246,10 @@ console.log("ここに来た");
             if (action === 'spots')  window.askSpotSearch?.(lat, lng);
           }, { once: true });
         });
-      });
+      }, 0);
     });
   }
+
 
 
   map.on("moveend", () => {
@@ -313,28 +309,58 @@ console.log("ここに来た");
     document.getElementById('lblCurrentRoute').textContent = name;
   }
 
-  // ■■■ ローディング画面の制御 ■■■
-  function showLoading(customTextKey = null, subTextKey = null) {
-    const modal = document.getElementById('loadingModal');
-    const text = document.getElementById('loadingText');
+  
+// ■■■ ローディング画面の制御 ■■■
+function showLoading(customTextKey = null, subTextKey = null) {
+  const modal = document.getElementById('loadingModal');
+  const text  = document.getElementById('loadingText');
 
-    // メインテキスト
-    const mainText = customTextKey ? t(customTextKey) : t('samurai_thinking');
-
-    // サブテキスト（存在する場合のみ改行して追加）
-    if (subTextKey) {
-      const subText = t(subTextKey);
-      text.textContent = mainText + '\n' + subText;
-    } else {
-      text.textContent = mainText;
-    }
-
-    modal.style.display = "flex";
+  if (!modal || !text) {
+    console.warn('[showLoading] missing DOM', { hasModal: !!modal, hasText: !!text });
+    return;
   }
 
-  function hideLoading() {
-    document.getElementById('loadingModal').style.display = "none";
+  const mainText = customTextKey ? t(customTextKey) : t('samurai_thinking');
+
+  if (subTextKey) {
+    const subText = t(subTextKey);
+    text.textContent = mainText + "\n" + subText;
+  } else {
+    text.textContent = mainText;
   }
+
+  window.__srLoadingShownAt = performance.now();
+  modal.style.display = "flex";
+}
+
+function hideLoading() {
+  const modal = document.getElementById('loadingModal');
+  if (!modal) {
+    console.warn('[hideLoading] missing loadingModal');
+    return;
+  }
+
+  const shownAt = window.__srLoadingShownAt || 0;
+  const elapsed = (shownAt && performance.now) ? (performance.now() - shownAt) : null;
+
+  const doHide = () => {
+    modal.style.display = "none";
+    if (DBG) console.log('[hideLoading] display=none');
+  };
+
+  // ちらつき防止：最低350msは表示してから消す
+  const MIN_MS = 350;
+  if (elapsed !== null && elapsed < MIN_MS) {
+    if (DBG) console.log('[hideLoading] delaying hide', { elapsed, minMs: MIN_MS });
+    setTimeout(doHide, MIN_MS - elapsed);
+  } else {
+    doHide();
+  }
+}
+
+
+
+
 
   // ■■■ AI結果表示用の自作ウィンドウ ■■■
   function showAIResult(text) {
@@ -712,10 +738,10 @@ For each spot, provide:
 // ■■■ 指定地点の侍解説を実行する関数（修正済） ■■■
 // ★ 機能2: 地図長押しから侍解説 + おすすめスポット
   window.askSamuraiSpot = async function(lat, lng) {
-  console.log("ここに来た2");
       map.closePopup(); // ポップアップを閉じる
       showLoading();    // ローディング開始
-console.log("ここに来た3");
+      // 裏どり：ローディングを描画するために1tick譲る（同期処理で描画が詰まるのを防ぐ）
+      await new Promise(r => setTimeout(r, 0));
       try {
           let prompt = "";
           const latitudeVal = lat;
@@ -741,12 +767,10 @@ Focus on the Edo period or old roads if applicable.
 ・解説の最後に、「【周辺のおすすめ立ち寄りスポット5選】」という見出しをつけて、
 　この地点周辺の史跡・寺社・老舗・景勝地などを5つ、箇条書きで紹介してください。`;
           }
-
           // API呼び出し
           const answer = await callGemini(prompt);
           hideLoading();
           showAIResult(answer);
-
       } catch (e) {
           hideLoading();
           console.error(e);
@@ -793,10 +817,8 @@ For each spot, provide:
       try {
           const answer = await callGemini(prompt);
           hideLoading();
-          
           // GoogleマップURLを確実にリンクタグに変換する
           const linkedAnswer = answer.replace(/(https:\/\/www\.google\.com\/maps\/search\/\?api=1&query=[^\s<)\n]+)/g, '<a href="$1" target="_blank" style="color:#0066cc;text-decoration:underline;">Google Mapで見る</a>');
-          
           showAIResult(linkedAnswer);
       } catch (e) {
           hideLoading();
