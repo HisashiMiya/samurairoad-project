@@ -310,14 +310,8 @@ setTimeout(() => {
 
   if (DBG) console.log('[SR ctx] bind complete', { bound: Array.from(buttons).map(b => b.dataset.action) });
 }, 0);
-if (action === 'samurai') window.askSamuraiSpot?.(lat, lng);
-            if (action === 'onsen')  window.askOnsen?.(lat, lng);
-            if (action === 'food')   window.askLocalFood?.(lat, lng);
-            if (action === 'spots')  window.askSpotSearch?.(lat, lng);
-          }, { once: true });
-        });
+
       });
-    });
   }
 
 
