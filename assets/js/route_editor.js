@@ -57,6 +57,7 @@
     inpNote: () => $('inpRENote'),
     reResult: () => $('reResult'),
     reBreakdown: () => $('reBreakdown'),
+    status: () => $('routeEditStatus'),
   };
 
   const state = {
@@ -80,6 +81,17 @@
 
   function hideDrawBar() {
     ui.drawBar()?.style.setProperty('display', 'none');
+  }
+
+  function updateDrawingStateUI() {
+    const statusEl = ui.status();
+    if (!statusEl) {
+      return;
+    }
+
+    statusEl.textContent = state.drawingArmed
+      ? safeT('re_status_drawing', '描画中です')
+      : safeT('re_status_idle', '描画前です');
   }
 
   function pushHistory(snapshot) {
