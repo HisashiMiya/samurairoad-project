@@ -1,305 +1,634 @@
 /* --- Styles --- */
-:root { --primary: #0066cc; --danger: #cc0000; --bg: #ffffff; --text: #333333; --accent: #ff9800; }
-body { margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; overflow: hidden; height: 100vh; width: 100vw; color: var(--text); background: var(--bg); }
+:root {
+  --primary: #0066cc;
+  --danger: #cc0000;
+  --bg: #ffffff;
+  --text: #333333;
+  --accent: #ff9800;
+}
 
-body { padding-bottom: 80px; box-sizing: border-box; }
+body {
+  margin: 0;
+  padding: 0 0 80px;
+  box-sizing: border-box;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  color: var(--text);
+  background: var(--bg);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
 
-#map { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; }
+#map {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 0;
+  width: 100%;
+  height: 100%;
+}
 
 /* Top Bar */
 .top-bar {
-  position: absolute; top: 10px; left: 68px; right: 10px; z-index: 1000;
-  background: rgba(255,255,255,0.95); backdrop-filter: blur(4px);
-  padding: 10px 14px; border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-  display: flex; flex-direction: column; gap: 4px; pointer-events: none;
+  position: absolute;
+  top: 10px;
+  left: 68px;
+  right: 10px;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 14px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(4px);
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  pointer-events: none;
 }
-.top-bar * { pointer-events: auto; }
-.status-title { font-weight: 800; font-size: 16px; color: var(--primary); pointer-events: auto; }
-.status-info { font-size: 12px; color: #666; pointer-events: auto; }
+
+.top-bar * {
+  pointer-events: auto;
+}
+
+.status-title {
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--primary);
+}
+
+.status-info {
+  font-size: 12px;
+  color: #666;
+}
 
 /* Bottom Bar */
 .bottom-bar {
-  position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 1000;
-  display: flex; gap: 12px;
-  background: rgba(255,255,255,0.95); backdrop-filter: blur(4px);
-  padding: 10px 16px; border-radius: 50px;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  z-index: 1000;
+  display: flex;
+  gap: 12px;
+  padding: 10px 16px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(4px);
+  border-radius: 50px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  transform: translateX(-50%);
 }
+
 .action-btn {
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
-  background: none; border: none; cursor: pointer; color: #555; gap: 2px; min-width: 55px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  min-width: 55px;
+  color: #555;
+  background: none;
+  border: none;
+  cursor: pointer;
 }
-.action-btn svg { width: 24px; height: 24px; fill: currentColor; }
-.action-btn span { font-size: 10px; font-weight: bold; }
-.action-btn:active { transform: scale(0.95); }
+
+.action-btn svg {
+  width: 24px;
+  height: 24px;
+  fill: currentColor;
+}
+
+.action-btn span {
+  font-size: 10px;
+  font-weight: bold;
+}
+
+.action-btn:active,
+.fab-btn:active {
+  transform: scale(0.95);
+}
 
 /* FABs (Floating Action Buttons) */
 .fab-container {
-  position: absolute; bottom: 100px; right: 20px; z-index: 1000;
-  display: flex; flex-direction: column; gap: 15px; align-items: center;
+  position: absolute;
+  right: 20px;
+  bottom: 100px;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
 }
+
 .fab-btn {
-  width: 50px; height: 50px; border-radius: 50%;
-  background: white; border: none; box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-  font-size: 24px; cursor: pointer; color: #333; display: flex; align-items: center; justify-content: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 50px;
+  height: 50px;
+  font-size: 24px;
+  color: #333;
+  background: white;
+  border: none;
+  border-radius: 50%;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  cursor: pointer;
   transition: transform 0.1s;
 }
-.fab-btn:active { transform: scale(0.95); }
-/* 歴史ガイドボタン用の特別色 */
-#btnHistory { background: var(--primary); color: white; font-size: 22px; }
+
+#btnHistory {
+  font-size: 22px;
+  color: white;
+  background: var(--primary);
+}
 
 /* Modal */
-.modal-overlay {
-  position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 2000;
-  display: none; align-items: center; justify-content: center; backdrop-filter: blur(2px);
+.modal-overlay,
+.modal {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(2px);
 }
-.modal-overlay.open { display: flex; }
+
+.modal-overlay.open,
+.modal.open {
+  display: flex;
+}
+
 .modal-content {
-  background: white; width: 90%; max-width: 400px; max-height: 80vh;
-  border-radius: 16px; padding: 20px; overflow-y: auto;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+  width: 90%;
+  max-width: 400px;
+  max-height: 80vh;
+  padding: 20px;
+  overflow-y: auto;
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
 }
-h2 { margin: 0 0 15px; font-size: 18px; border-bottom: 2px solid #eee; padding-bottom: 8px; }
-.list-group { display: flex; flex-direction: column; gap: 8px; }
+
+.modal-content.trace-modal {
+  max-width: 520px;
+}
+
+h2 {
+  margin: 0 0 15px;
+  padding-bottom: 8px;
+  font-size: 18px;
+  border-bottom: 2px solid #eee;
+}
+
+.list-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
 .list-item {
-  padding: 12px; background: #f8f9fa; border-radius: 8px; border: 1px solid #eee;
-  cursor: pointer; font-weight: 600; display: flex; justify-content: space-between; align-items: center;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px;
+  font-weight: 600;
+  background: #f8f9fa;
+  border: 1px solid #eee;
+  border-radius: 8px;
+  cursor: pointer;
 }
-.list-item:hover { background: #eef4ff; border-color: var(--primary); color: var(--primary); }
 
-/* Samurai Item Special Style */
-.item-samurai { border-color: #ffd700; background: #fffbe6; color: #856404; }
-/* Onsen Item Special Style */
-.item-onsen { border-color: #ff99cc; background: #fff0f5; color: #cc0066; }
-/* Food Item Special Style */
-.item-food { border-color: #ffcc99; background: #fffbf0; color: #cc6600; }
+.list-item:hover {
+  color: var(--primary);
+  background: #eef4ff;
+  border-color: var(--primary);
+}
 
-.btn-block { width: 100%; padding: 12px; margin-top: 10px; background: #333; color: white; border: none; border-radius: 8px; font-weight: bold; font-size: 14px; cursor: pointer; }
-.btn-danger { background: var(--danger); }
-.btn-secondary { background: #555; }
+.item-samurai {
+  color: #856404;
+  background: #fffbe6;
+  border-color: #ffd700;
+}
+
+.item-onsen {
+  color: #cc0066;
+  background: #fff0f5;
+  border-color: #ff99cc;
+}
+
+.item-food {
+  color: #cc6600;
+  background: #fffbf0;
+  border-color: #ffcc99;
+}
+
+.btn-block {
+  width: 100%;
+  margin-top: 10px;
+  padding: 12px;
+  font-size: 14px;
+  font-weight: bold;
+  color: white;
+  background: #333;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.btn-danger {
+  background: var(--danger);
+}
+
+.btn-secondary {
+  background: #555;
+}
 
 /* Settings Row */
-.settings-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; font-size: 14px; font-weight: bold; }
+.settings-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  font-size: 14px;
+  font-weight: bold;
+}
 
 /* Toast */
 .toast {
-  position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-  background: rgba(0,0,0,0.85); color: white; padding: 15px 25px;
-  border-radius: 30px; font-size: 14px; opacity: 0; pointer-events: none; transition: opacity 0.3s; z-index: 3000;
-  max-width: 80%; text-align: center; white-space: pre-wrap; line-height: 1.5;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  z-index: 3000;
+  max-width: 80%;
+  padding: 15px 25px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: white;
+  text-align: center;
+  white-space: pre-wrap;
+  pointer-events: none;
+  background: rgba(0, 0, 0, 0.85);
+  border-radius: 30px;
+  opacity: 0;
+  transform: translate(-50%, -50%);
+  transition: opacity 0.3s;
 }
-.toast.show { opacity: 1; }
+
+.toast.show {
+  opacity: 1;
+}
 
 /* =========================================
    有機ELブラックアウト（ポケットモード）
    ========================================= */
 #pocketModeOverlay {
-  position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-  background-color: #000000; /* 完全な黒（発光ゼロ） */
-  z-index: 100000; /* 全てのUIの上に被せる */
-  display: none; flex-direction: column; align-items: center; justify-content: center;
-  color: #555; font-size: 16px; font-weight: bold; user-select: none;
-  touch-action: none; /* スワイプ等のOS標準動作を無効化 */
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 100000;
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100vw;
+  height: 100vh;
+  font-size: 16px;
+  font-weight: bold;
+  color: #555;
+  user-select: none;
+  background-color: #000;
+  touch-action: none;
 }
+
 #pocketModeProgress {
-  width: 0%; height: 4px; background-color: #555; margin-top: 30px; 
-  border-radius: 2px; transition: width 0.1s linear; max-width: 200px;
+  width: 0;
+  max-width: 200px;
+  height: 4px;
+  margin-top: 30px;
+  background-color: #555;
+  border-radius: 2px;
+  transition: width 0.1s linear;
 }
 
 /* Hamburger */
 .hamburger {
-  position: absolute; top: 14px; left: 14px; z-index: 1100;
-  width: 44px; height: 44px; border: none; border-radius: 12px;
-  background: rgba(255,255,255,0.95); box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-  display: flex; align-items: center; justify-content: center; cursor: pointer;
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  z-index: 1100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  background: rgba(255, 255, 255, 0.95);
+  border: none;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  cursor: pointer;
 }
-.hamburger .bars { width: 18px; height: 12px; display: grid; gap: 3px; }
-.hamburger .bars span { display: block; height: 2px; background: #333; border-radius: 2px; }
 
-@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+.hamburger .bars {
+  display: grid;
+  gap: 3px;
+  width: 18px;
+  height: 12px;
+}
+
+.hamburger .bars span {
+  display: block;
+  height: 2px;
+  background: #333;
+  border-radius: 2px;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
 
 /* --- Trace Game --- */
-.modal-content.trace-modal { max-width: 520px; }
-.trace-info { background: #f7f7f7; border: 1px solid #e5e5e5; border-radius: 10px; padding: 10px; margin: 8px 0 12px; }
-.trace-row { display: flex; gap: 10px; padding: 6px 0; border-bottom: 1px dashed #ddd; }
-.trace-row:last-child { border-bottom: none; }
-.trace-label { width: 88px; color: #666; font-size: 13px; }
-.trace-value { flex: 1; color: #222; font-size: 13px; line-height: 1.4; }
-.trace-actions { display: grid; gap: 10px; }
-.trace-actions-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.trace-btn { background: var(--primary); color: white; font-weight: 700; }
-.btn-half { width: 100%; padding: 12px; border: none; border-radius: 10px; font-weight: 700; cursor: pointer; background: #eee; color: #222; }
-.trace-toggle { display: flex; align-items: center; gap: 10px; font-size: 13px; color: #333; user-select: none; }
-.trace-toggle input { transform: scale(1.15); }
-.trace-result { background: #fff; border: 1px solid #e5e5e5; border-radius: 10px; padding: 10px; margin-top: 10px; }
-.trace-scoreline { font-size: 15px; margin: 6px 0; }
-.trace-breakdown { font-size: 12px; color: #444; white-space: pre-line; }
+.trace-info {
+  margin: 8px 0 12px;
+  padding: 10px;
+  background: #f7f7f7;
+  border: 1px solid #e5e5e5;
+  border-radius: 10px;
+}
+
+.trace-row {
+  display: flex;
+  gap: 10px;
+  padding: 6px 0;
+  border-bottom: 1px dashed #ddd;
+}
+
+.trace-row:last-child {
+  border-bottom: none;
+}
+
+.trace-label {
+  width: 88px;
+  font-size: 13px;
+  color: #666;
+}
+
+.trace-value {
+  flex: 1;
+  font-size: 13px;
+  line-height: 1.4;
+  color: #222;
+}
+
+.trace-actions {
+  display: grid;
+  gap: 10px;
+}
+
+.trace-actions-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.trace-btn {
+  font-weight: 700;
+  color: white;
+  background: var(--primary);
+}
+
+.btn-half {
+  width: 100%;
+  padding: 12px;
+  font-weight: 700;
+  color: #222;
+  background: #eee;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.trace-toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  color: #333;
+  user-select: none;
+}
+
+.trace-toggle input {
+  transform: scale(1.15);
+}
+
+.trace-toggle .input {
+  min-width: 0;
+}
+
+.trace-result {
+  margin-top: 10px;
+  padding: 10px;
+  background: #fff;
+  border: 1px solid #e5e5e5;
+  border-radius: 10px;
+}
+
+.trace-scoreline {
+  margin: 6px 0;
+  font-size: 15px;
+}
+
+.trace-breakdown {
+  font-size: 12px;
+  color: #444;
+  white-space: pre-line;
+}
 
 .trace-hud {
   position: absolute;
-  left: 12px;
   top: 60px;
+  left: 12px;
   z-index: 9999;
-  background: rgba(255,255,255,0.92);
-  border: 1px solid rgba(0,0,0,0.12);
-  border-radius: 12px;
+  display: none;
   padding: 8px 10px;
   font-size: 12px;
   color: #222;
-  display: none;
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: 12px;
   backdrop-filter: blur(6px);
 }
-.trace-hud b { font-size: 13px; }
-.trace-hud .muted { color: #666; }
+
+.trace-hud b {
+  font-size: 13px;
+}
+
+.trace-hud .muted {
+  color: #666;
+}
 
 .trace-crosshair {
   position: absolute;
-  left: 50%;
   top: 50%;
+  left: 50%;
+  z-index: 9998;
+  display: none;
   width: 22px;
   height: 22px;
-  margin-left: -11px;
   margin-top: -11px;
-  z-index: 9998;
+  margin-left: -11px;
   pointer-events: none;
-  display: none;
   opacity: 0.65;
 }
-.trace-crosshair:before, .trace-crosshair:after {
-  content: "";
+
+.trace-crosshair:before,
+.trace-crosshair:after {
+  content: '';
   position: fixed !important;
-  left: 50%;
   top: 50%;
+  left: 50%;
   background: #111;
 }
-.trace-crosshair:before { width: 22px; height: 2px; margin-left: -11px; margin-top: -1px; }
-.trace-crosshair:after { width: 2px; height: 22px; margin-left: -1px; margin-top: -11px; }
 
-/* ===== Route Editor vertex markers ===== */
+.trace-crosshair:before {
+  width: 22px;
+  height: 2px;
+  margin-top: -1px;
+  margin-left: -11px;
+}
+
+.trace-crosshair:after {
+  width: 2px;
+  height: 22px;
+  margin-top: -11px;
+  margin-left: -1px;
+}
+
+/* ===== Route Editor ===== */
 .sr-re-vertex {
   width: 14px;
   height: 14px;
-  border-radius: 999px;
-  background: #ffffff;
+  background: #fff;
   border: 3px solid #1565c0;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+  border-radius: 999px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
 }
-.sr-re-vertex.sr-re-start { border-color: #2e7d32; } /* start: green */
-.sr-re-vertex.sr-re-end   { border-color: #c62828; } /* end: red */
-.sr-re-vertex.sr-re-mid   { border-color: #1565c0; } /* mid: blue */
 
-.re-slider-wrap { flex: 1; display:flex; flex-direction:column; gap:6px; }
-.re-slider-label { font-size:12px; color:#444; }
-
-/* --- Route Editor --- */
-.trace-toggle .input{min-width: 0;}
-
-/* =========================================
-   ルート作成、なぞる用設定
-   ========================================= */
-/* =========================================================
-   FIX: TraceGame is <div class="modal"> (NOT modal-overlay)
-   - Hide .modal by default
-   - Show only with .open
-   - When RouteEdit/TraceGame open: overlay lets pointer through to map,f
-     but modal-content remains clickable
-   ========================================================= */
-
-/* A) .modal を .modal-overlay 相当にする（TraceGame対策） */
-.modal {
-  position: fixed;
-  inset: 0;
-  z-index: 2000;
-  display: none;                 /* ←これが無いと初期表示で要素が出る */
-  align-items: center;
-  justify-content: center;
-  background: rgba(0,0,0,0.4);
-  backdrop-filter: blur(2px);
+.sr-re-vertex.sr-re-start {
+  border-color: #2e7d32;
 }
-.modal.open { display: flex; }
 
-/* B) Route Editor / Trace Game を開いてる間は「地図を触れる」ようにする */
+.sr-re-vertex.sr-re-end {
+  border-color: #c62828;
+}
+
+.sr-re-vertex.sr-re-mid {
+  border-color: #1565c0;
+}
+
+.re-slider-wrap {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px 10px;
+  background: #f3f3f3;
+  border: 1px solid #e0e0e0;
+  border-radius: 10px;
+}
+
+.re-slider-label {
+  font-size: 12px;
+  color: #333;
+}
+
+#rngRESimplify {
+  width: 100%;
+}
+
+/* Route/Trace modal behavior */
 #modalRouteEdit.open,
-#modalTraceGame.open {
-  pointer-events: none;          /* オーバーレイは地図にイベントを通す */
+#modalTraceGame.open,
+#modalRouteEdit.minimized,
+#modalTraceGame.minimized,
+.modal-overlay.route-editor-open,
+.modal.route-editor-open {
+  background: transparent !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  pointer-events: none;
 }
 
-/* ただしダイアログ本体だけ操作可能にする */
 #modalRouteEdit.open .modal-content,
-#modalTraceGame.open .modal-content {
+#modalTraceGame.open .modal-content,
+#modalRouteEdit.minimized .modal-content,
+#modalTraceGame.minimized .modal-content,
+.modal-overlay.route-editor-open .modal-content,
+.modal.route-editor-open .modal-content {
   pointer-events: auto;
 }
 
-/* ===== modal 表示制御（TraceGame が .modal なので必須） ===== */
-.modal { display:none; }
-.modal.open { display:flex; }
-
-/* ===== 重要：開始(描画)中だけ、overlay は地図へイベントを通す ===== */
-/* route_editor.js 側が route-editor-open を付ける想定に合わせる */
-.modal-overlay.route-editor-open,
-.modal.route-editor-open {
-  pointer-events: none;
-}
-.modal-overlay.route-editor-open .modal-content,
-.modal.route-editor-open .modal-content {
-  pointer-events: auto; /* ダイアログ内のボタンは押せる */
-}
-
-/* === Start後：モーダルを閉じてもモードを継続させるための“最小化” === */
 .modal-overlay.minimized .modal-content,
 .modal.minimized .modal-content {
-  display: none !important;   /* UIだけ消す */
+  display: none !important;
 }
 
-/* ついでに背景も消したい場合（任意） */
-.modal-overlay.minimized,
-.modal.minimized {
-  background: transparent !important;
+/* RouteEditor Drawing Toolbar */
+.re-drawbar {
+  position: fixed;
+  top: 60px;
+  left: 50%;
+  z-index: 5000;
+  width: 92%;
+  max-width: 520px;
+  padding: 10px;
+  background: white;
+  border-radius: 14px;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.25);
+  transform: translateX(-50%);
 }
 
-.modal-overlay.minimized {
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important; /* Safari対策 */
-  background: transparent !important;        /* 暗幕も消す */
+.re-drawbar-inner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
 }
 
-/* RouteEdit/TraceGame が open or minimized の時は地図へイベントを通す */
-#modalRouteEdit.open,
-#modalRouteEdit.minimized,
-#modalTraceGame.open,
-#modalTraceGame.minimized{
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
-}
-#modalRouteEdit.open .modal-content,
-#modalRouteEdit.minimized .modal-content,
-#modalTraceGame.open .modal-content,
-#modalTraceGame.minimized .modal-content{
-  pointer-events:auto;
+.re-drawbar-title {
+  margin-right: 6px;
+  font-weight: bold;
+  color: #333;
 }
 
-
-/* --- Route Editor: vertex markers & simplify UI --- */
-.re-slider-wrap{
-  display:flex;
-  flex-direction:column;
-  gap:6px;
-  background:#f3f3f3;
-  border:1px solid #e0e0e0;
-  border-radius:10px;
-  padding:8px 10px;
+.re-btn,
+.re-btn-primary,
+.re-btn-danger {
+  padding: 8px 12px;
+  border-radius: 8px;
+  cursor: pointer;
 }
-.re-slider-label{ font-size:12px; color:#333; }
-#rngRESimplify{ width:100%; }
 
-.re-vertex{
-  width:12px;
-  height:12px;
-  border-radius:50%;
-  background:#ffffff;
-  border:2px solid #0066cc;
-  box-shadow:0 1px 3px rgba(0,0,0,0.25);
+.re-btn {
+  background: #eee;
+  border: 1px solid #ddd;
 }
-.re-vertex.re-vertex-start{ border-color:#00a000; }
-.re-vertex.re-vertex-end{ border-color:#cc0000; }
+
+.re-btn-primary {
+  padding: 8px 14px;
+  font-weight: bold;
+  color: white;
+  background: #1e88e5;
+  border: none;
+}
+
+.re-btn-danger {
+  color: white;
+  background: #d32f2f;
+  border: none;
+}
