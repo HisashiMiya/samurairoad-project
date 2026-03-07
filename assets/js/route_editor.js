@@ -533,6 +533,7 @@
   function start() {
     state.drawingArmed = true;
     showDrawBar();
+    updateDrawingStateUI();
     toast(safeT('re_msg_draw', '描画モード：地図を押しながらなぞってください'));
   }
 
@@ -543,6 +544,7 @@
     restoreMapInteractions();
     clearVertexMarkers();
     hideDrawBar();
+    updateDrawingStateUI();
   }
 
   function reset() {
@@ -557,6 +559,7 @@
     restoreMapInteractions();
     updatePreview();
     hideDrawBar();
+    updateDrawingStateUI();
     toast(safeT('re_msg_finish', '確定しました'));
   }
 
@@ -674,6 +677,7 @@
     updatePreview();
     refreshVertexMarkers();
     updateToleranceLabel();
+    updateDrawingStateUI();
   }
 
   function initOnce() {
