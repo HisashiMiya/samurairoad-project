@@ -21,7 +21,10 @@
   const safeT = (key, fallback) => {
     try {
       if (window.SRWorldMap && typeof window.SRWorldMap.t === 'function') {
-        return window.SRWorldMap.t(key);
+        const translated = window.SRWorldMap.t(key);
+        if (translated && translated !== key) {
+          return translated;
+        }
       }
     } catch (_) {}
     return fallback ?? key;
@@ -59,6 +62,63 @@
     reBreakdown: () => $('reBreakdown'),
     status: () => $('routeEditStatus'),
   };
+
+
+  function applyRouteEditorLabels() {
+    const textMap = {
+      routeEditStatus: ['re_status_idle', '描画前です'],
+      btnREStart: ['re_start', 'Start（描画）'],
+      btnREUndo: ['re_undo', '1つ戻す'],
+      btnREReset: ['re_reset', '全消去'],
+      btnREFinish: ['re_finish', '描画を確定'],
+      btnREExport: ['re_export', 'エクスポート'],
+      btnRESimplify: ['re_simplify', '線をなめらかに整える'],
+      btnREConfirm: ['re_finish', '描画を確定'],
+      btnREUndoBar: ['re_undo', '1つ戻す'],
+      btnREResetBar: ['re_reset', '全消去'],
+      btnRECancel: ['re_cancel', 'キャンセル'],
+      reBreakdown: [null, '--'],
+    };
+
+    Object.entries(textMap).forEach(([id, pair]) => {
+      const el = $(id);
+      if (!el) return;
+      const [key, fallback] = pair;
+      if (key) el.textContent = safeT(key, fallback);
+      else if (!el.textContent.trim()) el.textContent = fallback;
+    });
+
+    const placeholders = {
+      inpREName: ['re_name_placeholder', '例：中山道（妻籠→馬籠）'],
+      inpRENote: ['re_note_placeholder', '例：現地でなぞった復元版'],
+    };
+    Object.entries(placeholders).forEach(([id, [key, fallback]]) => {
+      const el = $(id);
+      if (!el) return;
+      el.placeholder = safeT(key, fallback);
+    });
+
+    document.querySelectorAll('#modalRouteEdit [data-lang]').forEach((el) => {
+      const key = el.getAttribute('data-lang');
+      const fallback = el.dataset.fallback || el.textContent.trim();
+      el.textContent = safeT(key, fallback);
+      if (!el.dataset.fallback) {
+        el.dataset.fallback = fallback;
+      }
+    });
+  }
+
+  function hideUnusedModalButtons() {
+    ['btnREUndo', 'btnREReset', 'btnREFinish'].forEach((id) => {
+      const el = $(id);
+      if (!el) return;
+      el.style.display = 'none';
+      const row = el.parentElement;
+      if (row && row.classList.contains('trace-actions-row') && !row.querySelector('button:not([style*="display: none"])')) {
+        row.style.display = 'none';
+      }
+    });
+  }
 
   const state = {
     map: null,
@@ -678,6 +738,8 @@
     refreshVertexMarkers();
     updateToleranceLabel();
     updateDrawingStateUI();
+    applyRouteEditorLabels();
+    hideUnusedModalButtons();
   }
 
   function initOnce() {
@@ -693,6 +755,8 @@
       bindPointerEvents();
       wireUI();
       refreshUI();
+      applyRouteEditorLabels();
+      hideUnusedModalButtons();
       log('initialized');
     }, 200);
 
