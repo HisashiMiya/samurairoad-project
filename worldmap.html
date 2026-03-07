@@ -101,19 +101,21 @@
             <input type="checkbox" id="chkRESnap" />
             <span data-lang="re_snap">参照ルートへスナップ（近い時だけ）</span>
           </label>
+
+          <label class="trace-toggle">
+            <input type="checkbox" id="chkREPanWhileDraw" />
+            <span>地図を動かしながら描く（タップで点追加）</span>
+          </label>
         </div>
 
         <div class="routeedit-section">
           <div class="routeedit-section-title" data-lang="re_section_main">メイン操作</div>
           <button class="btn-block trace-btn" id="btnREStart" data-lang="re_start">描画開始</button>
-
-          <div class="trace-actions-row">
-            <button class="btn-half" id="btnREUndo" data-lang="re_undo">1つ戻す</button>
-            <button class="btn-half" id="btnREReset" data-lang="re_reset">全消去</button>
+          <div style="margin-top:10px; font-size:13px; line-height:1.6; color:#555;">
+            描画中の操作は下の子ウィンドウに集約されます。
           </div>
 
           <div class="trace-actions-row">
-            <button class="btn-half" id="btnREFinish" data-lang="re_finish">描画を確定</button>
             <button class="btn-half" id="btnREExport" data-lang="re_export">エクスポート</button>
           </div>
         </div>
@@ -157,7 +159,7 @@
         </button>
       </div>
     </div>
-  </div></div>
+  </div>
 
   <div class="top-bar">
     <div class="status-title" id="lblCurrentRoute">--</div>
@@ -405,12 +407,13 @@
   <div id="reDrawBar" class="re-drawbar" style="display:none;">
     <div class="re-drawbar-inner">
       <div class="re-drawbar-title" data-lang="re_drawing_now">✏️ 描画中です</div>
+      <div id="reDrawHelp" style="font-size:12px; line-height:1.5; color:#f1f1f1; opacity:0.95; margin:4px 0 8px;">ドラッグして線を引きます</div>
       <button id="btnREConfirm" class="re-btn-primary" data-lang="re_finish">描画を確定</button>
       <button id="btnREUndoBar" class="re-btn" data-lang="re_undo">1つ戻す</button>
       <button id="btnREResetBar" class="re-btn" data-lang="re_reset">全消去</button>
       <button id="btnRECancel" class="re-btn-danger" data-lang="re_cancel">キャンセル</button>
     </div>
-  </div></div>
+  </div>
 
   <div id="pocketModeOverlay">
     <div id="pocketModeText">画面を3秒長押しで解除</div>
