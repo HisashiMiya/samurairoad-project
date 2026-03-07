@@ -51,7 +51,7 @@
     chkRef: () => $('chkRERef'),
     chkSnap: () => $('chkRESnap'),
     chkEdit: () => $('chkREEdit'),
-    chkPanWhileDraw: () => $('chkREPanWhileDraw'),
+    chkPan: () => $('chkREPan'),
     rngTol: () => $('rngRESimplify'),
     lblTol: () => $('lblRETol'),
     inpName: () => $('inpREName'),
@@ -59,7 +59,8 @@
     reResult: () => $('reResult'),
     reBreakdown: () => $('reBreakdown'),
     status: () => $('routeEditStatus'),
-    drawHelp: () => $('reDrawHelp'),
+    drawBarTitle: () => $('reDrawBarTitle'),
+    drawBarHint: () => $('reDrawBarHint'),
   };
 
   const state = {
@@ -75,6 +76,7 @@
     refLatLngs: /** @type {L.LatLng[]} */ ([]),
     vertexMarkers: /** @type {L.Marker[]} */ ([]),
     prevMapInteract: null,
+    clickAddEnabled: false,
   };
 
   function showDrawBar() {
@@ -85,32 +87,52 @@
     ui.drawBar()?.style.setProperty('display', 'none');
   }
 
-  function updateDrawingStateUI() {
-    const statusEl = ui.status();
-    const helpEl = ui.drawHelp();
-    const panMode = !!ui.chkPanWhileDraw()?.checked;
+  function isPanWhileDrawingEnabled() {
+    return !!ui.chkPan()?.checked;
+  }
 
-    if (statusEl) {
-      if (state.drawingArmed) {
-        statusEl.textContent = panMode
-          ? '描画中です。地図は動かせます。点を置きたい場所をタップしてください'
-          : safeT('re_status_drawing', '描画中です。ドラッグして線を引いてください');
-      } else if (state.points.length >= 2) {
-        statusEl.textContent = '描画終了です。内容を確認してエクスポートしてください';
+  function updateDrawBarTexts() {
+    const title = ui.drawBarTitle();
+    const hint = ui.drawBarHint();
+    const statusEl = ui.status();
+    const drawing = state.drawingArmed;
+    const panMode = isPanWhileDrawingEnabled();
+
+    if (title) {
+      title.textContent = drawing ? '✏️ 描画中' : '✏️ ルート作成';
+    }
+    if (hint) {
+      if (drawing) {
+        hint.textContent = panMode
+          ? '地図は動かせます。線を追加するときは地図をクリックしてください。'
+          : '地図をドラッグして線を引きます。';
       } else {
-        statusEl.textContent = safeT('re_status_idle', '描画前です');
+        hint.textContent = '開始すると、ここに描画操作が表示されます。';
       }
     }
-
-    if (helpEl) {
-      helpEl.textContent = state.drawingArmed
-        ? (panMode
-            ? '地図は動かせます。線を置くときは地図をタップしてください'
-            : 'ドラッグして線を引きます')
-        : (state.points.length >= 2
-            ? '描画は終わっています。必要なら確認・修正してエクスポートしてください'
-            : '描画を始めるとここに操作案内が出ます');
+    if (statusEl) {
+      if (drawing) {
+        statusEl.textContent = panMode
+          ? '描画中です。地図は動かせます。点を置きながら作成してください。'
+          : '描画中です。ドラッグして線を引いてください。';
+      }
     }
+  }
+
+  function updateDrawingStateUI() {
+    const statusEl = ui.status();
+    if (!statusEl) {
+      updateDrawBarTexts();
+      return;
+    }
+
+    if (!state.drawingArmed) {
+      statusEl.textContent = state.points.length >= 2
+        ? '描画が終了しました。内容を確認してエクスポートしてください。'
+        : '描画前です';
+    }
+
+    updateDrawBarTexts();
   }
 
   function pushHistory(snapshot) {
@@ -488,9 +510,7 @@
       return;
     }
 
-    const panMode = !!ui.chkPanWhileDraw()?.checked;
-
-    if (panMode) {
+    if (isPanWhileDrawingEnabled()) {
       return;
     }
 
@@ -512,6 +532,9 @@
   }
 
   function onPointerMove(e) {
+    if (isPanWhileDrawingEnabled()) {
+      return;
+    }
     if (!state.isPointerDrawing) {
       return;
     }
@@ -543,19 +566,18 @@
     e.preventDefault();
   }
 
-  function onMapClickWhilePanMode(e) {
-    if (!state.drawingArmed) {
+  function onMapClickWhileDrawing(e) {
+    if (!state.drawingArmed || !isPanWhileDrawingEnabled()) {
       return;
     }
-    if (!ui.chkPanWhileDraw()?.checked) {
-      return;
-    }
-
     if (state.points.length === 0) {
       pushHistory([]);
+    } else {
+      pushHistory();
     }
     addPoint(e.latlng);
     updatePreview();
+    refreshVertexMarkers();
   }
 
   function bindPointerEvents() {
@@ -574,8 +596,8 @@
     state.drawingArmed = true;
     showDrawBar();
     updateDrawingStateUI();
-    const panMode = !!ui.chkPanWhileDraw()?.checked;
-    toast(panMode ? '描画モード：地図を動かしながら、点を置きたい場所をタップしてください' : safeT('re_msg_draw', '描画モード：地図を押しながらなぞってください'));
+    updateDrawBarTexts();
+    toast(isPanWhileDrawingEnabled() ? '描画モード：地図を動かしながら、クリックで点を追加してください' : safeT('re_msg_draw', '描画モード：地図を押しながらなぞってください'));
   }
 
   function stop() {
@@ -586,6 +608,7 @@
     clearVertexMarkers();
     hideDrawBar();
     updateDrawingStateUI();
+    updateDrawBarTexts();
   }
 
   function reset() {
@@ -601,7 +624,8 @@
     updatePreview();
     hideDrawBar();
     updateDrawingStateUI();
-    toast(safeT('re_msg_finish', '確定しました'));
+    updateDrawBarTexts();
+    toast('描画を終了しました。内容を確認してエクスポートしてください');
   }
 
   function undo() {
@@ -700,8 +724,8 @@
     ui.btnCancelBar()?.addEventListener('click', stop);
 
     ui.chkRef()?.addEventListener('change', refreshReferenceRoute);
+    ui.chkPan()?.addEventListener('change', updateDrawBarTexts);
     ui.chkEdit()?.addEventListener('change', refreshVertexMarkers);
-    ui.chkPanWhileDraw()?.addEventListener('change', updateDrawingStateUI);
     ui.rngTol()?.addEventListener('input', updateToleranceLabel);
   }
 
@@ -714,6 +738,10 @@
 
     state.container = state.map.getContainer();
     bindPointerEvents();
+    if (!state.clickAddEnabled) {
+      state.map.on('click', onMapClickWhileDrawing);
+      state.clickAddEnabled = true;
+    }
     refreshReferenceRoute();
     redrawLine();
     updatePreview();
@@ -733,7 +761,6 @@
       state.map = map;
       state.container = map.getContainer();
       bindPointerEvents();
-      map.on('click', onMapClickWhilePanMode);
       wireUI();
       refreshUI();
       log('initialized');
