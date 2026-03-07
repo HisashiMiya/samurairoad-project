@@ -21,10 +21,7 @@
   const safeT = (key, fallback) => {
     try {
       if (window.SRWorldMap && typeof window.SRWorldMap.t === 'function') {
-        const translated = window.SRWorldMap.t(key);
-        if (translated && translated !== key) {
-          return translated;
-        }
+        return window.SRWorldMap.t(key);
       }
     } catch (_) {}
     return fallback ?? key;
@@ -54,6 +51,7 @@
     chkRef: () => $('chkRERef'),
     chkSnap: () => $('chkRESnap'),
     chkEdit: () => $('chkREEdit'),
+    chkPanWhileDraw: () => $('chkREPanWhileDraw'),
     rngTol: () => $('rngRESimplify'),
     lblTol: () => $('lblRETol'),
     inpName: () => $('inpREName'),
@@ -61,64 +59,8 @@
     reResult: () => $('reResult'),
     reBreakdown: () => $('reBreakdown'),
     status: () => $('routeEditStatus'),
+    drawHelp: () => $('reDrawHelp'),
   };
-
-
-  function applyRouteEditorLabels() {
-    const textMap = {
-      routeEditStatus: ['re_status_idle', '描画前です'],
-      btnREStart: ['re_start', 'Start（描画）'],
-      btnREUndo: ['re_undo', '1つ戻す'],
-      btnREReset: ['re_reset', '全消去'],
-      btnREFinish: ['re_finish', '描画を確定'],
-      btnREExport: ['re_export', 'エクスポート'],
-      btnRESimplify: ['re_simplify', '線をなめらかに整える'],
-      btnREConfirm: ['re_finish', '描画を確定'],
-      btnREUndoBar: ['re_undo', '1つ戻す'],
-      btnREResetBar: ['re_reset', '全消去'],
-      btnRECancel: ['re_cancel', 'キャンセル'],
-      reBreakdown: [null, '--'],
-    };
-
-    Object.entries(textMap).forEach(([id, pair]) => {
-      const el = $(id);
-      if (!el) return;
-      const [key, fallback] = pair;
-      if (key) el.textContent = safeT(key, fallback);
-      else if (!el.textContent.trim()) el.textContent = fallback;
-    });
-
-    const placeholders = {
-      inpREName: ['re_name_placeholder', '例：中山道（妻籠→馬籠）'],
-      inpRENote: ['re_note_placeholder', '例：現地でなぞった復元版'],
-    };
-    Object.entries(placeholders).forEach(([id, [key, fallback]]) => {
-      const el = $(id);
-      if (!el) return;
-      el.placeholder = safeT(key, fallback);
-    });
-
-    document.querySelectorAll('#modalRouteEdit [data-lang]').forEach((el) => {
-      const key = el.getAttribute('data-lang');
-      const fallback = el.dataset.fallback || el.textContent.trim();
-      el.textContent = safeT(key, fallback);
-      if (!el.dataset.fallback) {
-        el.dataset.fallback = fallback;
-      }
-    });
-  }
-
-  function hideUnusedModalButtons() {
-    ['btnREUndo', 'btnREReset', 'btnREFinish'].forEach((id) => {
-      const el = $(id);
-      if (!el) return;
-      el.style.display = 'none';
-      const row = el.parentElement;
-      if (row && row.classList.contains('trace-actions-row') && !row.querySelector('button:not([style*="display: none"])')) {
-        row.style.display = 'none';
-      }
-    });
-  }
 
   const state = {
     map: null,
@@ -145,13 +87,30 @@
 
   function updateDrawingStateUI() {
     const statusEl = ui.status();
-    if (!statusEl) {
-      return;
+    const helpEl = ui.drawHelp();
+    const panMode = !!ui.chkPanWhileDraw()?.checked;
+
+    if (statusEl) {
+      if (state.drawingArmed) {
+        statusEl.textContent = panMode
+          ? '描画中です。地図は動かせます。点を置きたい場所をタップしてください'
+          : safeT('re_status_drawing', '描画中です。ドラッグして線を引いてください');
+      } else if (state.points.length >= 2) {
+        statusEl.textContent = '描画終了です。内容を確認してエクスポートしてください';
+      } else {
+        statusEl.textContent = safeT('re_status_idle', '描画前です');
+      }
     }
 
-    statusEl.textContent = state.drawingArmed
-      ? safeT('re_status_drawing', '描画中です')
-      : safeT('re_status_idle', '描画前です');
+    if (helpEl) {
+      helpEl.textContent = state.drawingArmed
+        ? (panMode
+            ? '地図は動かせます。線を置くときは地図をタップしてください'
+            : 'ドラッグして線を引きます')
+        : (state.points.length >= 2
+            ? '描画は終わっています。必要なら確認・修正してエクスポートしてください'
+            : '描画を始めるとここに操作案内が出ます');
+    }
   }
 
   function pushHistory(snapshot) {
@@ -529,6 +488,12 @@
       return;
     }
 
+    const panMode = !!ui.chkPanWhileDraw()?.checked;
+
+    if (panMode) {
+      return;
+    }
+
     state.isPointerDrawing = true;
     state.pointerId = e.pointerId;
 
@@ -578,6 +543,21 @@
     e.preventDefault();
   }
 
+  function onMapClickWhilePanMode(e) {
+    if (!state.drawingArmed) {
+      return;
+    }
+    if (!ui.chkPanWhileDraw()?.checked) {
+      return;
+    }
+
+    if (state.points.length === 0) {
+      pushHistory([]);
+    }
+    addPoint(e.latlng);
+    updatePreview();
+  }
+
   function bindPointerEvents() {
     if (!state.container || state.container.__srRouteEditorBound) {
       return;
@@ -594,7 +574,8 @@
     state.drawingArmed = true;
     showDrawBar();
     updateDrawingStateUI();
-    toast(safeT('re_msg_draw', '描画モード：地図を押しながらなぞってください'));
+    const panMode = !!ui.chkPanWhileDraw()?.checked;
+    toast(panMode ? '描画モード：地図を動かしながら、点を置きたい場所をタップしてください' : safeT('re_msg_draw', '描画モード：地図を押しながらなぞってください'));
   }
 
   function stop() {
@@ -720,6 +701,7 @@
 
     ui.chkRef()?.addEventListener('change', refreshReferenceRoute);
     ui.chkEdit()?.addEventListener('change', refreshVertexMarkers);
+    ui.chkPanWhileDraw()?.addEventListener('change', updateDrawingStateUI);
     ui.rngTol()?.addEventListener('input', updateToleranceLabel);
   }
 
@@ -738,8 +720,6 @@
     refreshVertexMarkers();
     updateToleranceLabel();
     updateDrawingStateUI();
-    applyRouteEditorLabels();
-    hideUnusedModalButtons();
   }
 
   function initOnce() {
@@ -753,10 +733,9 @@
       state.map = map;
       state.container = map.getContainer();
       bindPointerEvents();
+      map.on('click', onMapClickWhilePanMode);
       wireUI();
       refreshUI();
-      applyRouteEditorLabels();
-      hideUnusedModalButtons();
       log('initialized');
     }, 200);
 
