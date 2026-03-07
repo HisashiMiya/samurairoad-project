@@ -60,63 +60,82 @@
     <div class="modal-content trace-modal">
       <h2 data-lang="title_routeedit">ルート作成</h2>
 
+      <div class="routeedit-status" id="routeEditStatus" data-lang="re_status_idle">描画前です</div>
+
       <div class="trace-actions">
-        <button class="btn-block trace-btn" id="btnREStart" data-lang="re_start">Start（描画）</button>
+        <div class="routeedit-section">
+          <div class="routeedit-section-title" data-lang="re_section_basic">基本情報</div>
 
-        <div class="trace-actions-row">
-          <button class="btn-half" id="btnREUndo" data-lang="re_undo">Undo</button>
-          <button class="btn-half" id="btnREReset" data-lang="re_reset">Reset</button>
+          <label class="trace-toggle routeedit-field">
+            <span data-lang="re_name">ルート名</span>
+            <input
+              class="input"
+              id="inpREName"
+              data-placeholder="re_name_placeholder"
+              placeholder="例：中山道（妻籠→馬籠）"
+              style="flex:1; padding:10px; border:1px solid #ddd; border-radius:10px;"
+            />
+          </label>
+
+          <label class="trace-toggle routeedit-field">
+            <span data-lang="re_note">メモ・説明</span>
+            <input
+              class="input"
+              id="inpRENote"
+              data-placeholder="re_note_placeholder"
+              placeholder="例：現地でなぞった復元版"
+              style="flex:1; padding:10px; border:1px solid #ddd; border-radius:10px;"
+            />
+          </label>
         </div>
 
-        <div class="trace-actions-row">
-          <button class="btn-half" id="btnREFinish" data-lang="re_finish">Finish</button>
-          <button class="btn-half" id="btnREExport" data-lang="re_export">Export</button>
+        <div class="routeedit-section">
+          <div class="routeedit-section-title" data-lang="re_section_assist">表示・補助</div>
+
+          <label class="trace-toggle">
+            <input type="checkbox" id="chkRERef" checked />
+            <span data-lang="re_showref">参照ルートを表示</span>
+          </label>
+
+          <label class="trace-toggle">
+            <input type="checkbox" id="chkRESnap" />
+            <span data-lang="re_snap">参照ルートへスナップ（近い時だけ）</span>
+          </label>
         </div>
 
-        <label class="trace-toggle">
-          <input type="checkbox" id="chkRERef" checked />
-          <span data-lang="re_showref">参照ルートを表示</span>
-        </label>
+        <div class="routeedit-section">
+          <div class="routeedit-section-title" data-lang="re_section_main">メイン操作</div>
+          <button class="btn-block trace-btn" id="btnREStart" data-lang="re_start">描画開始</button>
 
-        <label class="trace-toggle">
-          <input type="checkbox" id="chkRESnap" />
-          <span data-lang="re_snap">参照ルートへスナップ（近い時だけ）</span>
-        </label>
+          <div class="trace-actions-row">
+            <button class="btn-half" id="btnREUndo" data-lang="re_undo">1つ戻す</button>
+            <button class="btn-half" id="btnREReset" data-lang="re_reset">全消去</button>
+          </div>
 
-        <div class="trace-actions-row">
-          <button class="btn-half" id="btnRESimplify" data-lang="re_simplify">簡略化</button>
-          <div class="re-slider-wrap">
-            <div class="re-slider-label">
-              <span data-lang="re_tolerance">許容</span>: <b id="lblRETol">15m</b>
-            </div>
-            <input type="range" id="rngRESimplify" min="2" max="80" step="1" value="15" />
+          <div class="trace-actions-row">
+            <button class="btn-half" id="btnREFinish" data-lang="re_finish">描画を確定</button>
+            <button class="btn-half" id="btnREExport" data-lang="re_export">エクスポート</button>
           </div>
         </div>
 
-        <label class="trace-toggle">
-          <input type="checkbox" id="chkREEdit" />
-          <span data-lang="re_vertex_edit">頂点編集（ドラッグ）</span>
-        </label>
+        <details class="routeedit-details">
+          <summary data-lang="re_section_details">詳細設定</summary>
+          <div class="routeedit-details-body">
+            <button class="btn-half" id="btnRESimplify" data-lang="re_simplify">線をなめらかに整える</button>
 
-        <label class="trace-toggle">
-          <span data-lang="re_name">名前</span>
-          <input
-            class="input"
-            id="inpREName"
-            placeholder="例：中山道（妻籠→馬籠）"
-            style="flex:1; padding:10px; border:1px solid #ddd; border-radius:10px;"
-          />
-        </label>
+            <div class="re-slider-wrap">
+              <div class="re-slider-label">
+                <span data-lang="re_tolerance">補正の強さ</span>: <b id="lblRETol">15m</b>
+              </div>
+              <input type="range" id="rngRESimplify" min="2" max="80" step="1" value="15" />
+            </div>
 
-        <label class="trace-toggle">
-          <span data-lang="re_note">メモ</span>
-          <input
-            class="input"
-            id="inpRENote"
-            placeholder="例：現地でなぞった復元版"
-            style="flex:1; padding:10px; border:1px solid #ddd; border-radius:10px;"
-          />
-        </label>
+            <label class="trace-toggle">
+              <input type="checkbox" id="chkREEdit" />
+              <span data-lang="re_vertex_edit">頂点を後から修正する</span>
+            </label>
+          </div>
+        </details>
       </div>
 
       <div class="trace-result" id="reResult" style="display:none;">
@@ -124,17 +143,21 @@
         <div class="trace-breakdown" id="reBreakdown">--</div>
       </div>
 
-      <button class="btn-block" style="background:#888;" onclick="closeModals();" data-lang="btn_close">
-        閉じる
-      </button>
-      <button
-        class="btn-block btn-danger"
-        onclick="if(window.RouteEditor) RouteEditor.stop(); document.getElementById('modalRouteEdit')?.classList.remove('open','minimized');"
-      >
-        終了
-      </button>
+      <div class="routeedit-section" style="margin-top:12px;">
+        <div class="routeedit-section-title" data-lang="re_section_output">出力・終了</div>
+        <button class="btn-block" style="background:#888;" onclick="closeModals();" data-lang="re_panel_close">
+          パネルを閉じる
+        </button>
+        <button
+          class="btn-block btn-danger"
+          data-lang="re_mode_exit"
+          onclick="if(window.RouteEditor) RouteEditor.stop(); document.getElementById('modalRouteEdit')?.classList.remove('open','minimized');"
+        >
+          作成モードを終了
+        </button>
+      </div>
     </div>
-  </div>
+  </div></div>
 
   <div class="top-bar">
     <div class="status-title" id="lblCurrentRoute">--</div>
@@ -381,13 +404,13 @@
 
   <div id="reDrawBar" class="re-drawbar" style="display:none;">
     <div class="re-drawbar-inner">
-      <div class="re-drawbar-title">✏️ 描画中です</div>
-      <button id="btnREConfirm" class="re-btn-primary">描画を確定</button>
-      <button id="btnREUndoBar" class="re-btn">1つ戻す</button>
-      <button id="btnREResetBar" class="re-btn">全消去</button>
-      <button id="btnRECancel" class="re-btn-danger">キャンセル</button>
+      <div class="re-drawbar-title" data-lang="re_drawing_now">✏️ 描画中です</div>
+      <button id="btnREConfirm" class="re-btn-primary" data-lang="re_finish">描画を確定</button>
+      <button id="btnREUndoBar" class="re-btn" data-lang="re_undo">1つ戻す</button>
+      <button id="btnREResetBar" class="re-btn" data-lang="re_reset">全消去</button>
+      <button id="btnRECancel" class="re-btn-danger" data-lang="re_cancel">キャンセル</button>
     </div>
-  </div>
+  </div></div>
 
   <div id="pocketModeOverlay">
     <div id="pocketModeText">画面を3秒長押しで解除</div>
