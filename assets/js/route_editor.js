@@ -542,23 +542,6 @@
     e.preventDefault();
   }
 
-    state.isPointerDrawing = true;
-    state.pointerId = e.pointerId;
-
-    try {
-      state.container.setPointerCapture(state.pointerId);
-    } catch (_) {}
-
-    disableMapInteractions();
-
-    const latlng = state.map.mouseEventToLatLng(e);
-    if (state.points.length === 0) {
-      pushHistory([]);
-    }
-    addPoint(latlng);
-    e.preventDefault();
-  }
-
   function onPointerMove(e) {
     if (!state.isPointerDrawing) {
       return;
