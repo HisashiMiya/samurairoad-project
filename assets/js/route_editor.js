@@ -51,7 +51,6 @@
     chkRef: () => $('chkRERef'),
     chkSnap: () => $('chkRESnap'),
     chkEdit: () => $('chkREEdit'),
-    chkPan: () => $('chkREPan'),
     rngTol: () => $('rngRESimplify'),
     lblTol: () => $('lblRETol'),
     inpName: () => $('inpREName'),
@@ -59,6 +58,13 @@
     reResult: () => $('reResult'),
     reBreakdown: () => $('reBreakdown'),
     status: () => $('routeEditStatus'),
+    drawBarTitle: () => $('reDrawBarTitle'),
+    drawBarHint: () => $('reDrawBarHint'),
+    chkPanBar: () => $('chkREPanBar'),
+    importButton: () => $('btnREImport'),
+    importFile: () => $('inpREImportFile'),
+    saveSection: () => $('reSaveSection'),
+    modal: () => $('modalRouteEdit'),
   };
 
   const state = {
@@ -76,42 +82,6 @@
     prevMapInteract: null,
   };
 
-
-  function isPanWhileDrawingEnabled() {
-    return !!ui.chkPan()?.checked;
-  }
-
-  function updateDrawBarTexts() {
-    const title = ui.drawBarTitle();
-    const hint = ui.drawBarHint();
-    const statusEl = ui.status();
-    const drawing = state.drawingArmed;
-    const panMode = isPanWhileDrawingEnabled();
-
-    if (title) {
-      title.textContent = drawing
-        ? (panMode ? '🖐️ 地図移動中' : '✏️ 描画中')
-        : '✏️ ルート作成';
-    }
-
-    if (hint) {
-      if (drawing) {
-        hint.textContent = panMode
-          ? '地図を動かせます。この間は線を引きません。描画を再開するときはチェックをOFFにしてください。'
-          : '地図上をドラッグして線を引いてください。';
-      } else {
-        hint.textContent = '開始すると、ここに描画操作が表示されます。';
-      }
-    }
-
-    if (!statusEl) return;
-    if (state.drawingArmed) {
-      statusEl.textContent = panMode
-        ? '地図移動中です。線は引かれません。'
-        : safeT('re_status_drawing', '描画中です');
-    }
-  }
-
   function showDrawBar() {
     ui.drawBar()?.style.setProperty('display', 'block');
   }
@@ -123,17 +93,12 @@
   function updateDrawingStateUI() {
     const statusEl = ui.status();
     if (!statusEl) {
-      updateDrawBarTexts();
       return;
     }
 
-    if (!state.drawingArmed) {
-      statusEl.textContent = state.points.length >= 2
-        ? '描画を確定しました。下の保存・出力から保存できます。'
-        : safeT('re_status_idle', '描画前です');
-    }
-
-    updateDrawBarTexts();
+    statusEl.textContent = state.drawingArmed
+      ? safeT('re_status_drawing', '描画中です')
+      : safeT('re_status_idle', '描画前です');
   }
 
   function pushHistory(snapshot) {
@@ -149,6 +114,7 @@
     redrawLine();
     refreshVertexMarkers();
     updatePreview();
+    showSaveSection();
   }
 
   function redrawLine() {
@@ -511,11 +477,6 @@
       return;
     }
 
-    if (isPanWhileDrawingEnabled()) {
-      restoreMapInteractions();
-      return;
-    }
-
     state.isPointerDrawing = true;
     state.pointerId = e.pointerId;
 
@@ -524,17 +485,16 @@
     } catch (_) {}
 
     disableMapInteractions();
-    pushHistory(state.points);
 
     const latlng = state.map.mouseEventToLatLng(e);
+    if (state.points.length === 0) {
+      pushHistory([]);
+    }
     addPoint(latlng);
     e.preventDefault();
   }
 
   function onPointerMove(e) {
-    if (isPanWhileDrawingEnabled()) {
-      return;
-    }
     if (!state.isPointerDrawing) {
       return;
     }
@@ -580,9 +540,12 @@
 
   function start() {
     state.drawingArmed = true;
+    hideSaveSection();
     showDrawBar();
     updateDrawingStateUI();
-    toast(safeT('re_msg_draw', '描画モード：地図を押しながらなぞってください'));
+    toast(isPanWhileDrawingEnabled()
+      ? '地図移動モードです。チェックをOFFにすると描画できます。'
+      : safeT('re_msg_draw', '描画モード：地図を押しながらなぞってください'));
   }
 
   function stop() {
@@ -592,12 +555,15 @@
     restoreMapInteractions();
     clearVertexMarkers();
     hideDrawBar();
+    setPanMode(false);
+    openRouteEditModal();
     updateDrawingStateUI();
   }
 
   function reset() {
     pushHistory();
     setPoints([]);
+    hideSaveSection();
   }
 
   function finish() {
@@ -607,8 +573,11 @@
     restoreMapInteractions();
     updatePreview();
     hideDrawBar();
+    setPanMode(false);
+    openRouteEditModal();
+    showSaveSection();
     updateDrawingStateUI();
-    toast(safeT('re_msg_finish', '確定しました'));
+    toast('描画を確定しました。保存・出力からエクスポートできます。');
   }
 
   function undo() {
@@ -634,6 +603,52 @@
     pushHistory();
     setPoints(simplifyLatLngs(state.points, tolerance));
     toast(safeT('re_msg_simplified', '簡略化しました'));
+  }
+
+
+  function readTextFile(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(String(reader.result || ''));
+      reader.onerror = () => reject(reader.error || new Error('read failed'));
+      reader.readAsText(file);
+    });
+  }
+
+  function extractLatLngsFromImportedText(text, filename) {
+    const lower = (filename || '').toLowerCase();
+    if (lower.endsWith('.gpx')) {
+      const xml = new DOMParser().parseFromString(text, 'application/xml');
+      return Array.from(xml.querySelectorAll('trkpt, rtept')).map((node) => {
+        const lat = Number(node.getAttribute('lat'));
+        const lng = Number(node.getAttribute('lon'));
+        return Number.isFinite(lat) && Number.isFinite(lng) ? L.latLng(lat, lng) : null;
+      }).filter(Boolean);
+    }
+    return getActiveRouteLatLngsFromGeoJSON(JSON.parse(text));
+  }
+
+  async function importRouteFile(file) {
+    if (!file) return;
+    try {
+      const text = await readTextFile(file);
+      const latlngs = extractLatLngsFromImportedText(text, file.name);
+      if (!latlngs || latlngs.length < 2) {
+        toast('インポートできる線データが見つかりませんでした');
+        return;
+      }
+      pushHistory();
+      setPoints(latlngs);
+      openRouteEditModal();
+      showSaveSection();
+      updateDrawingStateUI();
+      toast('インポートしました。続けて編集できます。');
+    } catch (e) {
+      console.error('[RouteEditor] import failed', e);
+      toast('インポートに失敗しました');
+    } finally {
+      if (ui.importFile()) ui.importFile().value = '';
+    }
   }
 
   function exportGeoJSON() {
@@ -700,6 +715,8 @@
     ui.btnFinish()?.addEventListener('click', finish);
     ui.btnExport()?.addEventListener('click', exportGeoJSON);
     ui.btnSimplify()?.addEventListener('click', applySimplify);
+    ui.importButton()?.addEventListener('click', () => ui.importFile()?.click());
+    ui.importFile()?.addEventListener('change', (e) => importRouteFile(e.target.files?.[0]));
 
     ui.btnConfirmBar()?.addEventListener('click', finish);
     ui.btnUndoBar()?.addEventListener('click', undo);
@@ -707,7 +724,6 @@
     ui.btnCancelBar()?.addEventListener('click', stop);
 
     ui.chkRef()?.addEventListener('change', refreshReferenceRoute);
-    ui.chkPan()?.addEventListener('change', updateDrawBarTexts);
     ui.chkEdit()?.addEventListener('change', refreshVertexMarkers);
     ui.rngTol()?.addEventListener('input', updateToleranceLabel);
   }
@@ -742,6 +758,8 @@
       bindPointerEvents();
       wireUI();
       refreshUI();
+      setPanMode(false);
+      hideSaveSection();
       log('initialized');
     }, 200);
 
