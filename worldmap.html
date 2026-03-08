@@ -75,17 +75,27 @@
             <input type="checkbox" id="chkRESnap" />
             <span data-lang="re_snap">参照ルートへスナップ（近い時だけ）</span>
           </label>
+
+          <label class="trace-toggle">
+            <input type="checkbox" id="chkREPan" />
+            <span>地図を移動する（この間は線を引かない）</span>
+          </label>
         </div>
 
         <div class="routeedit-section">
           <div class="routeedit-section-title" data-lang="re_section_main">メイン操作</div>
           <button class="btn-block trace-btn" id="btnREStart" data-lang="re_start">描画開始</button>
-          <div style="margin-top:8px; font-size:13px; color:#555; line-height:1.5;" id="reStartHint">
-            描画中の操作は上部の小ウィンドウに表示されます。
+
+          <div class="trace-actions-row">
+            <button class="btn-half" id="btnREUndo" data-lang="re_undo">1つ戻す</button>
+            <button class="btn-half" id="btnREReset" data-lang="re_reset">全消去</button>
           </div>
 
-          <input type="file" id="inpREImportFile" accept=".geojson,.json,.gpx,application/geo+json,application/json,.txt" style="display:none;" />
-          <button class="btn-block btn-secondary" id="btnREImport" style="margin-top:10px;">インポートして編集</button>
+          <div class="trace-actions-row">
+            <button class="btn-half" id="btnREFinish" data-lang="re_finish">描画を確定</button>
+            <button class="btn-half" id="btnREImport">インポート</button>
+          </div>
+          <input type="file" id="inpREImportFile" accept=".geojson,.json,.gpx,application/json,.txt" style="display:none;" />
         </div>
 
         <details class="routeedit-details">
@@ -113,11 +123,8 @@
         <div class="trace-breakdown" id="reBreakdown">--</div>
       </div>
 
-      <div class="routeedit-section" id="reSaveSection" style="margin-top:12px; display:none;">
+      <div class="routeedit-section" id="reSaveSection" style="display:none; margin-top:12px;">
         <div class="routeedit-section-title">保存・出力</div>
-        <div style="margin-bottom:8px; font-size:13px; color:#555; line-height:1.5;" id="reSaveHint">
-          描画を確定した後、ここからルート名とメモを入力して保存できます。
-        </div>
 
         <label class="trace-toggle routeedit-field">
           <span data-lang="re_name">ルート名</span>
@@ -141,9 +148,9 @@
           />
         </label>
 
-        <div class="trace-actions-row" style="margin-top:10px;">
+        <div class="trace-actions-row">
           <button class="btn-half" id="btnREExport" data-lang="re_export">エクスポート</button>
-          <button class="btn-half" style="background:#888; color:#fff;" onclick="closeModals();" data-lang="re_panel_close">パネルを閉じる</button>
+          <button class="btn-half" style="background:#888;" onclick="closeModals();" data-lang="re_panel_close">パネルを閉じる</button>
         </div>
       </div>
     </div>
@@ -394,7 +401,8 @@
 
   <div id="reDrawBar" class="re-drawbar" style="display:none;">
     <div class="re-drawbar-inner">
-      <div class="re-drawbar-title" data-lang="re_drawing_now">✏️ 描画中です</div>
+      <div id="reDrawBarTitle" class="re-drawbar-title">✏️ ルート作成</div>
+      <div id="reDrawBarHint" style="font-size:12px; color:#fff; margin:4px 0 8px; line-height:1.5;">開始すると、ここに描画操作が表示されます。</div>
       <button id="btnREConfirm" class="re-btn-primary" data-lang="re_finish">描画を確定</button>
       <button id="btnREUndoBar" class="re-btn" data-lang="re_undo">1つ戻す</button>
       <button id="btnREResetBar" class="re-btn" data-lang="re_reset">全消去</button>
@@ -402,7 +410,7 @@
     </div>
   </div>
 
-  <div id="pocketModeOverlay">
+<div id="pocketModeOverlay">
     <div id="pocketModeText">画面を3秒長押しで解除</div>
     <div id="pocketModeProgress"></div>
   </div>
