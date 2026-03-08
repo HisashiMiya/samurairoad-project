@@ -42,6 +42,7 @@
     btnReset: () => $('btnREReset'),
     btnFinish: () => $('btnREFinish'),
     btnExport: () => $('btnREExport'),
+    btnExportBar: () => $('btnREExportBar'),
     btnSimplify: () => $('btnRESimplify'),
     btnConfirmBar: () => $('btnREConfirm'),
     btnUndoBar: () => $('btnREUndoBar'),
@@ -90,19 +91,52 @@
     ui.drawBar()?.style.setProperty('display', 'none');
   }
 
+  function showSaveSection() {
+    const el = ui.saveSection();
+    if (el) el.style.display = '';
+  }
+
+  function hideSaveSection() {
+    const el = ui.saveSection();
+    if (el) el.style.display = 'none';
+  }
+
+  function openRouteEditModal() {
+    const modal = ui.modal();
+    if (!modal) return;
+    modal.classList.remove('minimized');
+    if (typeof window.openModal === 'function') {
+      window.openModal('modalRouteEdit');
+    } else {
+      modal.classList.add('open');
+      modal.style.display = 'flex';
+    }
+  }
+
+  function isPanWhileDrawingEnabled() {
+    return !!ui.chkPanBar()?.checked;
+  }
+
+  function setPanMode(enabled) {
+    const chk = ui.chkPanBar();
+    if (chk) chk.checked = !!enabled;
+    if (!state.map) return;
+    if (enabled) {
+      restoreMapInteractions();
+    } else if (state.isPointerDrawing) {
+      disableMapInteractions();
+    }
+  }
+
   function updateDrawingStateUI() {
     const statusEl = ui.status();
     if (!statusEl) {
       return;
     }
 
-    if (state.drawingArmed) {
-      statusEl.style.display = '';
-      statusEl.textContent = safeT('re_status_drawing', '描画中です');
-    } else {
-      statusEl.textContent = '';
-      statusEl.style.display = 'none';
-    }
+    statusEl.textContent = state.drawingArmed
+      ? safeT('re_status_drawing', '描画中です')
+      : '';
   }
 
   function pushHistory(snapshot) {
@@ -587,7 +621,7 @@
     openRouteEditModal();
     showSaveSection();
     updateDrawingStateUI();
-    toast('描画を確定しました。保存からGeoJSONを書き出せます。');
+    toast('描画を確定しました。保存できます。');
   }
 
   function undo() {
@@ -702,7 +736,7 @@
     a.remove();
 
     setTimeout(() => URL.revokeObjectURL(url), 2000);
-    toast('保存しました（GeoJSONをダウンロードしました）');
+    toast(safeT('re_msg_export', 'GeoJSONをダウンロードしました'));
   }
 
   function updateToleranceLabel() {
@@ -713,52 +747,43 @@
   }
 
   function wireUI() {
-    const bindClick = (el, handler) => {
-      if (!el) return;
-      let handledByPointer = false;
-
+    const bindPress = (el, handler) => {
+      if (!el || el.__srBound) return;
+      el.__srBound = true;
       const run = (e) => {
-        if (e.type === 'click' && handledByPointer) {
-          handledByPointer = false;
-          return;
-        }
-        handledByPointer = e.type === 'pointerup';
         e.preventDefault();
         e.stopPropagation();
         handler(e);
       };
-
-      el.addEventListener('pointerup', run);
       el.addEventListener('click', run);
+      el.addEventListener('pointerup', run);
     };
 
-    bindClick(ui.btnStart(), () => {
+    bindPress(ui.btnStart(), () => {
       try {
         window.closeModalsForce?.();
       } catch (_) {}
       start();
     });
 
-    bindClick(ui.btnUndo(), () => undo());
-    bindClick(ui.btnReset(), () => reset());
-    bindClick(ui.btnFinish(), () => finish());
-    bindClick(ui.btnExport(), () => exportGeoJSON());
-    bindClick(ui.btnSimplify(), () => applySimplify());
-    bindClick(ui.importButton(), () => ui.importFile()?.click());
-
+    bindPress(ui.btnUndo(), undo);
+    bindPress(ui.btnReset(), reset);
+    bindPress(ui.btnFinish(), finish);
+    bindPress(ui.btnExport(), exportGeoJSON);
+    bindPress(ui.btnExportBar(), exportGeoJSON);
+    bindPress(ui.btnSimplify(), applySimplify);
+    bindPress(ui.importButton(), () => ui.importFile()?.click());
     ui.importFile()?.addEventListener('change', (e) => importRouteFile(e.target.files?.[0]));
 
-    bindClick(ui.btnConfirmBar(), () => finish());
-    bindClick(ui.btnUndoBar(), () => undo());
-    bindClick(ui.btnResetBar(), () => reset());
-    bindClick(ui.btnCancelBar(), () => stop());
+    bindPress(ui.btnConfirmBar(), finish);
+    bindPress(ui.btnUndoBar(), undo);
+    bindPress(ui.btnResetBar(), reset);
+    bindPress(ui.btnCancelBar(), stop);
 
     ui.chkRef()?.addEventListener('change', refreshReferenceRoute);
     ui.chkEdit()?.addEventListener('change', refreshVertexMarkers);
     ui.rngTol()?.addEventListener('input', updateToleranceLabel);
-    ui.chkPanBar()?.addEventListener('change', (e) => {
-      setPanMode(!!e.target.checked);
-    });
+    ui.chkPanBar()?.addEventListener('change', (e) => setPanMode(!!e.target.checked));
   }
 
   function refreshUI() {
