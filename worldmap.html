@@ -64,32 +64,6 @@
 
       <div class="trace-actions">
         <div class="routeedit-section">
-          <div class="routeedit-section-title" data-lang="re_section_basic">基本情報</div>
-
-          <label class="trace-toggle routeedit-field">
-            <span data-lang="re_name">ルート名</span>
-            <input
-              class="input"
-              id="inpREName"
-              data-placeholder="re_name_placeholder"
-              placeholder="例：中山道（妻籠→馬籠）"
-              style="flex:1; padding:10px; border:1px solid #ddd; border-radius:10px;"
-            />
-          </label>
-
-          <label class="trace-toggle routeedit-field">
-            <span data-lang="re_note">メモ・説明</span>
-            <input
-              class="input"
-              id="inpRENote"
-              data-placeholder="re_note_placeholder"
-              placeholder="例：現地でなぞった復元版"
-              style="flex:1; padding:10px; border:1px solid #ddd; border-radius:10px;"
-            />
-          </label>
-        </div>
-
-        <div class="routeedit-section">
           <div class="routeedit-section-title" data-lang="re_section_assist">表示・補助</div>
 
           <label class="trace-toggle">
@@ -101,21 +75,17 @@
             <input type="checkbox" id="chkRESnap" />
             <span data-lang="re_snap">参照ルートへスナップ（近い時だけ）</span>
           </label>
-
-          <label class="trace-toggle">
-            <input type="checkbox" id="chkREPan" />
-            <span data-lang="re_pan_while_drawing">地図移動ON（線は描かない）</span>
-          </label>
         </div>
 
         <div class="routeedit-section">
           <div class="routeedit-section-title" data-lang="re_section_main">メイン操作</div>
           <button class="btn-block trace-btn" id="btnREStart" data-lang="re_start">描画開始</button>
-          <div style="margin-top:8px; font-size:13px; color:#555; line-height:1.5;" id="reStartHint">開始後の操作は上部の小ウィンドウに表示されます。</div>
-
-          <div class="trace-actions-row" style="margin-top:10px;">
-            <button class="btn-half" id="btnREExport" data-lang="re_export">エクスポート</button>
+          <div style="margin-top:8px; font-size:13px; color:#555; line-height:1.5;" id="reStartHint">
+            描画中の操作は上部の小ウィンドウに表示されます。
           </div>
+
+          <input type="file" id="inpREImportFile" accept=".geojson,.json,.gpx,application/geo+json,application/json,.txt" style="display:none;" />
+          <button class="btn-block btn-secondary" id="btnREImport" style="margin-top:10px;">インポートして編集</button>
         </div>
 
         <details class="routeedit-details">
@@ -143,23 +113,43 @@
         <div class="trace-breakdown" id="reBreakdown">--</div>
       </div>
 
-      <div class="routeedit-section" style="margin-top:12px;">
-        <div class="routeedit-section-title" data-lang="re_section_output">出力・終了</div>
-        <button class="btn-block" style="background:#888;" onclick="closeModals();" data-lang="re_panel_close">
-          パネルを閉じる
-        </button>
-        <button
-          class="btn-block btn-danger"
-          data-lang="re_mode_exit"
-          onclick="if(window.RouteEditor) RouteEditor.stop(); document.getElementById('modalRouteEdit')?.classList.remove('open','minimized');"
-        >
-          作成モードを終了
-        </button>
+      <div class="routeedit-section" id="reSaveSection" style="margin-top:12px; display:none;">
+        <div class="routeedit-section-title">保存・出力</div>
+        <div style="margin-bottom:8px; font-size:13px; color:#555; line-height:1.5;" id="reSaveHint">
+          描画を確定した後、ここからルート名とメモを入力して保存できます。
+        </div>
+
+        <label class="trace-toggle routeedit-field">
+          <span data-lang="re_name">ルート名</span>
+          <input
+            class="input"
+            id="inpREName"
+            data-placeholder="re_name_placeholder"
+            placeholder="例：中山道（妻籠→馬籠）"
+            style="flex:1; padding:10px; border:1px solid #ddd; border-radius:10px;"
+          />
+        </label>
+
+        <label class="trace-toggle routeedit-field">
+          <span data-lang="re_note">メモ・説明</span>
+          <input
+            class="input"
+            id="inpRENote"
+            data-placeholder="re_note_placeholder"
+            placeholder="例：現地でなぞった復元版"
+            style="flex:1; padding:10px; border:1px solid #ddd; border-radius:10px;"
+          />
+        </label>
+
+        <div class="trace-actions-row" style="margin-top:10px;">
+          <button class="btn-half" id="btnREExport" data-lang="re_export">エクスポート</button>
+          <button class="btn-half" style="background:#888; color:#fff;" onclick="closeModals();" data-lang="re_panel_close">パネルを閉じる</button>
+        </div>
       </div>
     </div>
   </div>
 
-  <div class="top-bar">
+<div class="top-bar">
     <div class="status-title" id="lblCurrentRoute">--</div>
     <div class="status-info" id="lblNavInfo">--</div>
   </div>
@@ -402,21 +392,13 @@
     </div>
   </div>
 
-  <div id="reDrawBar" class="re-drawbar" style="display:none; position:fixed; top:72px; left:50%; transform:translateX(-50%); z-index:4000; width:min(92vw, 760px); background:rgba(255,255,255,0.97); border:1px solid rgba(0,0,0,0.08); border-radius:18px; box-shadow:0 14px 36px rgba(0,0,0,0.18); padding:14px 16px;">
-    <div class="re-drawbar-inner" style="display:flex; flex-wrap:wrap; gap:12px; align-items:flex-start;">
-      <div style="min-width:240px; flex:1 1 280px; color:#222;">
-        <div id="reDrawBarTitle" class="re-drawbar-title" style="font-weight:800; font-size:22px; line-height:1.2; color:#222;">🖐️ 地図移動 / 描画</div>
-        <div id="reDrawBarHint" style="margin-top:8px; font-size:15px; line-height:1.55; color:#222;">通常はドラッグで描画します。地図移動ONでは地図の位置をずらすだけです。</div>
-        <label style="display:flex; align-items:center; gap:8px; margin-top:10px; font-size:14px; color:#222;">
-          <input type="checkbox" id="chkREPanBar" />
-          <span>地図を動かしながら描く（クリックで点追加）</span>
-        </label>
-      </div>
-      <div style="display:flex; flex-wrap:wrap; gap:10px; align-items:center;">
-        <button id="btnREConfirm" class="re-btn-primary" data-lang="re_finish">Finish</button>
-        <button id="btnREUndoBar" class="re-btn">戻す</button>
-        <button id="btnRECancel" class="re-btn-danger">キャンセル</button>
-      </div>
+  <div id="reDrawBar" class="re-drawbar" style="display:none;">
+    <div class="re-drawbar-inner">
+      <div class="re-drawbar-title" data-lang="re_drawing_now">✏️ 描画中です</div>
+      <button id="btnREConfirm" class="re-btn-primary" data-lang="re_finish">描画を確定</button>
+      <button id="btnREUndoBar" class="re-btn" data-lang="re_undo">1つ戻す</button>
+      <button id="btnREResetBar" class="re-btn" data-lang="re_reset">全消去</button>
+      <button id="btnRECancel" class="re-btn-danger" data-lang="re_cancel">キャンセル</button>
     </div>
   </div>
 
@@ -428,6 +410,6 @@
   <script src="./assets/js/config.js?v=20260118" defer></script>
   <script src="./assets/js/worldmap.js" defer></script>
   <script src="./assets/js/trace_game.js" defer></script>
-  <script src="./route_editor.js" defer></script>
+  <script src="./assets/js/route_editor.js" defer></script>
 </body>
 </html>
