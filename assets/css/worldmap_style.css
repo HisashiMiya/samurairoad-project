@@ -632,3 +632,63 @@ h2 {
   background: #d32f2f;
   border: none;
 }
+
+.routeedit-status {
+  margin-bottom: 10px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: #f5f7fa;
+  color: #334;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.routeedit-section {
+  display: grid;
+  gap: 10px;
+}
+
+.routeedit-section-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #444;
+}
+
+.routeedit-field {
+  align-items: flex-start;
+  flex-direction: column;
+}
+
+.routeedit-details {
+  border: 1px solid #e2e5ea;
+  border-radius: 12px;
+  background: #fafbfc;
+  padding: 10px 12px;
+}
+
+.routeedit-details summary {
+  cursor: pointer;
+  font-weight: 700;
+  color: #333;
+  list-style: none;
+}
+
+.routeedit-details summary::-webkit-details-marker {
+  display: none;
+}
+
+.routeedit-details summary::after {
+  content: '＋';
+  float: right;
+}
+
+.routeedit-details[open] summary::after {
+  content: '−';
+}
+
+.routeedit-details-body {
+  display: grid;
+  gap: 10px;
+  margin-top: 12px;
+}
+
