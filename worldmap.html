@@ -124,7 +124,7 @@
 
         <div id="reSaveSection" style="display:none; margin-bottom:12px;">
           <div class="trace-actions-row">
-            <button type="button" class="btn-half" id="btnREExport" data-lang="re_export">エクスポート</button>
+            <button type="button" class="btn-half" id="btnREExport">保存</button>
             <button
               type="button"
               class="btn-half btn-danger"
@@ -136,7 +136,13 @@
           </div>
         </div>
 
-        <button type="button" class="btn-block" style="background:#888;" onclick="closeModals();" data-lang="re_panel_close">
+        <button
+          type="button"
+          class="btn-block"
+          style="background:#888;"
+          onclick="closeModals(); if(window.RouteEditor?.isActive?.()) window.RouteEditor.showDrawBar?.();"
+          data-lang="re_panel_close"
+        >
           パネルを閉じる
         </button>
       </div>
