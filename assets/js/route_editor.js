@@ -42,7 +42,6 @@
     btnReset: () => $('btnREReset'),
     btnFinish: () => $('btnREFinish'),
     btnExport: () => $('btnREExport'),
-    btnExportBar: () => $('btnREExportBar'),
     btnSimplify: () => $('btnRESimplify'),
     btnConfirmBar: () => $('btnREConfirm'),
     btnUndoBar: () => $('btnREUndoBar'),
@@ -93,24 +92,27 @@
 
   function showSaveSection() {
     const el = ui.saveSection();
-    if (el) el.style.display = '';
+    if (!el) return;
+    el.style.display = '';
   }
 
   function hideSaveSection() {
     const el = ui.saveSection();
-    if (el) el.style.display = 'none';
+    if (!el) return;
+    el.style.display = 'none';
   }
 
   function openRouteEditModal() {
     const modal = ui.modal();
     if (!modal) return;
-    modal.classList.remove('minimized');
+
     if (typeof window.openModal === 'function') {
       window.openModal('modalRouteEdit');
-    } else {
-      modal.classList.add('open');
-      modal.style.display = 'flex';
+      return;
     }
+
+    modal.classList.remove('minimized');
+    modal.classList.add('open');
   }
 
   function isPanWhileDrawingEnabled() {
@@ -119,12 +121,14 @@
 
   function setPanMode(enabled) {
     const chk = ui.chkPanBar();
-    if (chk) chk.checked = !!enabled;
+    if (chk) {
+      chk.checked = !!enabled;
+    }
+
     if (!state.map) return;
+
     if (enabled) {
       restoreMapInteractions();
-    } else if (state.isPointerDrawing) {
-      disableMapInteractions();
     }
   }
 
@@ -136,7 +140,7 @@
 
     statusEl.textContent = state.drawingArmed
       ? safeT('re_status_drawing', '描画中です')
-      : '';
+      : safeT('re_status_idle', '描画前です');
   }
 
   function pushHistory(snapshot) {
@@ -185,7 +189,7 @@
     }
 
     el.style.display = 'block';
-    breakdown.textContent = `描画した地点数: ${state.points.length}`;
+    breakdown.textContent = `points: ${state.points.length}`;
   }
 
   function getActiveRouteLatLngsFromGeoJSON(geo) {
@@ -531,9 +535,6 @@
     disableMapInteractions();
 
     const latlng = state.map.mouseEventToLatLng(e);
-    if (state.points.length === 0) {
-      pushHistory([]);
-    }
     addPoint(latlng);
     e.preventDefault();
   }
@@ -621,7 +622,7 @@
     openRouteEditModal();
     showSaveSection();
     updateDrawingStateUI();
-    toast('描画を確定しました。保存できます。');
+    toast('描画を確定しました。保存・出力から保存できます。');
   }
 
   function undo() {
@@ -747,43 +748,43 @@
   }
 
   function wireUI() {
-    const bindPress = (el, handler) => {
-      if (!el || el.__srBound) return;
-      el.__srBound = true;
-      const run = (e) => {
+    const bindClick = (el, handler) => {
+      el?.addEventListener('click', (e) => {
         e.preventDefault();
         e.stopPropagation();
         handler(e);
-      };
-      el.addEventListener('click', run);
-      el.addEventListener('pointerup', run);
+      });
     };
 
-    bindPress(ui.btnStart(), () => {
+    bindClick(ui.btnStart(), () => {
       try {
         window.closeModalsForce?.();
       } catch (_) {}
       start();
     });
 
-    bindPress(ui.btnUndo(), undo);
-    bindPress(ui.btnReset(), reset);
-    bindPress(ui.btnFinish(), finish);
-    bindPress(ui.btnExport(), exportGeoJSON);
-    bindPress(ui.btnExportBar(), exportGeoJSON);
-    bindPress(ui.btnSimplify(), applySimplify);
-    bindPress(ui.importButton(), () => ui.importFile()?.click());
-    ui.importFile()?.addEventListener('change', (e) => importRouteFile(e.target.files?.[0]));
+    bindClick(ui.btnUndo(), undo);
+    bindClick(ui.btnReset(), reset);
+    bindClick(ui.btnFinish(), finish);
+    bindClick(ui.btnExport(), exportGeoJSON);
+    bindClick(ui.btnSimplify(), applySimplify);
+    bindClick(ui.importButton(), () => ui.importFile()?.click());
 
-    bindPress(ui.btnConfirmBar(), finish);
-    bindPress(ui.btnUndoBar(), undo);
-    bindPress(ui.btnResetBar(), reset);
-    bindPress(ui.btnCancelBar(), stop);
+    ui.importFile()?.addEventListener('change', (e) => {
+      importRouteFile(e.target.files?.[0]);
+    });
+
+    bindClick(ui.btnConfirmBar(), finish);
+    bindClick(ui.btnUndoBar(), undo);
+    bindClick(ui.btnResetBar(), reset);
+    bindClick(ui.btnCancelBar(), stop);
 
     ui.chkRef()?.addEventListener('change', refreshReferenceRoute);
     ui.chkEdit()?.addEventListener('change', refreshVertexMarkers);
     ui.rngTol()?.addEventListener('input', updateToleranceLabel);
-    ui.chkPanBar()?.addEventListener('change', (e) => setPanMode(!!e.target.checked));
+    ui.chkPanBar()?.addEventListener('change', (e) => {
+      setPanMode(!!e.target.checked);
+    });
   }
 
   function refreshUI() {
@@ -828,7 +829,6 @@
     refreshUI,
     start,
     stop,
-    showDrawBar,
     isActive: () => !!state.drawingArmed,
   };
 
