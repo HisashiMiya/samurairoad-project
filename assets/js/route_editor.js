@@ -42,8 +42,6 @@
     btnReset: () => $('btnREReset'),
     btnFinish: () => $('btnREFinish'),
     btnExport: () => $('btnREExport'),
-    btnImport: () => $('btnREImport'),
-    inpImportFile: () => $('inpREImportFile'),
     btnSimplify: () => $('btnRESimplify'),
     btnConfirmBar: () => $('btnREConfirm'),
     btnUndoBar: () => $('btnREUndoBar'),
@@ -53,13 +51,13 @@
     chkRef: () => $('chkRERef'),
     chkSnap: () => $('chkRESnap'),
     chkEdit: () => $('chkREEdit'),
+    chkPan: () => $('chkREPan'),
     rngTol: () => $('rngRESimplify'),
     lblTol: () => $('lblRETol'),
     inpName: () => $('inpREName'),
     inpNote: () => $('inpRENote'),
     reResult: () => $('reResult'),
     reBreakdown: () => $('reBreakdown'),
-    saveSection: () => $('reSaveSection'),
     status: () => $('routeEditStatus'),
   };
 
@@ -78,6 +76,42 @@
     prevMapInteract: null,
   };
 
+
+  function isPanWhileDrawingEnabled() {
+    return !!ui.chkPan()?.checked;
+  }
+
+  function updateDrawBarTexts() {
+    const title = ui.drawBarTitle();
+    const hint = ui.drawBarHint();
+    const statusEl = ui.status();
+    const drawing = state.drawingArmed;
+    const panMode = isPanWhileDrawingEnabled();
+
+    if (title) {
+      title.textContent = drawing
+        ? (panMode ? '🖐️ 地図移動中' : '✏️ 描画中')
+        : '✏️ ルート作成';
+    }
+
+    if (hint) {
+      if (drawing) {
+        hint.textContent = panMode
+          ? '地図を動かせます。この間は線を引きません。描画を再開するときはチェックをOFFにしてください。'
+          : '地図上をドラッグして線を引いてください。';
+      } else {
+        hint.textContent = '開始すると、ここに描画操作が表示されます。';
+      }
+    }
+
+    if (!statusEl) return;
+    if (state.drawingArmed) {
+      statusEl.textContent = panMode
+        ? '地図移動中です。線は引かれません。'
+        : safeT('re_status_drawing', '描画中です');
+    }
+  }
+
   function showDrawBar() {
     ui.drawBar()?.style.setProperty('display', 'block');
   }
@@ -86,38 +120,20 @@
     ui.drawBar()?.style.setProperty('display', 'none');
   }
 
-  function showSaveSection() {
-    if (state.points.length >= 2) ui.saveSection()?.style.setProperty('display', 'block');
-  }
-
-  function hideSaveSection() {
-    ui.saveSection()?.style.setProperty('display', 'none');
-  }
-
-  function revealSaveSection() {
-    const modal = $('modalRouteEdit');
-    if (modal) {
-      modal.classList.add('open');
-      modal.classList.remove('minimized');
-    }
-    showSaveSection();
-    ui.saveSection()?.scrollIntoView?.({ behavior: 'smooth', block: 'start' });
-  }
-
   function updateDrawingStateUI() {
     const statusEl = ui.status();
     if (!statusEl) {
+      updateDrawBarTexts();
       return;
     }
 
-    if (state.drawingArmed) {
-      statusEl.textContent = safeT('re_status_drawing', '描画中です');
-      return;
+    if (!state.drawingArmed) {
+      statusEl.textContent = state.points.length >= 2
+        ? '描画を確定しました。下の保存・出力から保存できます。'
+        : safeT('re_status_idle', '描画前です');
     }
 
-    statusEl.textContent = state.points.length >= 2
-      ? '描画を確定しました。下の保存・出力から保存できます。'
-      : safeT('re_status_idle', '描画前です');
+    updateDrawBarTexts();
   }
 
   function pushHistory(snapshot) {
@@ -133,7 +149,6 @@
     redrawLine();
     refreshVertexMarkers();
     updatePreview();
-    if (state.points.length < 2) hideSaveSection();
   }
 
   function redrawLine() {
@@ -162,7 +177,6 @@
 
     if (state.points.length < 2) {
       el.style.display = 'none';
-      hideSaveSection();
       return;
     }
 
@@ -497,6 +511,11 @@
       return;
     }
 
+    if (isPanWhileDrawingEnabled()) {
+      restoreMapInteractions();
+      return;
+    }
+
     state.isPointerDrawing = true;
     state.pointerId = e.pointerId;
 
@@ -505,16 +524,17 @@
     } catch (_) {}
 
     disableMapInteractions();
+    pushHistory(state.points);
 
     const latlng = state.map.mouseEventToLatLng(e);
-    if (state.points.length === 0) {
-      pushHistory([]);
-    }
     addPoint(latlng);
     e.preventDefault();
   }
 
   function onPointerMove(e) {
+    if (isPanWhileDrawingEnabled()) {
+      return;
+    }
     if (!state.isPointerDrawing) {
       return;
     }
@@ -560,7 +580,6 @@
 
   function start() {
     state.drawingArmed = true;
-    hideSaveSection();
     showDrawBar();
     updateDrawingStateUI();
     toast(safeT('re_msg_draw', '描画モード：地図を押しながらなぞってください'));
@@ -573,14 +592,12 @@
     restoreMapInteractions();
     clearVertexMarkers();
     hideDrawBar();
-    if (state.points.length >= 2) showSaveSection(); else hideSaveSection();
     updateDrawingStateUI();
   }
 
   function reset() {
     pushHistory();
     setPoints([]);
-    hideSaveSection();
   }
 
   function finish() {
@@ -590,9 +607,8 @@
     restoreMapInteractions();
     updatePreview();
     hideDrawBar();
-    revealSaveSection();
     updateDrawingStateUI();
-    toast('描画を確定しました。保存・出力からエクスポートできます。');
+    toast(safeT('re_msg_finish', '確定しました'));
   }
 
   function undo() {
@@ -618,52 +634,6 @@
     pushHistory();
     setPoints(simplifyLatLngs(state.points, tolerance));
     toast(safeT('re_msg_simplified', '簡略化しました'));
-  }
-
-  function pointsFromGeoJSON(geo) {
-    const latlngs = getActiveRouteLatLngsFromGeoJSON(geo);
-    if (!latlngs || latlngs.length < 2) {
-      throw new Error('LineString が見つかりません');
-    }
-    return latlngs;
-  }
-
-  function pointsFromGPXText(text) {
-    const xml = new DOMParser().parseFromString(text, 'application/xml');
-    if (xml.querySelector('parsererror')) {
-      throw new Error('GPX の解析に失敗しました');
-    }
-
-    for (const parent of [...xml.querySelectorAll('trkseg, rte')]) {
-      const pts = [...parent.querySelectorAll('trkpt, rtept')].map((node) => {
-        const lat = Number(node.getAttribute('lat'));
-        const lng = Number(node.getAttribute('lon'));
-        return Number.isFinite(lat) && Number.isFinite(lng) ? L.latLng(lat, lng) : null;
-      }).filter(Boolean);
-      if (pts.length >= 2) return pts;
-    }
-
-    throw new Error('GPX の線データが見つかりません');
-  }
-
-  async function importFile(file) {
-    if (!file) return;
-    const text = (await file.text()).trim();
-    if (!text) throw new Error('ファイルが空です');
-
-    const isGpx = /\.gpx$/i.test(file.name || '') || text.startsWith('<?xml') || text.includes('<gpx');
-    const points = isGpx ? pointsFromGPXText(text) : pointsFromGeoJSON(JSON.parse(text));
-
-    pushHistory();
-    setPoints(points);
-    state.drawingArmed = false;
-    state.isPointerDrawing = false;
-    state.pointerId = null;
-    restoreMapInteractions();
-    hideDrawBar();
-    revealSaveSection();
-    updateDrawingStateUI();
-    toast('ルートをインポートしました。編集できます。');
   }
 
   function exportGeoJSON() {
@@ -729,19 +699,6 @@
     ui.btnReset()?.addEventListener('click', reset);
     ui.btnFinish()?.addEventListener('click', finish);
     ui.btnExport()?.addEventListener('click', exportGeoJSON);
-    ui.btnImport()?.addEventListener('click', () => ui.inpImportFile()?.click());
-    ui.inpImportFile()?.addEventListener('change', async (e) => {
-      const file = e.target?.files?.[0];
-      if (!file) return;
-      try {
-        await importFile(file);
-      } catch (err) {
-        console.error('[RouteEditor] import failed', err);
-        toast(`インポートに失敗しました: ${err?.message || err}`);
-      } finally {
-        e.target.value = '';
-      }
-    });
     ui.btnSimplify()?.addEventListener('click', applySimplify);
 
     ui.btnConfirmBar()?.addEventListener('click', finish);
@@ -750,6 +707,7 @@
     ui.btnCancelBar()?.addEventListener('click', stop);
 
     ui.chkRef()?.addEventListener('change', refreshReferenceRoute);
+    ui.chkPan()?.addEventListener('change', updateDrawBarTexts);
     ui.chkEdit()?.addEventListener('change', refreshVertexMarkers);
     ui.rngTol()?.addEventListener('input', updateToleranceLabel);
   }
@@ -768,7 +726,6 @@
     updatePreview();
     refreshVertexMarkers();
     updateToleranceLabel();
-    if (state.points.length >= 2 && !state.drawingArmed) showSaveSection(); else hideSaveSection();
     updateDrawingStateUI();
   }
 
