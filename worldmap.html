@@ -60,7 +60,7 @@
     <div class="modal-content trace-modal">
       <h2 data-lang="title_routeedit">ルート作成</h2>
 
-      <div class="routeedit-status" id="routeEditStatus" data-lang="re_status_idle">描画前です</div>
+      <div class="routeedit-status" id="routeEditStatus" data-lang="re_status_idle" style="display:none;"></div>
 
       <div class="trace-actions">
         <div class="routeedit-section">
@@ -82,10 +82,15 @@
           <button type="button" class="btn-block trace-btn" id="btnREStart" data-lang="re_start">描画開始</button>
 
           <div class="trace-actions-row">
-            <button type="button" class="btn-half" id="btnREFinish" data-lang="re_finish">描画を確定</button>
-            <button type="button" class="btn-half" id="btnREImport">GeoJSON / GPX インポート</button>
+            <button type="button" class="btn-half" id="btnREUndo" data-lang="re_undo">1つ戻す</button>
+            <button type="button" class="btn-half" id="btnREReset" data-lang="re_reset">全消去</button>
           </div>
 
+          <button type="button" class="btn-block" id="btnREFinish" data-lang="re_finish">描画を確定</button>
+
+          <div class="trace-actions-row" style="margin-top:10px;">
+            <button type="button" class="btn-half" id="btnREImport">GeoJSON / GPX インポート</button>
+          </div>
           <input
             type="file"
             id="inpREImportFile"
@@ -115,7 +120,7 @@
       </div>
 
       <div class="trace-result" id="reResult" style="display:none;">
-        <h3 data-lang="re_result">プレビュー</h3>
+        <h3 data-lang="re_result">保存前の確認</h3>
         <div class="trace-breakdown" id="reBreakdown">--</div>
       </div>
 
@@ -124,7 +129,7 @@
 
         <div id="reSaveSection" style="display:none; margin-bottom:12px;">
           <div class="trace-actions-row">
-            <button type="button" class="btn-half" id="btnREExport">保存</button>
+            <button type="button" class="btn-half" id="btnREExport" data-lang="re_export">保存</button>
             <button
               type="button"
               class="btn-half btn-danger"
@@ -135,16 +140,6 @@
             </button>
           </div>
         </div>
-
-        <button
-          type="button"
-          class="btn-block"
-          style="background:#888;"
-          onclick="closeModals(); if(window.RouteEditor?.isActive?.()) window.RouteEditor.showDrawBar?.();"
-          data-lang="re_panel_close"
-        >
-          パネルを閉じる
-        </button>
       </div>
 
       <div class="routeedit-section" style="margin-top:12px;">
@@ -171,6 +166,18 @@
             style="flex:1; padding:10px; border:1px solid #ddd; border-radius:10px;"
           />
         </label>
+      </div>
+
+      <div class="routeedit-section" style="margin-top:12px;">
+        <button
+          type="button"
+          class="btn-block"
+          style="background:#888;"
+          onclick="closeModals(); if (window.RouteEditor?.isActive?.()) { window.RouteEditor.showDrawBar?.(); }"
+          data-lang="re_panel_close"
+        >
+          パネルを閉じる
+        </button>
       </div>
     </div>
   </div>
@@ -421,15 +428,15 @@
     <div id="reDrawBar" class="re-drawbar" style="display:none;">
     <div class="re-drawbar-inner">
       <div id="reDrawBarTitle" class="re-drawbar-title" style="color:#222; font-weight:700;">✏️ ルート作成</div>
-      <div id="reDrawBarHint" style="font-size:13px; color:#222; margin:6px 0 10px; line-height:1.6; text-shadow:none;">線を引くときはそのままなぞってください。地図を動かすときは下のチェックをONにしてください。</div>
+      <div id="reDrawBarHint" style="font-size:13px; color:#222; margin:6px 0 10px; line-height:1.6; text-shadow:none;">開始すると、ここに描画操作が表示されます。</div>
       <label class="trace-toggle" style="display:flex; align-items:center; gap:8px; margin:0 0 10px; color:#222; font-size:14px;">
         <input type="checkbox" id="chkREPanBar" />
-        <span>地図を移動する（ON中は線を引きません）</span>
+        <span>地図を移動する（この間は線を引かない）</span>
       </label>
-      <button type="button" id="btnREConfirm" class="re-btn-primary" data-lang="re_finish">描画を確定</button>
-      <button type="button" id="btnREUndoBar" class="re-btn" data-lang="re_undo">1つ戻す</button>
-      <button type="button" id="btnREResetBar" class="re-btn" data-lang="re_reset">全消去</button>
-      <button type="button" id="btnRECancel" class="re-btn-danger" data-lang="re_cancel">キャンセル</button>
+      <button id="btnREConfirm" class="re-btn-primary" data-lang="re_finish">描画を確定</button>
+      <button id="btnREUndoBar" class="re-btn" data-lang="re_undo">1つ戻す</button>
+      <button id="btnREResetBar" class="re-btn" data-lang="re_reset">全消去</button>
+      <button id="btnRECancel" class="re-btn-danger" data-lang="re_cancel">キャンセル</button>
     </div>
   </div>
 

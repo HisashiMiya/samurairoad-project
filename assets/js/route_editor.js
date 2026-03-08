@@ -89,48 +89,6 @@
   function hideDrawBar() {
     ui.drawBar()?.style.setProperty('display', 'none');
   }
-  
-    function showSaveSection() {
-    const el = ui.saveSection();
-    if (!el) return;
-    el.style.display = '';
-  }
-
-  function hideSaveSection() {
-    const el = ui.saveSection();
-    if (!el) return;
-    el.style.display = 'none';
-  }
-
-  function openRouteEditModal() {
-    const modal = ui.modal();
-    if (!modal) return;
-
-    if (typeof window.openModal === 'function') {
-      window.openModal('modalRouteEdit');
-      return;
-    }
-
-    modal.classList.remove('minimized');
-    modal.classList.add('open');
-  }
-
-  function isPanWhileDrawingEnabled() {
-    return !!ui.chkPanBar()?.checked;
-  }
-
-  function setPanMode(enabled) {
-    const chk = ui.chkPanBar();
-    if (chk) {
-      chk.checked = !!enabled;
-    }
-
-    if (!state.map) return;
-
-    if (enabled) {
-      restoreMapInteractions();
-    }
-  }
 
   function updateDrawingStateUI() {
     const statusEl = ui.status();
@@ -138,9 +96,13 @@
       return;
     }
 
-    statusEl.textContent = state.drawingArmed
-      ? safeT('re_status_drawing', '描画中です')
-      : safeT('re_status_idle', '描画前です');
+    if (state.drawingArmed) {
+      statusEl.style.display = '';
+      statusEl.textContent = safeT('re_status_drawing', '描画中です');
+    } else {
+      statusEl.textContent = '';
+      statusEl.style.display = 'none';
+    }
   }
 
   function pushHistory(snapshot) {
@@ -189,7 +151,7 @@
     }
 
     el.style.display = 'block';
-    breakdown.textContent = `points: ${state.points.length}`;
+    breakdown.textContent = `描画した地点数: ${state.points.length}`;
   }
 
   function getActiveRouteLatLngsFromGeoJSON(geo) {
@@ -510,6 +472,7 @@
       }
     }
 
+    pushHistory();
     state.points.push(point);
     redrawLine();
   }
@@ -519,7 +482,6 @@
       return;
     }
 
-    // 地図移動チェックON中は描画しない
     if (isPanWhileDrawingEnabled()) {
       restoreMapInteractions();
       return;
@@ -625,7 +587,7 @@
     openRouteEditModal();
     showSaveSection();
     updateDrawingStateUI();
-    toast('描画を確定しました。保存・出力からエクスポートできます。');
+    toast('描画を確定しました。保存からGeoJSONを書き出せます。');
   }
 
   function undo() {
@@ -740,7 +702,7 @@
     a.remove();
 
     setTimeout(() => URL.revokeObjectURL(url), 2000);
-    toast(safeT('re_msg_export', 'GeoJSONをダウンロードしました'));
+    toast('保存しました（GeoJSONをダウンロードしました）');
   }
 
   function updateToleranceLabel() {
@@ -751,54 +713,45 @@
   }
 
   function wireUI() {
-    let lastPointerUpAt = 0;
-
-    const bindPress = (el, handler) => {
+    const bindClick = (el, handler) => {
       if (!el) return;
+      let handledByPointer = false;
 
-      el.addEventListener('pointerdown', (e) => {
-        e.stopPropagation();
-      }, { passive: false });
-
-      el.addEventListener('pointerup', (e) => {
-        lastPointerUpAt = Date.now();
-        e.preventDefault();
-        e.stopPropagation();
-        handler(e);
-      }, { passive: false });
-
-      el.addEventListener('click', (e) => {
-        if (Date.now() - lastPointerUpAt < 400) {
-          e.preventDefault();
-          e.stopPropagation();
+      const run = (e) => {
+        if (e.type === 'click' && handledByPointer) {
+          handledByPointer = false;
           return;
         }
+        handledByPointer = e.type === 'pointerup';
         e.preventDefault();
         e.stopPropagation();
         handler(e);
-      });
+      };
+
+      el.addEventListener('pointerup', run);
+      el.addEventListener('click', run);
     };
 
-    bindPress(ui.btnStart(), () => {
+    bindClick(ui.btnStart(), () => {
       try {
         window.closeModalsForce?.();
       } catch (_) {}
       start();
     });
 
-    bindPress(ui.btnFinish(), finish);
-    bindPress(ui.btnExport(), exportGeoJSON);
-    bindPress(ui.btnSimplify(), applySimplify);
-    bindPress(ui.importButton(), () => ui.importFile()?.click());
+    bindClick(ui.btnUndo(), () => undo());
+    bindClick(ui.btnReset(), () => reset());
+    bindClick(ui.btnFinish(), () => finish());
+    bindClick(ui.btnExport(), () => exportGeoJSON());
+    bindClick(ui.btnSimplify(), () => applySimplify());
+    bindClick(ui.importButton(), () => ui.importFile()?.click());
 
-    ui.btnUndo()?.addEventListener('click', undo);
-    ui.btnReset()?.addEventListener('click', reset);
     ui.importFile()?.addEventListener('change', (e) => importRouteFile(e.target.files?.[0]));
 
-    bindPress(ui.btnConfirmBar(), finish);
-    bindPress(ui.btnUndoBar(), undo);
-    bindPress(ui.btnResetBar(), reset);
-    bindPress(ui.btnCancelBar(), stop);
+    bindClick(ui.btnConfirmBar(), () => finish());
+    bindClick(ui.btnUndoBar(), () => undo());
+    bindClick(ui.btnResetBar(), () => reset());
+    bindClick(ui.btnCancelBar(), () => stop());
 
     ui.chkRef()?.addEventListener('change', refreshReferenceRoute);
     ui.chkEdit()?.addEventListener('change', refreshVertexMarkers);
