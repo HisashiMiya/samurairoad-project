@@ -89,8 +89,8 @@
   function hideDrawBar() {
     ui.drawBar()?.style.setProperty('display', 'none');
   }
-  
-    function showSaveSection() {
+
+  function showSaveSection() {
     const el = ui.saveSection();
     if (!el) return;
     el.style.display = '';
@@ -510,6 +510,7 @@
       }
     }
 
+    pushHistory();
     state.points.push(point);
     redrawLine();
   }
@@ -519,7 +520,6 @@
       return;
     }
 
-    // 地図移動チェックON中は描画しない
     if (isPanWhileDrawingEnabled()) {
       restoreMapInteractions();
       return;
@@ -535,9 +535,6 @@
     disableMapInteractions();
 
     const latlng = state.map.mouseEventToLatLng(e);
-    if (state.points.length === 0) {
-      pushHistory([]);
-    }
     addPoint(latlng);
     e.preventDefault();
   }
@@ -751,25 +748,36 @@
   }
 
   function wireUI() {
-    ui.btnStart()?.addEventListener('click', () => {
+    const bindClick = (el, handler) => {
+      el?.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        handler(e);
+      });
+    };
+
+    bindClick(ui.btnStart(), () => {
       try {
         window.closeModalsForce?.();
       } catch (_) {}
       start();
     });
 
-    ui.btnUndo()?.addEventListener('click', undo);
-    ui.btnReset()?.addEventListener('click', reset);
-    ui.btnFinish()?.addEventListener('click', finish);
-    ui.btnExport()?.addEventListener('click', exportGeoJSON);
-    ui.btnSimplify()?.addEventListener('click', applySimplify);
-    ui.importButton()?.addEventListener('click', () => ui.importFile()?.click());
-    ui.importFile()?.addEventListener('change', (e) => importRouteFile(e.target.files?.[0]));
+    bindClick(ui.btnUndo(), undo);
+    bindClick(ui.btnReset(), reset);
+    bindClick(ui.btnFinish(), finish);
+    bindClick(ui.btnExport(), exportGeoJSON);
+    bindClick(ui.btnSimplify(), applySimplify);
+    bindClick(ui.importButton(), () => ui.importFile()?.click());
 
-    ui.btnConfirmBar()?.addEventListener('click', finish);
-    ui.btnUndoBar()?.addEventListener('click', undo);
-    ui.btnResetBar()?.addEventListener('click', reset);
-    ui.btnCancelBar()?.addEventListener('click', stop);
+    ui.importFile()?.addEventListener('change', (e) => {
+      importRouteFile(e.target.files?.[0]);
+    });
+
+    bindClick(ui.btnConfirmBar(), finish);
+    bindClick(ui.btnUndoBar(), undo);
+    bindClick(ui.btnResetBar(), reset);
+    bindClick(ui.btnCancelBar(), stop);
 
     ui.chkRef()?.addEventListener('change', refreshReferenceRoute);
     ui.chkEdit()?.addEventListener('change', refreshVertexMarkers);

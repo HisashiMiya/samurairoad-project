@@ -105,17 +105,29 @@
 
         <div class="routeedit-section">
           <div class="routeedit-section-title" data-lang="re_section_main">メイン操作</div>
-          <button class="btn-block trace-btn" id="btnREStart" data-lang="re_start">描画開始</button>
+          <button type="button" class="btn-block trace-btn" id="btnREStart" data-lang="re_start">描画開始</button>
 
           <div class="trace-actions-row">
-            <button class="btn-half" id="btnREUndo" data-lang="re_undo">1つ戻す</button>
-            <button class="btn-half" id="btnREReset" data-lang="re_reset">全消去</button>
+            <button type="button" class="btn-half" id="btnREUndo" data-lang="re_undo">1つ戻す</button>
+            <button type="button" class="btn-half" id="btnREReset" data-lang="re_reset">全消去</button>
           </div>
 
           <div class="trace-actions-row">
-            <button class="btn-half" id="btnREFinish" data-lang="re_finish">描画を確定</button>
-            <button class="btn-half" id="btnREExport" data-lang="re_export">エクスポート</button>
+            <button type="button" class="btn-half" id="btnREFinish" data-lang="re_finish">描画を確定</button>
+            <button type="button" class="btn-half" id="btnREImport">GeoJSON / GPX インポート</button>
           </div>
+
+          <input
+            type="file"
+            id="inpREImportFile"
+            accept=".geojson,.json,.gpx,application/geo+json,application/json,application/gpx+xml"
+            style="display:none;"
+          />
+        </div>
+
+        <div class="routeedit-section" id="reSaveSection" style="display:none;">
+          <div class="routeedit-section-title" data-lang="re_section_output">保存・出力</div>
+          <button type="button" class="btn-block" id="btnREExport" data-lang="re_export">エクスポート</button>
         </div>
 
         <details class="routeedit-details">
@@ -157,7 +169,7 @@
         </button>
       </div>
     </div>
-  </div></div>
+  </div>
 
   <div class="top-bar">
     <div class="status-title" id="lblCurrentRoute">--</div>
@@ -410,10 +422,10 @@
         <input type="checkbox" id="chkREPanBar" />
         <span>地図を移動する（この間は線を引かない）</span>
       </label>
-      <button id="btnREConfirm" class="re-btn-primary" data-lang="re_finish">描画を確定</button>
-      <button id="btnREUndoBar" class="re-btn" data-lang="re_undo">1つ戻す</button>
-      <button id="btnREResetBar" class="re-btn" data-lang="re_reset">全消去</button>
-      <button id="btnRECancel" class="re-btn-danger" data-lang="re_cancel">キャンセル</button>
+      <button type="button" id="btnREConfirm" class="re-btn-primary" data-lang="re_finish">描画を確定</button>
+      <button type="button" id="btnREUndoBar" class="re-btn" data-lang="re_undo">1つ戻す</button>
+      <button type="button" id="btnREResetBar" class="re-btn" data-lang="re_reset">全消去</button>
+      <button type="button" id="btnRECancel" class="re-btn-danger" data-lang="re_cancel">キャンセル</button>
     </div>
   </div>
 
