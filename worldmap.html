@@ -64,28 +64,16 @@
 
       <div class="trace-actions">
         <div class="routeedit-section">
-          <div class="routeedit-section-title" data-lang="re_section_basic">基本情報</div>
+          <div class="routeedit-section-title" data-lang="re_section_assist">表示・補助</div>
 
-          <label class="trace-toggle routeedit-field">
-            <span data-lang="re_name">ルート名</span>
-            <input
-              class="input"
-              id="inpREName"
-              data-placeholder="re_name_placeholder"
-              placeholder="例：中山道（妻籠→馬籠）"
-              style="flex:1; padding:10px; border:1px solid #ddd; border-radius:10px;"
-            />
+          <label class="trace-toggle">
+            <input type="checkbox" id="chkRERef" checked />
+            <span data-lang="re_showref">参照ルートを表示</span>
           </label>
 
-          <label class="trace-toggle routeedit-field">
-            <span data-lang="re_note">メモ・説明</span>
-            <input
-              class="input"
-              id="inpRENote"
-              data-placeholder="re_note_placeholder"
-              placeholder="例：現地でなぞった復元版"
-              style="flex:1; padding:10px; border:1px solid #ddd; border-radius:10px;"
-            />
+          <label class="trace-toggle">
+            <input type="checkbox" id="chkRESnap" />
+            <span data-lang="re_snap">参照ルートへスナップ（近い時だけ）</span>
           </label>
         </div>
 
@@ -99,27 +87,15 @@
           </div>
 
           <div class="trace-actions-row">
-            <button type="button" class="btn-block re-btn-primary" id="btnREExport" data-lang="re_export">保存</button>
+            <button type="button" class="btn-half" id="btnREFinish" data-lang="re_finish">描画を確定</button>
+            <button type="button" class="btn-half" id="btnREExport">保存</button>
           </div>
         </div>
 
         <details class="routeedit-details">
           <summary data-lang="re_section_details">詳細設定</summary>
           <div class="routeedit-details-body">
-            <div class="routeedit-section-title" data-lang="re_section_assist">表示・補助</div>
-
-            <label class="trace-toggle">
-              <input type="checkbox" id="chkRERef" checked />
-              <span data-lang="re_showref">参照ルートを表示</span>
-            </label>
-
-            <label class="trace-toggle">
-              <input type="checkbox" id="chkRESnap" />
-              <span data-lang="re_snap">参照ルートへスナップ（近い時だけ）</span>
-            </label>
-
-
-            <button class="btn-half" id="btnRESimplify" data-lang="re_simplify">線をなめらかに整える</button>
+            <button type="button" class="btn-half" id="btnRESimplify" data-lang="re_simplify">線をなめらかに整える</button>
 
             <div class="re-slider-wrap">
               <div class="re-slider-label">
@@ -141,13 +117,11 @@
         <div class="trace-breakdown" id="reBreakdown">--</div>
       </div>
 
-      <div class="routeedit-section" id="reSaveSection" style="display:none; margin-top:12px;">
-        <button type="button" class="btn-block" id="btnREImport">GeoJSON / GPX インポート</button>
-        <input type="file" id="inpREImportFile" accept=".geojson,.json,.gpx,application/geo+json,application/json,application/gpx+xml" style="display:none;" />
-      </div>
-
       <div class="routeedit-section" style="margin-top:12px;">
         <div class="routeedit-section-title" data-lang="re_section_output">出力・終了</div>
+        <button type="button" class="btn-block" style="background:#888;" onclick="closeModals();" data-lang="re_panel_close">
+          パネルを閉じる
+        </button>
         <button
           type="button"
           class="btn-block btn-danger"
@@ -156,14 +130,40 @@
         >
           作成モードを終了
         </button>
-        <button type="button" class="btn-block" style="background:#888;" onclick="closeModals(); if(window.RouteEditor?.isActive?.()) window.RouteEditor.showDrawBar?.();" data-lang="re_panel_close">
-          パネルを閉じる
-        </button>
+      </div>
+
+      <div class="routeedit-section" style="margin-top:12px;">
+        <div class="routeedit-section-title">保存する基本情報（GeoJSONの情報）</div>
+        <div style="font-size:13px; color:#555; margin:4px 0 10px; line-height:1.6;">
+          ここに入力した内容が、保存するGeoJSONの name と note に入ります。
+        </div>
+
+        <label class="trace-toggle routeedit-field">
+          <span data-lang="re_name">ルート名</span>
+          <input
+            class="input"
+            id="inpREName"
+            data-placeholder="re_name_placeholder"
+            placeholder="例：中山道（妻籠→馬籠）"
+            style="flex:1; padding:10px; border:1px solid #ddd; border-radius:10px;"
+          />
+        </label>
+
+        <label class="trace-toggle routeedit-field">
+          <span data-lang="re_note">メモ・説明</span>
+          <input
+            class="input"
+            id="inpRENote"
+            data-placeholder="re_note_placeholder"
+            placeholder="例：現地でなぞった復元版"
+            style="flex:1; padding:10px; border:1px solid #ddd; border-radius:10px;"
+          />
+        </label>
       </div>
     </div>
-  </div></div>
+  </div>
 
-  <div class="top-bar">
+<div class="top-bar">
     <div class="status-title" id="lblCurrentRoute">--</div>
     <div class="status-info" id="lblNavInfo">--</div>
   </div>

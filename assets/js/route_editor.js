@@ -82,8 +82,24 @@
     prevMapInteract: null,
   };
 
+  function updateDrawBarGuide() {
+    const title = ui.drawBarTitle();
+    const hint = ui.drawBarHint();
+    const pan = isPanWhileDrawingEnabled();
+
+    if (title) {
+      title.textContent = pan ? '✋ 地図移動モード' : '✏️ ルート作成中';
+    }
+    if (hint) {
+      hint.textContent = pan
+        ? '地図を動かせます。線を引くときはチェックをOFFにしてください。'
+        : '地図を押したままなぞって線を引きます。地図を動かしたいときはチェックをONにしてください。';
+    }
+  }
+
   function showDrawBar() {
     ui.drawBar()?.style.setProperty('display', 'block');
+    updateDrawBarGuide();
   }
 
   function hideDrawBar() {
@@ -130,6 +146,8 @@
     if (enabled) {
       restoreMapInteractions();
     }
+
+    updateDrawBarGuide();
   }
 
   function updateDrawingStateUI() {
@@ -156,7 +174,12 @@
     redrawLine();
     refreshVertexMarkers();
     updatePreview();
-    showSaveSection();
+
+    if (state.points.length >= 2) {
+      showSaveSection();
+    } else {
+      hideSaveSection();
+    }
   }
 
   function redrawLine() {
@@ -535,6 +558,9 @@
     disableMapInteractions();
 
     const latlng = state.map.mouseEventToLatLng(e);
+    if (state.points.length === 0) {
+      pushHistory([]);
+    }
     addPoint(latlng);
     e.preventDefault();
   }
@@ -588,6 +614,7 @@
     hideSaveSection();
     showDrawBar();
     updateDrawingStateUI();
+    updateDrawBarGuide();
     toast(isPanWhileDrawingEnabled()
       ? '地図移動モードです。チェックをOFFにすると描画できます。'
       : safeT('re_msg_draw', '描画モード：地図を押しながらなぞってください'));
@@ -737,7 +764,13 @@
     a.remove();
 
     setTimeout(() => URL.revokeObjectURL(url), 2000);
-    toast(safeT('re_msg_export', 'GeoJSONをダウンロードしました'));
+    toast('保存しました');
+
+    const modal = ui.modal();
+    if (modal) {
+      modal.classList.remove('open', 'minimized');
+      modal.style.display = 'none';
+    }
   }
 
   function updateToleranceLabel() {
@@ -748,36 +781,53 @@
   }
 
   function wireUI() {
-    const bindClick = (el, handler) => {
-      el?.addEventListener('click', (e) => {
+    let lastPointerUpAt = 0;
+
+    const bindPress = (el, handler) => {
+      if (!el) return;
+
+      el.addEventListener('pointerdown', (e) => {
+        e.stopPropagation();
+      }, { passive: false });
+
+      el.addEventListener('pointerup', (e) => {
+        lastPointerUpAt = Date.now();
+        e.preventDefault();
+        e.stopPropagation();
+        handler(e);
+      }, { passive: false });
+
+      el.addEventListener('click', (e) => {
+        if (Date.now() - lastPointerUpAt < 400) {
+          e.preventDefault();
+          e.stopPropagation();
+          return;
+        }
         e.preventDefault();
         e.stopPropagation();
         handler(e);
       });
     };
 
-    bindClick(ui.btnStart(), () => {
+    bindPress(ui.btnStart(), () => {
       try {
         window.closeModalsForce?.();
       } catch (_) {}
       start();
     });
 
-    bindClick(ui.btnUndo(), undo);
-    bindClick(ui.btnReset(), reset);
-    bindClick(ui.btnFinish(), finish);
-    bindClick(ui.btnExport(), exportGeoJSON);
-    bindClick(ui.btnSimplify(), applySimplify);
-    bindClick(ui.importButton(), () => ui.importFile()?.click());
+    ui.btnUndo()?.addEventListener('click', undo);
+    ui.btnReset()?.addEventListener('click', reset);
+    ui.btnFinish()?.addEventListener('click', finish);
+    ui.btnExport()?.addEventListener('click', exportGeoJSON);
+    ui.btnSimplify()?.addEventListener('click', applySimplify);
+    ui.importButton()?.addEventListener('click', () => ui.importFile()?.click());
+    ui.importFile()?.addEventListener('change', (e) => importRouteFile(e.target.files?.[0]));
 
-    ui.importFile()?.addEventListener('change', (e) => {
-      importRouteFile(e.target.files?.[0]);
-    });
-
-    bindClick(ui.btnConfirmBar(), finish);
-    bindClick(ui.btnUndoBar(), undo);
-    bindClick(ui.btnResetBar(), reset);
-    bindClick(ui.btnCancelBar(), stop);
+    ui.btnConfirmBar()?.addEventListener('click', finish);
+    ui.btnUndoBar()?.addEventListener('click', undo);
+    ui.btnResetBar()?.addEventListener('click', reset);
+    ui.btnCancelBar()?.addEventListener('click', stop);
 
     ui.chkRef()?.addEventListener('change', refreshReferenceRoute);
     ui.chkEdit()?.addEventListener('change', refreshVertexMarkers);
