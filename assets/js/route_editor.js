@@ -558,6 +558,9 @@
     disableMapInteractions();
 
     const latlng = state.map.mouseEventToLatLng(e);
+    if (state.points.length === 0) {
+      pushHistory([]);
+    }
     addPoint(latlng);
     e.preventDefault();
   }
@@ -807,21 +810,18 @@
       start();
     });
 
-    bindPress(ui.btnUndo(), undo);
-    bindPress(ui.btnReset(), reset);
-    bindPress(ui.btnFinish(), finish);
-    bindPress(ui.btnExport(), exportGeoJSON);
-    bindPress(ui.btnSimplify(), applySimplify);
-    bindPress(ui.importButton(), () => ui.importFile()?.click());
+    ui.btnUndo()?.addEventListener('click', undo);
+    ui.btnReset()?.addEventListener('click', reset);
+    ui.btnFinish()?.addEventListener('click', finish);
+    ui.btnExport()?.addEventListener('click', exportGeoJSON);
+    ui.btnSimplify()?.addEventListener('click', applySimplify);
+    ui.importButton()?.addEventListener('click', () => ui.importFile()?.click());
+    ui.importFile()?.addEventListener('change', (e) => importRouteFile(e.target.files?.[0]));
 
-    ui.importFile()?.addEventListener('change', (e) => {
-      importRouteFile(e.target.files?.[0]);
-    });
-
-    bindPress(ui.btnConfirmBar(), finish);
-    bindPress(ui.btnUndoBar(), undo);
-    bindPress(ui.btnResetBar(), reset);
-    bindPress(ui.btnCancelBar(), stop);
+    ui.btnConfirmBar()?.addEventListener('click', finish);
+    ui.btnUndoBar()?.addEventListener('click', undo);
+    ui.btnResetBar()?.addEventListener('click', reset);
+    ui.btnCancelBar()?.addEventListener('click', stop);
 
     ui.chkRef()?.addEventListener('change', refreshReferenceRoute);
     ui.chkEdit()?.addEventListener('change', refreshVertexMarkers);
