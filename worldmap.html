@@ -402,16 +402,19 @@
     </div>
   </div>
 
-  <div id="reDrawBar" class="re-drawbar" style="display:none;">
-    <div class="re-drawbar-inner" style="display:flex; flex-wrap:wrap; gap:10px; align-items:flex-start;">
-      <div style="min-width:240px; flex:1 1 260px; color:#222;">
-        <div id="reDrawBarTitle" class="re-drawbar-title" style="font-weight:700; color:#222;">✏️ 描画中</div>
-        <div id="reDrawBarHint" style="margin-top:6px; font-size:13px; line-height:1.45; color:#444;">ドラッグして線を引きます。</div>
+  <div id="reDrawBar" class="re-drawbar" style="display:none; position:fixed; top:72px; left:50%; transform:translateX(-50%); z-index:4000; width:min(92vw, 760px); background:rgba(255,255,255,0.97); border:1px solid rgba(0,0,0,0.08); border-radius:18px; box-shadow:0 14px 36px rgba(0,0,0,0.18); padding:14px 16px;">
+    <div class="re-drawbar-inner" style="display:flex; flex-wrap:wrap; gap:12px; align-items:flex-start;">
+      <div style="min-width:240px; flex:1 1 280px; color:#222;">
+        <div id="reDrawBarTitle" class="re-drawbar-title" style="font-weight:800; font-size:22px; line-height:1.2; color:#222;">✏️ 描画中</div>
+        <div id="reDrawBarHint" style="margin-top:8px; font-size:15px; line-height:1.55; color:#222;">ドラッグして線を引きます。</div>
+        <label style="display:flex; align-items:center; gap:8px; margin-top:10px; font-size:14px; color:#222;">
+          <input type="checkbox" id="chkREPanBar" />
+          <span>地図を動かしながら描く（クリックで点追加）</span>
+        </label>
       </div>
       <div style="display:flex; flex-wrap:wrap; gap:10px; align-items:center;">
         <button id="btnREConfirm" class="re-btn-primary" data-lang="re_finish">Finish</button>
-        <button id="btnREUndoBar" class="re-btn">Undo</button>
-        <button id="btnREResetBar" class="re-btn">Reset</button>
+        <button id="btnREUndoBar" class="re-btn">戻す</button>
         <button id="btnRECancel" class="re-btn-danger">キャンセル</button>
       </div>
     </div>
