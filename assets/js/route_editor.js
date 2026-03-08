@@ -89,6 +89,48 @@
   function hideDrawBar() {
     ui.drawBar()?.style.setProperty('display', 'none');
   }
+  
+    function showSaveSection() {
+    const el = ui.saveSection();
+    if (!el) return;
+    el.style.display = '';
+  }
+
+  function hideSaveSection() {
+    const el = ui.saveSection();
+    if (!el) return;
+    el.style.display = 'none';
+  }
+
+  function openRouteEditModal() {
+    const modal = ui.modal();
+    if (!modal) return;
+
+    if (typeof window.openModal === 'function') {
+      window.openModal('modalRouteEdit');
+      return;
+    }
+
+    modal.classList.remove('minimized');
+    modal.classList.add('open');
+  }
+
+  function isPanWhileDrawingEnabled() {
+    return !!ui.chkPanBar()?.checked;
+  }
+
+  function setPanMode(enabled) {
+    const chk = ui.chkPanBar();
+    if (chk) {
+      chk.checked = !!enabled;
+    }
+
+    if (!state.map) return;
+
+    if (enabled) {
+      restoreMapInteractions();
+    }
+  }
 
   function updateDrawingStateUI() {
     const statusEl = ui.status();
@@ -477,6 +519,12 @@
       return;
     }
 
+    // 地図移動チェックON中は描画しない
+    if (isPanWhileDrawingEnabled()) {
+      restoreMapInteractions();
+      return;
+    }
+
     state.isPointerDrawing = true;
     state.pointerId = e.pointerId;
 
@@ -726,6 +774,9 @@
     ui.chkRef()?.addEventListener('change', refreshReferenceRoute);
     ui.chkEdit()?.addEventListener('change', refreshVertexMarkers);
     ui.rngTol()?.addEventListener('input', updateToleranceLabel);
+    ui.chkPanBar()?.addEventListener('change', (e) => {
+      setPanMode(!!e.target.checked);
+    });
   }
 
   function refreshUI() {
@@ -770,6 +821,7 @@
     refreshUI,
     start,
     stop,
+    isActive: () => !!state.drawingArmed,
   };
 
   initOnce();
