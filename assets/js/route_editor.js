@@ -208,11 +208,12 @@
 
     if (state.points.length < 2) {
       el.style.display = 'none';
+      breakdown.textContent = '';
       return;
     }
 
     el.style.display = 'block';
-    breakdown.textContent = `points: ${state.points.length}`;
+    breakdown.textContent = '';
   }
 
   function getActiveRouteLatLngsFromGeoJSON(geo) {
@@ -614,7 +615,6 @@
     hideSaveSection();
     showDrawBar();
     updateDrawingStateUI();
-    updateDrawBarGuide();
     toast(isPanWhileDrawingEnabled()
       ? '地図移動モードです。チェックをOFFにすると描画できます。'
       : safeT('re_msg_draw', '描画モード：地図を押しながらなぞってください'));
@@ -649,7 +649,7 @@
     openRouteEditModal();
     showSaveSection();
     updateDrawingStateUI();
-    toast('描画を確定しました。保存・出力から保存できます。');
+    toast('描画を確定しました。保存できます。');
   }
 
   function undo() {
@@ -764,12 +764,10 @@
     a.remove();
 
     setTimeout(() => URL.revokeObjectURL(url), 2000);
-    toast('保存しました');
-
-    const modal = ui.modal();
-    if (modal) {
-      modal.classList.remove('open', 'minimized');
-      modal.style.display = 'none';
+    toast(safeT('re_msg_export', '保存しました'));
+    ui.modal()?.classList.remove('open', 'minimized');
+    if (ui.modal()) {
+      ui.modal().style.display = 'none';
     }
   }
 
@@ -781,35 +779,7 @@
   }
 
   function wireUI() {
-    let lastPointerUpAt = 0;
-
-    const bindPress = (el, handler) => {
-      if (!el) return;
-
-      el.addEventListener('pointerdown', (e) => {
-        e.stopPropagation();
-      }, { passive: false });
-
-      el.addEventListener('pointerup', (e) => {
-        lastPointerUpAt = Date.now();
-        e.preventDefault();
-        e.stopPropagation();
-        handler(e);
-      }, { passive: false });
-
-      el.addEventListener('click', (e) => {
-        if (Date.now() - lastPointerUpAt < 400) {
-          e.preventDefault();
-          e.stopPropagation();
-          return;
-        }
-        e.preventDefault();
-        e.stopPropagation();
-        handler(e);
-      });
-    };
-
-    bindPress(ui.btnStart(), () => {
+    ui.btnStart()?.addEventListener('click', () => {
       try {
         window.closeModalsForce?.();
       } catch (_) {}
@@ -879,6 +849,8 @@
     refreshUI,
     start,
     stop,
+    showDrawBar,
+    openMenu: openRouteEditModal,
     isActive: () => !!state.drawingArmed,
   };
 
