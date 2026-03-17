@@ -42,6 +42,7 @@
     btnReset: () => $('btnREReset'),
     btnFinish: () => $('btnREFinish'),
     btnExport: () => $('btnREExport'),
+    btnExportBar: () => $('btnREExportBar'),
     btnSimplify: () => $('btnRESimplify'),
     btnConfirmBar: () => $('btnREConfirm'),
     btnUndoBar: () => $('btnREUndoBar'),
@@ -790,6 +791,7 @@
     ui.btnReset()?.addEventListener('click', reset);
     ui.btnFinish()?.addEventListener('click', finish);
     ui.btnExport()?.addEventListener('click', exportGeoJSON);
+    ui.btnExportBar()?.addEventListener('click', () => ui.btnExport()?.click());
     ui.btnSimplify()?.addEventListener('click', applySimplify);
     ui.importButton()?.addEventListener('click', () => ui.importFile()?.click());
     ui.importFile()?.addEventListener('change', (e) => importRouteFile(e.target.files?.[0]));
