@@ -61,7 +61,6 @@
     chkPanBar: () => $('chkREPanBar'),
     importButton: () => $('btnREImport'),
     importFile: () => $('inpREImportFile'),
-    saveSection: () => $('reSaveSection'),
     modal: () => $('modalRouteEdit'),
   };
 
@@ -102,18 +101,6 @@
 
   function hideDrawBar() {
     ui.drawBar()?.style.setProperty('display', 'none');
-  }
-
-  function showSaveSection() {
-    const el = ui.saveSection();
-    if (!el) return;
-    el.style.display = '';
-  }
-
-  function hideSaveSection() {
-    const el = ui.saveSection();
-    if (!el) return;
-    el.style.display = 'none';
   }
 
   function openRouteEditModal() {
@@ -172,11 +159,6 @@
     redrawLine();
     refreshVertexMarkers();
 
-    if (state.points.length >= 2) {
-      showSaveSection();
-    } else {
-      hideSaveSection();
-    }
   }
 
   function redrawLine() {
@@ -590,7 +572,6 @@
 
   function start() {
     state.drawingArmed = true;
-    hideSaveSection();
     showDrawBar();
     updateDrawingStateUI();
     toast(isPanWhileDrawingEnabled()
@@ -613,7 +594,6 @@
   function reset() {
     pushHistory();
     setPoints([]);
-    hideSaveSection();
   }
 
   function finish() {
@@ -624,7 +604,6 @@
     hideDrawBar();
     setPanMode(false);
     openRouteEditModal();
-    showSaveSection();
     updateDrawingStateUI();
     toast('描画を確定しました。保存できます。');
   }
@@ -688,7 +667,6 @@
       pushHistory();
       setPoints(latlngs);
       openRouteEditModal();
-      showSaveSection();
       updateDrawingStateUI();
       toast('インポートしました。続けて編集できます。');
     } catch (e) {
@@ -766,7 +744,6 @@ function exportGeoJSON() {
 
     ui.btnReset()?.addEventListener('click', reset);
     ui.btnFinish()?.addEventListener('click', finish);
-    ui.btnExport()?.addEventListener('click', exportGeoJSON);
     ui.btnSimplify()?.addEventListener('click', applySimplify);
     ui.importButton()?.addEventListener('click', () => ui.importFile()?.click());
     ui.importFile()?.addEventListener('change', (e) => importRouteFile(e.target.files?.[0]));
@@ -814,7 +791,6 @@ function exportGeoJSON() {
       wireUI();
       refreshUI();
       setPanMode(false);
-      hideSaveSection();
       log('initialized');
     }, 200);
 
