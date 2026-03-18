@@ -724,53 +724,55 @@
     }
   }
 
-  function exportGeoJSON() {
-    if (state.points.length < 2) {
-      toast(safeT('re_msg_need2', '点が足りません（2点以上）'));
-      return;
-    }
-
-    const name = ui.inpName()?.value?.trim() || 'Route';
-    const note = ui.inpNote()?.value?.trim() || '';
-
-    const feature = {
-      type: 'Feature',
-      properties: {
-        name,
-        note,
-        createdAt: new Date().toISOString(),
-        source: 'SamuraiRoad RouteEditor',
-      },
-      geometry: {
-        type: 'LineString',
-        coordinates: state.points.map((ll) => [ll.lng, ll.lat]),
-      },
-    };
-
-    const featureCollection = {
-      type: 'FeatureCollection',
-      features: [feature],
-    };
-
-    const blob = new Blob([JSON.stringify(featureCollection, null, 2)], {
-      type: 'application/geo+json',
-    });
-    const url = URL.createObjectURL(blob);
-
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${name.replace(/[^\w\-]+/g, '_') || 'route'}.geojson`;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-
-    setTimeout(() => URL.revokeObjectURL(url), 2000);
-    toast(safeT('re_msg_export', '保存しました'));
-    ui.modal()?.classList.remove('open', 'minimized');
-    if (ui.modal()) {
-      ui.modal().style.display = 'none';
-    }
+function exportGeoJSON() {
+  if (state.points.length < 2) {
+    toast(safeT('re_msg_need2', '点が足りません（2点以上）'));
+    return;
   }
+
+  const name = ui.inpName()?.value?.trim() || 'Route';
+  const note = ui.inpNote()?.value?.trim() || '';
+
+  const feature = {
+    type: 'Feature',
+    properties: {
+      name,
+      note,
+      createdAt: new Date().toISOString(),
+      source: 'SamuraiRoad RouteEditor',
+    },
+    geometry: {
+      type: 'LineString',
+      coordinates: state.points.map((ll) => [ll.lng, ll.lat]),
+    },
+  };
+
+  const featureCollection = {
+    type: 'FeatureCollection',
+    features: [feature],
+  };
+
+  const blob = new Blob([JSON.stringify(featureCollection, null, 2)], {
+    type: 'application/geo+json',
+  });
+  const url = URL.createObjectURL(blob);
+
+  const safeFileName =
+    name
+      .trim()
+      .replace(/[\\/:*?"<>|]+/g, '_')
+      .replace(/\s+/g, '_') || 'route';
+
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `${safeFileName}.geojson`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+
+  setTimeout(() => URL.revokeObjectURL(url), 2000);
+  toast(safeT('re_msg_export', '保存しました'));
+}
 
   function updateToleranceLabel() {
     const value = Number(ui.rngTol()?.value ?? 15);
