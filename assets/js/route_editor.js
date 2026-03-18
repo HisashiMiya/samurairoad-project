@@ -764,7 +764,6 @@ function exportGeoJSON() {
       start();
     });
 
-    ui.btnUndo()?.addEventListener('click', undo);
     ui.btnReset()?.addEventListener('click', reset);
     ui.btnFinish()?.addEventListener('click', finish);
     ui.btnExport()?.addEventListener('click', exportGeoJSON);
