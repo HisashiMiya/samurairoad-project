@@ -38,11 +38,8 @@
 
   const ui = {
     btnStart: () => $('btnREStart'),
-    btnUndo: () => $('btnREUndo'),
     btnReset: () => $('btnREReset'),
     btnFinish: () => $('btnREFinish'),
-    btnExport: () => $('btnREExport'),
-    btnExportBar: () => $('btnREExportBar'),
     btnSimplify: () => $('btnRESimplify'),
     btnConfirmBar: () => $('btnREConfirm'),
     btnUndoBar: () => $('btnREUndoBar'),
@@ -174,7 +171,6 @@
     state.points = points.map((p) => L.latLng(p.lat, p.lng));
     redrawLine();
     refreshVertexMarkers();
-    updatePreview();
 
     if (state.points.length >= 2) {
       showSaveSection();
@@ -198,23 +194,6 @@
     }
 
     state.line.setLatLngs(state.points);
-  }
-
-  function updatePreview() {
-    const el = ui.reResult();
-    const breakdown = ui.reBreakdown();
-    if (!el || !breakdown) {
-      return;
-    }
-
-    if (state.points.length < 2) {
-      el.style.display = 'none';
-      breakdown.textContent = '';
-      return;
-    }
-
-    el.style.display = 'block';
-    breakdown.textContent = '';
   }
 
   function getActiveRouteLatLngsFromGeoJSON(geo) {
@@ -456,7 +435,6 @@
       });
       dragMarker.on('dragend', () => {
         redrawLine();
-        updatePreview();
         refreshVertexMarkers();
       });
 
@@ -595,7 +573,6 @@
 
     state.pointerId = null;
     restoreMapInteractions();
-    updatePreview();
     e.preventDefault();
   }
 
@@ -644,7 +621,6 @@
     state.isPointerDrawing = false;
     state.pointerId = null;
     restoreMapInteractions();
-    updatePreview();
     hideDrawBar();
     setPanMode(false);
     openRouteEditModal();
@@ -663,7 +639,6 @@
       state.points.pop();
       redrawLine();
       refreshVertexMarkers();
-      updatePreview();
     }
   }
 
@@ -793,7 +768,6 @@ function exportGeoJSON() {
     ui.btnReset()?.addEventListener('click', reset);
     ui.btnFinish()?.addEventListener('click', finish);
     ui.btnExport()?.addEventListener('click', exportGeoJSON);
-    ui.btnExportBar()?.addEventListener('click', () => ui.btnExport()?.click());
     ui.btnSimplify()?.addEventListener('click', applySimplify);
     ui.importButton()?.addEventListener('click', () => ui.importFile()?.click());
     ui.importFile()?.addEventListener('change', (e) => importRouteFile(e.target.files?.[0]));
@@ -822,7 +796,6 @@ function exportGeoJSON() {
     bindPointerEvents();
     refreshReferenceRoute();
     redrawLine();
-    updatePreview();
     refreshVertexMarkers();
     updateToleranceLabel();
     updateDrawingStateUI();
