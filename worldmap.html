@@ -103,20 +103,13 @@
         </details>
       </div>
 
-      <div class="routeedit-section" id="reSaveSection" style="margin-top:12px; display:none;">
-        <div class="routeedit-section-title" data-lang="re_section_output">保存・終了</div>
+      <div class="routeedit-section" style="margin-top:12px;">
+        <div class="routeedit-section-title" data-lang="re_section_file">ファイル操作</div>
+        <button class="btn-block" id="btnRESaveExit" type="button" data-lang="re_save_exit" style="background:#2e7d32; color:#fff; font-weight:700;">保存して終了</button>
         <button class="btn-block" id="btnREImport" type="button" data-lang="re_import">GeoJSON / GPX を読み込む</button>
         <input type="file" id="inpREImportFile" accept=".geojson,.json,.gpx,application/geo+json,application/json,application/gpx+xml" style="display:none;" />
         <button class="btn-block" style="background:#888;" type="button" onclick="closeModals(); window.RouteEditor?.openMenu?.();" data-lang="re_panel_close">
           パネルを閉じる
-        </button>
-        <button
-          class="btn-block btn-danger"
-          type="button"
-          data-lang="re_mode_exit"
-          onclick="if(window.RouteEditor) RouteEditor.stop(); document.getElementById('modalRouteEdit')?.classList.remove('open','minimized'); document.getElementById('modalRouteEdit')?.style.setProperty('display','none');"
-        >
-          作成モードを終了
         </button>
       </div>
 
@@ -395,12 +388,11 @@
   <div id="reDrawBar" class="re-drawbar" style="display:none;">
     <div class="re-drawbar-inner">
       <div id="reDrawBarTitle" class="re-drawbar-title" style="color:#222; font-weight:700;">✏️ ルート作成中</div>
-      <div id="reDrawBarHint" style="font-size:13px; color:#222; margin:6px 0 10px; line-height:1.6; text-shadow:none;">地図を押したままなぞって線を引きます。地図を動かしたいときは下のチェックをONにしてください。</div>
       <label class="trace-toggle" style="display:flex; align-items:center; gap:8px; margin:0 0 10px; color:#222; font-size:14px;">
         <input type="checkbox" id="chkREPanBar" />
-        <span>地図を移動する（この間は線を引きません）</span>
+        <span>地図を移動する</span>
       </label>
-      <button id="btnREExportBar" class="re-btn-primary" type="button" data-lang="re_export">保存</button>
+      <button id="btnREExportBar" class="re-btn-primary" type="button" data-lang="re_save">保存</button>
       <button id="btnREUndoBar" class="re-btn" type="button" data-lang="re_undo">1つ戻す</button>
       <button id="btnREResetBar" class="re-btn" type="button" data-lang="re_reset">全消去</button>
       <button id="btnRECancel" class="re-btn-danger" type="button" data-lang="re_cancel">キャンセル</button>

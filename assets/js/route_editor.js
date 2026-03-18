@@ -40,6 +40,9 @@
     btnStart: () => $('btnREStart'),
     btnReset: () => $('btnREReset'),
     btnFinish: () => $('btnREFinish'),
+    btnSave: () => $('btnREExport'),
+    btnSaveBar: () => $('btnREExportBar'),
+    btnSaveExit: () => $('btnRESaveExit'),
     btnSimplify: () => $('btnRESimplify'),
     btnConfirmBar: () => $('btnREConfirm'),
     btnUndoBar: () => $('btnREUndoBar'),
@@ -81,16 +84,10 @@
 
   function updateDrawBarGuide() {
     const title = ui.drawBarTitle();
-    const hint = ui.drawBarHint();
     const pan = isPanWhileDrawingEnabled();
 
     if (title) {
       title.textContent = pan ? '✋ 地図移動モード' : '✏️ ルート作成中';
-    }
-    if (hint) {
-      hint.textContent = pan
-        ? '地図を動かせます。線を引くときはチェックをOFFにしてください。'
-        : '地図を押したままなぞって線を引きます。地図を動かしたいときはチェックをONにしてください。';
     }
   }
 
@@ -680,7 +677,7 @@
 function exportGeoJSON() {
   if (state.points.length < 2) {
     toast(safeT('re_msg_need2', '点が足りません（2点以上）'));
-    return;
+    return false;
   }
 
   const name = ui.inpName()?.value?.trim() || 'Route';
@@ -713,7 +710,7 @@ function exportGeoJSON() {
   const safeFileName =
     name
       .trim()
-      .replace(/[\\/:*?"<>|]+/g, '_')
+      .replace(/[\/:*?"<>|]+/g, '_')
       .replace(/\s+/g, '_') || 'route';
 
   const a = document.createElement('a');
@@ -725,7 +722,19 @@ function exportGeoJSON() {
 
   setTimeout(() => URL.revokeObjectURL(url), 2000);
   toast(safeT('re_msg_export', '保存しました'));
+  return true;
 }
+
+  function saveAndExit() {
+    const saved = exportGeoJSON();
+    if (!saved) {
+      return;
+    }
+    stop();
+    try {
+      window.closeModalsForce?.();
+    } catch (_) {}
+  }
 
   function updateToleranceLabel() {
     const value = Number(ui.rngTol()?.value ?? 15);
@@ -744,6 +753,9 @@ function exportGeoJSON() {
 
     ui.btnReset()?.addEventListener('click', reset);
     ui.btnFinish()?.addEventListener('click', finish);
+    ui.btnSave()?.addEventListener('click', exportGeoJSON);
+    ui.btnSaveBar()?.addEventListener('click', exportGeoJSON);
+    ui.btnSaveExit()?.addEventListener('click', saveAndExit);
     ui.btnSimplify()?.addEventListener('click', applySimplify);
     ui.importButton()?.addEventListener('click', () => ui.importFile()?.click());
     ui.importFile()?.addEventListener('change', (e) => importRouteFile(e.target.files?.[0]));
