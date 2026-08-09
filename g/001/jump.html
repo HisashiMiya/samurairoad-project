@@ -25,8 +25,9 @@
     .overlay {
       position: absolute; top: 0; left: 0; width: 100%; height: 100%;
       display: flex; flex-direction: column; justify-content: center; align-items: center;
-      background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(4px);
+      background: rgba(0, 0, 0, 0.75); backdrop-filter: blur(4px);
       color: white; text-align: center; transition: opacity 0.3s;
+      z-index: 30;
     }
     .hidden { display: none !important; opacity: 0; pointer-events: none; }
     
@@ -57,10 +58,30 @@
       box-shadow: 0 2px 4px rgba(0,0,0,0.2); border: 2px solid #ffb7c5;
     }
     #stockDisplay { color: #FF1493; border-color: #FF1493; }
-    .controls-hint {
-      position: absolute; bottom: 20px; left: 0; width: 100%;
-      text-align: center; color: rgba(255,255,255,0.7); font-size: 14px; pointer-events: none;
+    #comboDisplay { color:#7B1FA2; border-color:#CE93D8; }
+    #messageDisplay { position:absolute; top:54px; left:50%; transform:translateX(-50%);
+      z-index:12; color:#fff; font-size:18px; font-weight:900; text-shadow:0 2px 5px #000;
+      pointer-events:none; opacity:0; transition:.2s; }
+    #messageDisplay.show { opacity:1; transform:translateX(-50%) translateY(-5px); }
+    
+    #virtualPad {
+      position: absolute; bottom: 20px; left: 15px; right: 15px;
+      display: flex; justify-content: space-between; align-items: flex-end;
+      pointer-events: none; z-index: 20;
     }
+    .pad-dpad { display: flex; gap: 15px; pointer-events: auto; }
+    .pad-action { pointer-events: auto; margin-bottom: 5px; }
+    .vbtn {
+      width: 64px; height: 64px; border-radius: 50%;
+      background: rgba(255, 255, 255, 0.2); border: 2px solid rgba(255,255,255,0.4);
+      color: rgba(255,255,255,0.9); font-size: 24px; font-weight: bold;
+      display: flex; justify-content: center; align-items: center;
+      user-select: none; touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+    }
+    .vbtn.active { background: rgba(255, 255, 255, 0.5); border-color: rgba(255,255,255,0.9); transform: scale(0.95); }
+    .prop-btn { width: 72px; height: 72px; background: rgba(255, 20, 147, 0.3); border-color: rgba(255,20,147,0.6); font-size: 28px; }
+    .prop-btn.active { background: rgba(255, 20, 147, 0.7); border-color: rgba(255,20,147,1); }
   </style>
 </head>
 <body>
@@ -71,12 +92,25 @@
   <div id="hud">
     <div class="score-box" id="scoreDisplay">Score: 0</div>
     <div class="score-box" id="stockDisplay">Prop: 3</div>
+    <div class="score-box" id="comboDisplay">Combo: 0</div>
     <div class="score-box" id="highScoreDisplay">High: 0</div>
+  </div>
+  <div id="messageDisplay"></div>
+
+  <div id="virtualPad" class="hidden">
+    <div class="pad-dpad">
+      <div id="btnLeft" class="vbtn">◀</div>
+      <div id="btnRight" class="vbtn">▶</div>
+    </div>
+    <div class="pad-action">
+      <div id="btnProp" class="vbtn prop-btn">🚀</div>
+    </div>
   </div>
 
   <div id="startScreen" class="overlay">
     <h1>SKY JUMP</h1>
-    <p>上タップ(Space)でプロペラ！ / 左右で移動</p>
+    <p>左手で ◀ ▶ 移動 / 右手で 🚀 プロペラ発動！<br>（PCは矢印キー・A/D・Spaceキー）</p>
+    <p style="font-size:12px;color:#ddd;">10連続着地でFEVER。🪙コイン+100、🛡シールドは落下を1回救済！</p>
     <div class="btn-group">
       <button class="btn easy" onclick="startGame('EASY')">EASY</button>
       <button class="btn normal" onclick="startGame('NORMAL')">NORMAL</button>
@@ -88,18 +122,16 @@
     <h1 style="color:#ff4444;">GAME OVER</h1>
     <p style="font-size: 18px; color:#aaa;" id="modeResultDisplay">Mode: NORMAL</p>
     <p style="font-size: 24px; font-weight:bold;">Score: <span id="finalScore">0</span></p>
+    <p id="resultStats" style="color:#ffe082;">Max Combo: 0　🪙 0</p>
     <p id="newRecordMsg" class="hidden" style="color: gold; font-weight: bold;">★ NEW RECORD ★</p>
     <div class="btn-group">
       <button class="btn" onclick="retrySameMode()">もう一度飛ぶ</button>
       <button class="btn" style="background:#555;" onclick="goToTitle()">タイトルへ</button>
     </div>
   </div>
-
-  <div id="controlsHint" class="controls-hint hidden">上タップ(Space)でプロペラ！ / 左右で移動</div>
 </div>
 
 <script>
-  // 音声モジュール
   const sfx = (() => {
     let ctx = null;
     function init() {
@@ -133,6 +165,7 @@
   const W = 400, H = 600;
   
   let score = 0; let propStock = 3; let gameState = 'START'; let currentMode = 'NORMAL';
+  let combo=0, maxCombo=0, coins=0, shield=0, fever=0, messageTimer=0;
   
   const MODE_CONFIG = {
     EASY:   { startWidth: 80, minWidth: 45, shrinkRate: 0.015, initProp: 5, movingChance: 0.05, breakChance: 0.05, itemChance: 0.15 },
@@ -144,6 +177,7 @@
   const scoreDisplay = document.getElementById('scoreDisplay');
   const stockDisplay = document.getElementById('stockDisplay');
   const highScoreDisplay = document.getElementById('highScoreDisplay');
+  const padUI = document.getElementById('virtualPad');
 
   let highScores = {
     EASY: localStorage.getItem('buunosuke_high_EASY') || 0,
@@ -151,53 +185,34 @@
     HARD: localStorage.getItem('buunosuke_high_HARD') || 0
   };
 
-  // --- 自動透過処理 ---
-  function removeBackground(imgElement, callback) {
-    const offCanvas = document.createElement('canvas');
-    offCanvas.width = imgElement.width; offCanvas.height = imgElement.height;
-    const offCtx = offCanvas.getContext('2d', { willReadFrequently: true });
-    offCtx.drawImage(imgElement, 0, 0);
-    
-    try {
-      const imageData = offCtx.getImageData(0, 0, offCanvas.width, offCanvas.height);
-      const data = imageData.data;
-      // 左上のピクセルを背景色とみなす
-      const bgR = data[0], bgG = data[1], bgB = data[2];
-      const tolerance = 20; // 色の許容誤差
 
-      for (let i = 0; i < data.length; i += 4) {
-        const r = data[i], g = data[i+1], b = data[i+2];
-        if (Math.abs(r - bgR) <= tolerance && Math.abs(g - bgG) <= tolerance && Math.abs(b - bgB) <= tolerance) {
-          data[i+3] = 0; // アルファ値を0にして透明に
-        }
-      }
-      offCtx.putImageData(imageData, 0, 0);
-      
-      const newImg = new Image();
-      newImg.onload = () => callback(newImg);
-      newImg.src = offCanvas.toDataURL();
-    } catch(e) {
-      // ローカル環境等でCORSエラーが出た場合はそのまま返す
-      callback(imgElement);
-    }
-  }
+  // 実画像を優先し、無い環境でも内蔵SVG画像を表示。
+  const fallbackBody = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(`
+    <svg xmlns="http://www.w3.org/2000/svg" width="120" height="120">
+      <defs><radialGradient id="g"><stop stop-color="#ffd9e4"/><stop offset="1" stop-color="#ff8fb0"/></radialGradient></defs>
+      <ellipse cx="60" cy="64" rx="43" ry="38" fill="url(#g)" stroke="#7a2343" stroke-width="4"/>
+      <circle cx="45" cy="55" r="7"/><circle cx="75" cy="55" r="7"/>
+      <circle cx="43" cy="52" r="2" fill="#fff"/><circle cx="73" cy="52" r="2" fill="#fff"/>
+      <path d="M48 75 Q60 84 72 75" fill="none" stroke="#7a2343" stroke-width="4"/>
+    </svg>`);
+  const fallbackProp = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(`
+    <svg xmlns="http://www.w3.org/2000/svg" width="80" height="80">
+      <circle cx="40" cy="40" r="8" fill="#ffd54f" stroke="#8a5a00" stroke-width="3"/>
+      <path d="M40 30 C17 28 14 14 31 15 C43 16 47 24 40 30Z" fill="#90caf9" stroke="#1565c0" stroke-width="3"/>
+      <path d="M50 40 C52 17 66 14 65 31 C64 43 56 47 50 40Z" fill="#90caf9" stroke="#1565c0" stroke-width="3"/>
+      <path d="M40 50 C63 52 66 66 49 65 C37 64 33 56 40 50Z" fill="#90caf9" stroke="#1565c0" stroke-width="3"/>
+      <path d="M30 40 C28 63 14 66 15 49 C16 37 24 33 30 40Z" fill="#90caf9" stroke="#1565c0" stroke-width="3"/>
+    </svg>`);
 
-  const rawImgBody = new Image(); rawImgBody.src = './images/buunosuke_body.png';
-  const rawImgProp = new Image(); rawImgProp.src = './images/buunosuke_propeller.png';
-  let imgBody = rawImgBody; let imgProp = rawImgProp;
-  let assetsLoaded = 0; let useFallback = false;
-
-  rawImgBody.onload = () => {
-    removeBackground(rawImgBody, (processedImg) => {
-      imgBody = processedImg; assetsLoaded++;
-    });
-  };
-  rawImgProp.onload = () => {
-    removeBackground(rawImgProp, (processedImg) => {
-      imgProp = processedImg; assetsLoaded++;
-    });
-  };
-  rawImgBody.onerror = rawImgProp.onerror = () => { useFallback = true; };
+  const rawImgBody = new Image(), rawImgProp = new Image();
+  const imgBody = rawImgBody, imgProp = rawImgProp;
+  let assetsLoaded = 0;
+  function markLoaded(){ assetsLoaded++; }
+  rawImgBody.onload = markLoaded; rawImgProp.onload = markLoaded;
+  rawImgBody.onerror = () => { rawImgBody.src = fallbackBody; };
+  rawImgProp.onerror = () => { rawImgProp.src = fallbackProp; };
+  rawImgBody.src = './images/buunosuke_body.png';
+  rawImgProp.src = './images/buunosuke_propeller.png';
 
   const keys = { left: false, right: false };
 
@@ -210,39 +225,38 @@
     }
   }
 
-  // --- 入力制御 ---
   window.addEventListener('keydown', (e) => {
-    if (e.code === 'ArrowLeft' || e.code === 'KeyA') keys.left = true;
-    if (e.code === 'ArrowRight' || e.code === 'KeyD') keys.right = true;
-    if (e.code === 'ArrowUp' || e.code === 'KeyW' || e.code === 'Space') activatePropeller();
+    if (e.code === 'ArrowLeft' || e.code === 'KeyA') { keys.left = true; document.getElementById('btnLeft').classList.add('active'); }
+    if (e.code === 'ArrowRight' || e.code === 'KeyD') { keys.right = true; document.getElementById('btnRight').classList.add('active'); }
+    if (e.code === 'ArrowUp' || e.code === 'KeyW' || e.code === 'Space') {
+      activatePropeller(); document.getElementById('btnProp').classList.add('active');
+    }
   });
   window.addEventListener('keyup', (e) => {
-    if (e.code === 'ArrowLeft' || e.code === 'KeyA') keys.left = false;
-    if (e.code === 'ArrowRight' || e.code === 'KeyD') keys.right = false;
+    if (e.code === 'ArrowLeft' || e.code === 'KeyA') { keys.left = false; document.getElementById('btnLeft').classList.remove('active'); }
+    if (e.code === 'ArrowRight' || e.code === 'KeyD') { keys.right = false; document.getElementById('btnRight').classList.remove('active'); }
+    if (e.code === 'ArrowUp' || e.code === 'KeyW' || e.code === 'Space') document.getElementById('btnProp').classList.remove('active');
   });
   
-  function handleTouch(e, isStart) {
-    e.preventDefault(); const rect = canvas.getBoundingClientRect();
-    keys.left = false; keys.right = false;
-    for (let i = 0; i < e.touches.length; i++) {
-      const touch = e.touches[i];
-      const x = touch.clientX - rect.left; const y = touch.clientY - rect.top;
-      if (y < rect.height / 3) { if (isStart) activatePropeller(); } 
-      else { if (x < rect.width / 2) keys.left = true; else keys.right = true; }
-    }
-  }
+  const bindPad = (btnId, actionStart, actionEnd) => {
+    const el = document.getElementById(btnId);
+    const start = (e) => { e.preventDefault(); el.classList.add('active'); actionStart(); };
+    const end = (e) => { e.preventDefault(); el.classList.remove('active'); actionEnd(); };
+    el.addEventListener('touchstart', start, {passive: false});
+    el.addEventListener('mousedown', start);
+    el.addEventListener('touchend', end, {passive: false});
+    el.addEventListener('touchcancel', end, {passive: false});
+    el.addEventListener('mouseup', end);
+    el.addEventListener('mouseleave', end);
+  };
 
-  canvas.addEventListener('touchstart', (e) => {
-    e.preventDefault(); const rect = canvas.getBoundingClientRect();
-    for (let i = 0; i < e.changedTouches.length; i++) {
-      if (e.changedTouches[i].clientY - rect.top < rect.height / 3) activatePropeller();
-    }
-    handleTouch(e, false);
-  }, {passive: false});
-  canvas.addEventListener('touchend', (e) => handleTouch(e, false), {passive: false});
-  canvas.addEventListener('touchcancel', (e) => handleTouch(e, false), {passive: false});
+  bindPad('btnLeft', () => keys.left = true, () => keys.left = false);
+  bindPad('btnRight', () => keys.right = true, () => keys.right = false);
+  bindPad('btnProp', () => activatePropeller(), () => {}); 
 
-  // --- パーティクル ---
+  canvas.addEventListener('touchstart', (e) => e.preventDefault(), {passive: false});
+  canvas.addEventListener('touchmove', (e) => e.preventDefault(), {passive: false});
+
   const particles = [];
   function createParticles(x, y, color, count) {
     for(let i=0; i<count; i++) particles.push({ x: x, y: y, vx: (Math.random() - 0.5) * 6, vy: (Math.random() - 0.5) * 6, life: 1.0, color: color });
@@ -255,6 +269,16 @@
       ctx.beginPath(); ctx.arc(p.x, p.y, 3, 0, Math.PI*2); ctx.fill();
     }
     ctx.globalAlpha = 1.0;
+  }
+
+  function showMessage(msg){
+    const el=document.getElementById('messageDisplay'); el.textContent=msg;
+    el.classList.add('show'); messageTimer=55;
+  }
+  function updateComboUI(){ document.getElementById('comboDisplay').innerText=`Combo: ${combo}`; }
+  function addScore(points){
+    const mul=1+Math.min(combo,20)*0.05+(fever>0?0.5:0);
+    score += Math.floor(points*mul); scoreDisplay.innerText=`Score: ${score}`;
   }
 
   class Player {
@@ -289,7 +313,11 @@
       ctx.save();
       const tilt = Math.max(-0.2, Math.min(0.2, this.vx * 0.05));
       ctx.translate(this.x + this.width/2, this.y + this.height/2); ctx.rotate(tilt);
-      if (assetsLoaded === 2 && !useFallback) {
+      if (shield > 0) {
+        ctx.strokeStyle='rgba(80,200,255,.9)'; ctx.lineWidth=4;
+        ctx.beginPath(); ctx.arc(0,0,30,0,Math.PI*2); ctx.stroke();
+      }
+      if (rawImgBody.complete && rawImgBody.naturalWidth > 0) {
         ctx.drawImage(imgBody, -this.width/2, -this.height/2, this.width, this.height);
         if (this.propellerTimer > 0) {
           ctx.save(); ctx.translate(0, -this.height/2 + 5); ctx.rotate(this.propAngle);
@@ -319,8 +347,11 @@
       this.broken = false; this.item = 0;
 
       if (this.type === 0) {
-        if (Math.random() < config.itemChance * 0.6) this.item = 1;
-        else if (Math.random() < config.itemChance * 0.4) this.item = 2;
+        const r=Math.random();
+        if(r<config.itemChance*.35)this.item=1;
+        else if(r<config.itemChance*.60)this.item=2;
+        else if(r<config.itemChance*.82)this.item=3;
+        else if(r<config.itemChance)this.item=4;
       }
     }
     update() {
@@ -341,11 +372,14 @@
         ctx.fillStyle = '#FF5722'; ctx.fillRect(this.x + this.width/2 - 8, this.y - 10, 16, 10);
         ctx.fillStyle = '#CCC'; ctx.fillRect(this.x + this.width/2 - 6, this.y - 8, 12, 8);
       } else if (this.item === 2) {
-        if (assetsLoaded === 2 && !useFallback) {
-          ctx.drawImage(imgProp, this.x + this.width/2 - 12, this.y - 20, 24, 24);
-        } else {
-          ctx.fillStyle = 'yellow'; ctx.beginPath(); ctx.arc(this.x + this.width/2, this.y - 10, 8, 0, Math.PI*2); ctx.fill();
-        }
+        ctx.drawImage(imgProp, this.x + this.width/2 - 12, this.y - 20, 24, 24);
+      } else if (this.item === 3) {
+        ctx.fillStyle='#FFD700'; ctx.beginPath();
+        ctx.arc(this.x+this.width/2,this.y-11,9,0,Math.PI*2); ctx.fill();
+        ctx.strokeStyle='#fff3a0'; ctx.lineWidth=2; ctx.stroke();
+      } else if (this.item === 4) {
+        ctx.fillStyle='rgba(80,180,255,.85)'; ctx.strokeStyle='#fff'; ctx.lineWidth=2;
+        ctx.beginPath(); ctx.arc(this.x+this.width/2,this.y-11,9,0,Math.PI*2); ctx.fill(); ctx.stroke();
       }
     }
   }
@@ -354,29 +388,18 @@
   function resize() { canvas.width = W; canvas.height = H; }
   window.addEventListener('resize', resize); resize();
 
-  // 昼→夕方→夜→宇宙 への背景グラデーション処理
   function getDynamicBgColor() {
     let r, g, b;
     if (score < 1000) {
-      // 昼(SkyBlue) -> 夕焼け(Orange)
       let p = score / 1000;
-      r = Math.round(135 + (255 - 135) * p);
-      g = Math.round(206 + (140 - 206) * p);
-      b = Math.round(235 + (0 - 235) * p);
+      r = Math.round(135 + (255 - 135) * p); g = Math.round(206 + (140 - 206) * p); b = Math.round(235 + (0 - 235) * p);
     } else if (score < 2000) {
-      // 夕焼け(Orange) -> 夜(DarkBlue)
       let p = (score - 1000) / 1000;
-      r = Math.round(255 + (25 - 255) * p);
-      g = Math.round(140 + (25 - 140) * p);
-      b = Math.round(0 + (112 - 0) * p);
+      r = Math.round(255 + (25 - 255) * p); g = Math.round(140 + (25 - 140) * p); b = Math.round(0 + (112 - 0) * p);
     } else if (score < 3000) {
-      // 夜(DarkBlue) -> 宇宙(Space Black)
       let p = (score - 2000) / 1000;
-      r = Math.round(25 + (5 - 25) * p);
-      g = Math.round(25 + (5 - 25) * p);
-      b = Math.round(112 + (30 - 112) * p);
+      r = Math.round(25 + (5 - 25) * p); g = Math.round(25 + (5 - 25) * p); b = Math.round(112 + (30 - 112) * p);
     } else {
-      // 宇宙
       r = 5; g = 5; b = 30;
     }
     return `rgb(${r},${g},${b})`;
@@ -385,14 +408,14 @@
   window.startGame = function(mode) {
     currentMode = mode; config = MODE_CONFIG[mode];
     document.getElementById('startScreen').classList.add('hidden');
-    document.getElementById('controlsHint').classList.remove('hidden');
-    setTimeout(() => document.getElementById('controlsHint').classList.add('hidden'), 4000);
+    padUI.classList.remove('hidden'); 
     initGame(); gameState = 'PLAYING';
   };
 
   window.retrySameMode = function() {
     document.getElementById('gameOverScreen').classList.add('hidden');
     document.getElementById('newRecordMsg').classList.add('hidden');
+    padUI.classList.remove('hidden');
     initGame(); gameState = 'PLAYING';
   };
 
@@ -400,6 +423,7 @@
     document.getElementById('gameOverScreen').classList.add('hidden');
     document.getElementById('newRecordMsg').classList.add('hidden');
     document.getElementById('startScreen').classList.remove('hidden');
+    padUI.classList.add('hidden'); 
     gameState = 'START';
     ctx.fillStyle = '#87CEEB'; ctx.fillRect(0, 0, W, H);
   };
@@ -407,9 +431,10 @@
   function initGame() {
     sfx.init();
     player = new Player(); platforms = [];
-    score = 0; propStock = config.initProp; 
+    score = 0; propStock = config.initProp; combo=0; maxCombo=0; coins=0; shield=0; fever=0; messageTimer=0; 
     scoreDisplay.innerText = `Score: 0`;
     stockDisplay.innerText = `Prop: ${propStock}`;
+    updateComboUI();
     highScoreDisplay.innerText = `High: ${highScores[currentMode]}`;
     
     for (let i = 0; i < 8; i++) {
@@ -429,23 +454,23 @@
       if (isFallingOn && isWithinX) {
         player.y = p.y - player.height;
         if (p.type === 2) {
-          p.broken = true; sfx.break();
-          createParticles(p.x + p.width/2, p.y + p.height/2, '#795548', 15);
-          return;
+          p.broken=true; sfx.break(); createParticles(p.x+p.width/2,p.y+p.height/2,'#795548',15);
+          combo=0; updateComboUI(); return;
         }
-        if (p.item === 1) {
-          player.jump(1.6);
-        } else if (p.item === 2) {
-          propStock++; stockDisplay.innerText = `Prop: ${propStock}`;
-          p.item = 0; player.jump(1);
-        } else {
-          player.jump(1);
-        }
+        combo++; maxCombo=Math.max(maxCombo,combo); updateComboUI(); addScore(10);
+        if(combo>=10 && fever<=0){ fever=180; showMessage('🔥 FEVER TIME! ×1.5'); }
+        if(p.item===1){ player.jump(1.6); addScore(20); showMessage('⚡ SUPER JUMP!'); }
+        else if(p.item===2){ propStock++; stockDisplay.innerText=`Prop: ${propStock}`; p.item=0; player.jump(1); showMessage('🚀 プロペラ +1'); }
+        else if(p.item===3){ coins++; p.item=0; addScore(100); showMessage(`🪙 COIN ×${coins}`); player.jump(1); }
+        else if(p.item===4){ shield=1; p.item=0; player.jump(1); showMessage('🛡 シールド GET!'); }
+        else player.jump(1);
       }
     }
   }
 
   function updateGame() {
+    if(fever>0) fever--;
+    if(messageTimer>0){ messageTimer--; if(messageTimer===0) document.getElementById('messageDisplay').classList.remove('show'); }
     player.update();
     if (player.y < H / 2) {
       let diff = (H / 2) - player.y;
@@ -464,16 +489,23 @@
     }
     handleCollisions();
     
-    if (player.y > H + 20) {
-      gameState = 'GAMEOVER'; sfx.fall(); endGame();
+    if(player.y>H+20){
+      if(shield>0){
+        shield=0; player.y=H-90; player.vy=-8; combo=0; updateComboUI();
+        showMessage('🛡 SAVE! もう一度！'); createParticles(player.x+player.width/2,H-30,'#55c8ff',25);
+      }else{ gameState='GAMEOVER'; sfx.fall(); padUI.classList.add('hidden'); endGame(); }
     }
   }
 
   function drawGame() {
-    ctx.fillStyle = getDynamicBgColor();
-    ctx.fillRect(0, 0, W, H);
+    ctx.fillStyle=getDynamicBgColor(); ctx.fillRect(0,0,W,H);
+    const ct=performance.now()*0.00002*(1+score*.0002);
+    ctx.globalAlpha=.18; ctx.fillStyle='#fff';
+    for(let i=0;i<7;i++){let x=((i*83+ct*120)%(W+100))-50,y=70+(i*97)%250;
+      ctx.beginPath();ctx.arc(x,y,18,0,Math.PI*2);ctx.arc(x+18,y-8,24,0,Math.PI*2);ctx.arc(x+42,y,17,0,Math.PI*2);ctx.fill();}
+    ctx.globalAlpha=1;
     
-    if (score > 1500) { // 夜に入ってから星を出し始める
+    if (score > 1500) { 
       let starDensity = Math.min((score - 1500) / 1500, 1) * 3;
       if(Math.random() < starDensity) {
         ctx.fillStyle = `rgba(255,255,255,${Math.random()})`; 
@@ -495,6 +527,7 @@
   function endGame() {
     document.getElementById('finalScore').innerText = score;
     document.getElementById('modeResultDisplay').innerText = `Mode: ${currentMode}`;
+    document.getElementById('resultStats').innerText=`Max Combo: ${maxCombo}　🪙 ${coins}`;
     
     if (score > highScores[currentMode]) {
       highScores[currentMode] = score; 
@@ -505,7 +538,7 @@
     document.getElementById('gameOverScreen').classList.remove('hidden');
   }
 
-  ctx.fillStyle = '#87CEEB'; ctx.fillRect(0, 0, W, H);
+  ctx.fillStyle='#87CEEB'; ctx.fillRect(0,0,W,H); ctx.drawImage(imgBody,W/2-35,H/2-35,70,70);
   loop();
 </script>
 </body>
